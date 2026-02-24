@@ -5,4 +5,4 @@ export const actionTypes = {
   REMOVE_TOAST: 'REMOVE_TOAST',
 } as const;
 
-export type ActionType = typeof actionTypes[keyof typeof actionTypes];
+export type ActionType = (typeof actionTypes)[keyof typeof actionTypes];
