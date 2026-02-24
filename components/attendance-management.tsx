@@ -31,7 +31,7 @@ export function AttendanceManagement() {
 
   const filtered = useMemo(() => {
     return records.filter((r) => {
-      const matchesSearch = r.officerName.toLowerCase().includes(search.toLowerCase()) || r.officerId.toLowerCase().includes(search.toLowerCase())
+      const matchesSearch = r.officerName.toLowerCase().includes(search.toLowerCase()) || r.officerId.toString().toLowerCase().includes(search.toLowerCase())
       const matchesStatus = statusFilter === "all" || r.status === statusFilter
       const matchesDate = !dateFilter || r.date === dateFilter
       return matchesSearch && matchesStatus && matchesDate
