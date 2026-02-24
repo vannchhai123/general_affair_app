@@ -1,7 +1,7 @@
-"use client"
+'use client';
 
-import { useAuth } from "@/lib/auth-context"
-import { cn } from "@/lib/utils"
+import { useAuth } from '@/lib/auth-context';
+import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
   Users,
@@ -13,38 +13,43 @@ import {
   Shield,
   ChevronLeft,
   ChevronRight,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-type Page = "dashboard" | "officers" | "missions" | "invitations" | "attendance" | "reports"
+type Page = 'dashboard' | 'officers' | 'missions' | 'invitations' | 'attendance' | 'reports';
 
 interface DashboardSidebarProps {
-  currentPage: Page
-  onNavigate: (page: Page) => void
-  collapsed: boolean
-  onToggleCollapse: () => void
+  currentPage: Page;
+  onNavigate: (page: Page) => void;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
 }
 
 const navItems = [
-  { id: "dashboard" as Page, label: "Dashboard", icon: LayoutDashboard },
-  { id: "officers" as Page, label: "Officers", icon: Users },
-  { id: "missions" as Page, label: "Missions", icon: Target },
-  { id: "invitations" as Page, label: "Invitations", icon: Mail },
-  { id: "attendance" as Page, label: "Attendance", icon: ClipboardCheck },
-  { id: "reports" as Page, label: "Reports", icon: FileBarChart },
-]
+  { id: 'dashboard' as Page, label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'officers' as Page, label: 'Officers', icon: Users },
+  { id: 'missions' as Page, label: 'Missions', icon: Target },
+  { id: 'invitations' as Page, label: 'Invitations', icon: Mail },
+  { id: 'attendance' as Page, label: 'Attendance', icon: ClipboardCheck },
+  { id: 'reports' as Page, label: 'Reports', icon: FileBarChart },
+];
 
-export function DashboardSidebar({ currentPage, onNavigate, collapsed, onToggleCollapse }: DashboardSidebarProps) {
-  const { user, logout } = useAuth()
+export function DashboardSidebar({
+  currentPage,
+  onNavigate,
+  collapsed,
+  onToggleCollapse,
+}: DashboardSidebarProps) {
+  const { user, logout } = useAuth();
 
   return (
     <TooltipProvider delayDuration={0}>
       <aside
         className={cn(
-          "flex h-screen flex-col border-r border-sidebar-border bg-sidebar transition-all duration-300",
-          collapsed ? "w-16" : "w-60"
+          'flex h-screen flex-col border-r border-sidebar-border bg-sidebar transition-all duration-300',
+          collapsed ? 'w-16' : 'w-60',
         )}
       >
         {/* Logo */}
@@ -53,41 +58,46 @@ export function DashboardSidebar({ currentPage, onNavigate, collapsed, onToggleC
             <Shield className="h-4 w-4 text-primary" />
           </div>
           {!collapsed && (
-            <span className="text-sm font-semibold text-sidebar-foreground truncate">Admin Panel</span>
+            <span className="text-sm font-semibold text-sidebar-foreground truncate">
+              Admin Panel
+            </span>
           )}
         </div>
 
         {/* Navigation */}
         <nav className="flex-1 flex flex-col gap-1 p-2 overflow-y-auto">
           {navItems.map((item) => {
-            const isActive = currentPage === item.id
+            const isActive = currentPage === item.id;
             const button = (
               <button
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  'flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
                   isActive
-                    ? "bg-sidebar-accent text-sidebar-primary"
-                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                    ? 'bg-sidebar-accent text-sidebar-primary'
+                    : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground',
                 )}
               >
-                <item.icon className={cn("h-4 w-4 shrink-0", isActive && "text-sidebar-primary")} />
+                <item.icon className={cn('h-4 w-4 shrink-0', isActive && 'text-sidebar-primary')} />
                 {!collapsed && <span className="truncate">{item.label}</span>}
               </button>
-            )
+            );
 
             if (collapsed) {
               return (
                 <Tooltip key={item.id}>
                   <TooltipTrigger asChild>{button}</TooltipTrigger>
-                  <TooltipContent side="right" className="bg-popover text-popover-foreground border-border">
+                  <TooltipContent
+                    side="right"
+                    className="bg-popover text-popover-foreground border-border"
+                  >
                     {item.label}
                   </TooltipContent>
                 </Tooltip>
-              )
+              );
             }
-            return button
+            return button;
           })}
         </nav>
 
@@ -117,7 +127,10 @@ export function DashboardSidebar({ currentPage, onNavigate, collapsed, onToggleC
                   <LogOut className="h-4 w-4" />
                 </button>
               </TooltipTrigger>
-              <TooltipContent side="right" className="bg-popover text-popover-foreground border-border">
+              <TooltipContent
+                side="right"
+                className="bg-popover text-popover-foreground border-border"
+              >
                 Sign Out ({user?.username})
               </TooltipContent>
             </Tooltip>
@@ -127,7 +140,9 @@ export function DashboardSidebar({ currentPage, onNavigate, collapsed, onToggleC
                 {user?.username?.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-sidebar-foreground truncate">{user?.username}</p>
+                <p className="text-sm font-medium text-sidebar-foreground truncate">
+                  {user?.username}
+                </p>
                 <p className="text-xs text-muted-foreground truncate">{user?.role}</p>
               </div>
               <button
@@ -142,5 +157,5 @@ export function DashboardSidebar({ currentPage, onNavigate, collapsed, onToggleC
         </div>
       </aside>
     </TooltipProvider>
-  )
+  );
 }

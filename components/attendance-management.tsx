@@ -1,13 +1,19 @@
-"use client"
+'use client';
 
-import { useState, useMemo } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useState, useMemo } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -15,70 +21,108 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Search, ClipboardCheck, Clock, UserCheck, UserX, Edit } from "lucide-react"
-import { type AttendanceRecord, initialAttendance, initialOfficers } from "@/lib/data"
-import { toast } from "sonner"
+} from '@/components/ui/table';
+import { Search, ClipboardCheck, Clock, UserCheck, UserX, Edit } from 'lucide-react';
+import { type AttendanceRecord, initialAttendance, initialOfficers } from '@/lib/data';
+import { toast } from 'sonner';
 
 export function AttendanceManagement() {
-  const [records, setRecords] = useState<AttendanceRecord[]>(initialAttendance)
-  const [search, setSearch] = useState("")
-  const [statusFilter, setStatusFilter] = useState<string>("all")
-  const [dateFilter, setDateFilter] = useState<string>("2026-02-24")
-  const [editDialogOpen, setEditDialogOpen] = useState(false)
-  const [editingRecord, setEditingRecord] = useState<AttendanceRecord | null>(null)
-  const [editForm, setEditForm] = useState({ checkIn: "", checkOut: "", status: "" as AttendanceRecord["status"] })
+  const [records, setRecords] = useState<AttendanceRecord[]>(initialAttendance);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [dateFilter, setDateFilter] = useState<string>('2026-02-24');
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<AttendanceRecord | null>(null);
+  const [editForm, setEditForm] = useState({
+    checkIn: '',
+    checkOut: '',
+    status: '' as AttendanceRecord['status'],
+  });
 
   const filtered = useMemo(() => {
     return records.filter((r) => {
-      const matchesSearch = r.officerName.toLowerCase().includes(search.toLowerCase()) || r.officerId.toString().toLowerCase().includes(search.toLowerCase())
-      const matchesStatus = statusFilter === "all" || r.status === statusFilter
-      const matchesDate = !dateFilter || r.date === dateFilter
-      return matchesSearch && matchesStatus && matchesDate
-    })
-  }, [records, search, statusFilter, dateFilter])
+      const matchesSearch =
+        r.officerName.toLowerCase().includes(search.toLowerCase()) ||
+        r.officerId.toString().toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = statusFilter === 'all' || r.status === statusFilter;
+      const matchesDate = !dateFilter || r.date === dateFilter;
+      return matchesSearch && matchesStatus && matchesDate;
+    });
+  }, [records, search, statusFilter, dateFilter]);
 
-  const todayRecords = useMemo(() => records.filter(r => r.date === dateFilter), [records, dateFilter])
-  const presentCount = todayRecords.filter(r => r.status === "present").length
-  const absentCount = todayRecords.filter(r => r.status === "absent").length
-  const lateCount = todayRecords.filter(r => r.status === "late").length
-  const avgHours = todayRecords.length > 0 ? (todayRecords.reduce((sum, r) => sum + r.hours, 0) / todayRecords.filter(r => r.hours > 0).length).toFixed(1) : "0"
+  const todayRecords = useMemo(
+    () => records.filter((r) => r.date === dateFilter),
+    [records, dateFilter],
+  );
+  const presentCount = todayRecords.filter((r) => r.status === 'present').length;
+  const absentCount = todayRecords.filter((r) => r.status === 'absent').length;
+  const lateCount = todayRecords.filter((r) => r.status === 'late').length;
+  const avgHours =
+    todayRecords.length > 0
+      ? (
+          todayRecords.reduce((sum, r) => sum + r.hours, 0) /
+          todayRecords.filter((r) => r.hours > 0).length
+        ).toFixed(1)
+      : '0';
 
   function openEdit(record: AttendanceRecord) {
-    setEditingRecord(record)
-    setEditForm({ checkIn: record.checkIn, checkOut: record.checkOut, status: record.status })
-    setEditDialogOpen(true)
+    setEditingRecord(record);
+    setEditForm({ checkIn: record.checkIn, checkOut: record.checkOut, status: record.status });
+    setEditDialogOpen(true);
   }
 
   function handleSaveEdit() {
-    if (!editingRecord) return
-    const hours = editForm.checkIn && editForm.checkOut
-      ? Math.round(((new Date(`2026-01-01T${editForm.checkOut}`).getTime() - new Date(`2026-01-01T${editForm.checkIn}`).getTime()) / 3600000) * 100) / 100
-      : 0
+    if (!editingRecord) return;
+    const hours =
+      editForm.checkIn && editForm.checkOut
+        ? Math.round(
+            ((new Date(`2026-01-01T${editForm.checkOut}`).getTime() -
+              new Date(`2026-01-01T${editForm.checkIn}`).getTime()) /
+              3600000) *
+              100,
+          ) / 100
+        : 0;
 
-    setRecords(prev =>
-      prev.map(r => r.id === editingRecord.id ? { ...r, checkIn: editForm.checkIn, checkOut: editForm.checkOut, status: editForm.status, hours: Math.max(0, hours) } : r)
-    )
-    toast.success("Attendance record updated")
-    setEditDialogOpen(false)
+    setRecords((prev) =>
+      prev.map((r) =>
+        r.id === editingRecord.id
+          ? {
+              ...r,
+              checkIn: editForm.checkIn,
+              checkOut: editForm.checkOut,
+              status: editForm.status,
+              hours: Math.max(0, hours),
+            }
+          : r,
+      ),
+    );
+    toast.success('Attendance record updated');
+    setEditDialogOpen(false);
   }
 
   const statusColor = (status: string) => {
     switch (status) {
-      case "present": return "bg-success/10 text-success border-success/20"
-      case "absent": return "bg-destructive/10 text-destructive border-destructive/20"
-      case "late": return "bg-warning/10 text-warning border-warning/20"
-      case "half-day": return "bg-primary/10 text-primary border-primary/20"
-      default: return ""
+      case 'present':
+        return 'bg-success/10 text-success border-success/20';
+      case 'absent':
+        return 'bg-destructive/10 text-destructive border-destructive/20';
+      case 'late':
+        return 'bg-warning/10 text-warning border-warning/20';
+      case 'half-day':
+        return 'bg-primary/10 text-primary border-primary/20';
+      default:
+        return '';
     }
-  }
+  };
 
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Attendance Management</h1>
-        <p className="text-muted-foreground text-sm mt-1">Track and manage officer attendance records</p>
+        <p className="text-muted-foreground text-sm mt-1">
+          Track and manage officer attendance records
+        </p>
       </div>
 
       {/* Stats */}
@@ -200,19 +244,34 @@ export function AttendanceManagement() {
             <TableBody>
               {filtered.map((record) => (
                 <TableRow key={record.id} className="border-border">
-                  <TableCell className="font-mono text-xs text-muted-foreground">{record.officerId}</TableCell>
-                  <TableCell className="font-medium text-card-foreground">{record.officerName}</TableCell>
+                  <TableCell className="font-mono text-xs text-muted-foreground">
+                    {record.officerId}
+                  </TableCell>
+                  <TableCell className="font-medium text-card-foreground">
+                    {record.officerName}
+                  </TableCell>
                   <TableCell className="text-card-foreground">{record.date}</TableCell>
-                  <TableCell className="font-mono text-sm text-card-foreground">{record.checkIn || "-"}</TableCell>
-                  <TableCell className="font-mono text-sm text-card-foreground">{record.checkOut || "-"}</TableCell>
-                  <TableCell className="text-card-foreground">{record.hours > 0 ? `${record.hours}h` : "-"}</TableCell>
+                  <TableCell className="font-mono text-sm text-card-foreground">
+                    {record.checkIn || '-'}
+                  </TableCell>
+                  <TableCell className="font-mono text-sm text-card-foreground">
+                    {record.checkOut || '-'}
+                  </TableCell>
+                  <TableCell className="text-card-foreground">
+                    {record.hours > 0 ? `${record.hours}h` : '-'}
+                  </TableCell>
                   <TableCell>
                     <Badge variant="outline" className={statusColor(record.status)}>
                       {record.status}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" onClick={() => openEdit(record)} className="text-muted-foreground hover:text-foreground">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => openEdit(record)}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
                       <Edit className="h-3.5 w-3.5" />
                       <span className="sr-only">Edit attendance for {record.officerName}</span>
                     </Button>
@@ -241,21 +300,38 @@ export function AttendanceManagement() {
             <div className="flex flex-col gap-4 py-4">
               <div className="flex flex-col gap-1">
                 <span className="text-xs text-muted-foreground">Officer</span>
-                <span className="text-sm font-medium text-card-foreground">{editingRecord.officerName} ({editingRecord.officerId})</span>
+                <span className="text-sm font-medium text-card-foreground">
+                  {editingRecord.officerName} ({editingRecord.officerId})
+                </span>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-2">
                   <Label className="text-foreground">Check In</Label>
-                  <Input type="time" value={editForm.checkIn} onChange={(e) => setEditForm({ ...editForm, checkIn: e.target.value })} className="bg-input border-border text-foreground" />
+                  <Input
+                    type="time"
+                    value={editForm.checkIn}
+                    onChange={(e) => setEditForm({ ...editForm, checkIn: e.target.value })}
+                    className="bg-input border-border text-foreground"
+                  />
                 </div>
                 <div className="flex flex-col gap-2">
                   <Label className="text-foreground">Check Out</Label>
-                  <Input type="time" value={editForm.checkOut} onChange={(e) => setEditForm({ ...editForm, checkOut: e.target.value })} className="bg-input border-border text-foreground" />
+                  <Input
+                    type="time"
+                    value={editForm.checkOut}
+                    onChange={(e) => setEditForm({ ...editForm, checkOut: e.target.value })}
+                    className="bg-input border-border text-foreground"
+                  />
                 </div>
               </div>
               <div className="flex flex-col gap-2">
                 <Label className="text-foreground">Status</Label>
-                <Select value={editForm.status} onValueChange={(v) => setEditForm({ ...editForm, status: v as AttendanceRecord["status"] })}>
+                <Select
+                  value={editForm.status}
+                  onValueChange={(v) =>
+                    setEditForm({ ...editForm, status: v as AttendanceRecord['status'] })
+                  }
+                >
                   <SelectTrigger className="bg-input border-border text-foreground">
                     <SelectValue />
                   </SelectTrigger>
@@ -268,7 +344,9 @@ export function AttendanceManagement() {
                 </Select>
               </div>
               <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+                <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+                  Cancel
+                </Button>
                 <Button onClick={handleSaveEdit}>Update</Button>
               </div>
             </div>
@@ -276,5 +354,5 @@ export function AttendanceManagement() {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }

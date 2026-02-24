@@ -1,31 +1,31 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { useAuth } from "@/lib/auth-context"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Shield, Eye, EyeOff, Loader2 } from "lucide-react"
+import { useState } from 'react';
+import { useAuth } from '@/lib/auth-context';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Shield, Eye, EyeOff, Loader2 } from 'lucide-react';
 
 export function LoginForm() {
-  const { login } = useAuth()
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
+  const { login } = useAuth();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError("")
-    setLoading(true)
+    e.preventDefault();
+    setError('');
+    setLoading(true);
 
-    const success = await login(username, password)
+    const success = await login(username, password);
     if (!success) {
-      setError("Invalid credentials. Please try again.")
+      setError('Invalid credentials. Please try again.');
     }
-    setLoading(false)
+    setLoading(false);
   }
 
   return (
@@ -37,7 +37,9 @@ export function LoginForm() {
           </div>
           <div className="text-center">
             <h1 className="text-2xl font-bold tracking-tight text-foreground">Admin Portal</h1>
-            <p className="text-sm text-muted-foreground mt-1">Officer & Attendance Management System</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Officer & Attendance Management System
+            </p>
           </div>
         </div>
 
@@ -49,7 +51,9 @@ export function LoginForm() {
           <CardContent>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                <Label htmlFor="username" className="text-foreground">Username</Label>
+                <Label htmlFor="username" className="text-foreground">
+                  Username
+                </Label>
                 <Input
                   id="username"
                   type="text"
@@ -61,11 +65,13 @@ export function LoginForm() {
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <Label htmlFor="password" className="text-foreground">Password</Label>
+                <Label htmlFor="password" className="text-foreground">
+                  Password
+                </Label>
                 <div className="relative">
                   <Input
                     id="password"
-                    type={showPassword ? "text" : "password"}
+                    type={showPassword ? 'text' : 'password'}
                     placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -76,7 +82,7 @@ export function LoginForm() {
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -96,7 +102,7 @@ export function LoginForm() {
                     Verifying...
                   </>
                 ) : (
-                  "Sign In"
+                  'Sign In'
                 )}
               </Button>
 
@@ -108,5 +114,5 @@ export function LoginForm() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
