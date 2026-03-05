@@ -1,12 +1,12 @@
-"use client"
+'use client';
 
-import useSWR from "swr"
-import { format } from "date-fns"
-import { Check, X, Calendar, Clock } from "lucide-react"
-import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import useSWR from 'swr';
+import { format } from 'date-fns';
+import { Check, X, Calendar, Clock } from 'lucide-react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -14,63 +14,78 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from '@/components/ui/table';
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json())
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 interface LeaveRequest {
-  id: number
-  officer_id: number
-  first_name: string
-  last_name: string
-  department: string
-  start_date: string
-  end_date: string
-  leave_type: string
-  total_days: number
-  reason: string
-  status: string
-  approver_name: string | null
+  id: number;
+  officer_id: number;
+  first_name: string;
+  last_name: string;
+  department: string;
+  start_date: string;
+  end_date: string;
+  leave_type: string;
+  total_days: number;
+  reason: string;
+  status: string;
+  approver_name: string | null;
 }
 
 function statusBadge(status: string) {
   switch (status) {
-    case "Approved":
-      return <Badge className="bg-emerald-100 text-emerald-700 border-0">Approved</Badge>
-    case "Pending":
-      return <Badge className="bg-amber-100 text-amber-700 border-0">Pending</Badge>
-    case "Rejected":
-      return <Badge className="bg-red-100 text-red-700 border-0">Rejected</Badge>
+    case 'Approved':
+      return <Badge className="bg-emerald-100 text-emerald-700 border-0">Approved</Badge>;
+    case 'Pending':
+      return <Badge className="bg-amber-100 text-amber-700 border-0">Pending</Badge>;
+    case 'Rejected':
+      return <Badge className="bg-red-100 text-red-700 border-0">Rejected</Badge>;
     default:
-      return <Badge variant="secondary">{status}</Badge>
+      return <Badge variant="secondary">{status}</Badge>;
   }
 }
 
 function typeBadge(type: string) {
   switch (type) {
-    case "Annual Leave":
-      return <Badge variant="outline" className="border-blue-300 text-blue-600">Annual</Badge>
-    case "Sick Leave":
-      return <Badge variant="outline" className="border-amber-300 text-amber-600">Sick</Badge>
-    case "Personal Leave":
-      return <Badge variant="outline" className="border-indigo-300 text-indigo-600">Personal</Badge>
+    case 'Annual Leave':
+      return (
+        <Badge variant="outline" className="border-blue-300 text-blue-600">
+          Annual
+        </Badge>
+      );
+    case 'Sick Leave':
+      return (
+        <Badge variant="outline" className="border-amber-300 text-amber-600">
+          Sick
+        </Badge>
+      );
+    case 'Personal Leave':
+      return (
+        <Badge variant="outline" className="border-indigo-300 text-indigo-600">
+          Personal
+        </Badge>
+      );
     default:
-      return <Badge variant="outline">{type}</Badge>
+      return <Badge variant="outline">{type}</Badge>;
   }
 }
 
 export default function LeaveRequestsPage() {
-  const { data: leaves, mutate } = useSWR<LeaveRequest[]>("/api/leave-requests", fetcher)
+  const { data: leaves, mutate } = useSWR<LeaveRequest[]>('/api/leave-requests', fetcher);
 
   async function updateStatus(id: number, status: string) {
     const res = await fetch(`/api/leave-requests/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
-    })
-    if (!res.ok) { toast.error("Update failed"); return }
-    toast.success(`Leave request ${status.toLowerCase()}`)
-    mutate()
+    });
+    if (!res.ok) {
+      toast.error('Update failed');
+      return;
+    }
+    toast.success(`Leave request ${status.toLowerCase()}`);
+    mutate();
   }
 
   return (
@@ -83,7 +98,7 @@ export default function LeaveRequestsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">All Leave Requests</CardTitle>
-          <CardDescription>{leaves ? `${leaves.length} requests` : "Loading..."}</CardDescription>
+          <CardDescription>{leaves ? `${leaves.length} requests` : 'Loading...'}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="rounded-lg border">
@@ -104,7 +119,9 @@ export default function LeaveRequestsPage() {
                   <TableRow key={leave.id}>
                     <TableCell>
                       <div>
-                        <p className="font-medium text-sm">{leave.first_name} {leave.last_name}</p>
+                        <p className="font-medium text-sm">
+                          {leave.first_name} {leave.last_name}
+                        </p>
                         <p className="text-xs text-muted-foreground">{leave.department}</p>
                       </div>
                     </TableCell>
@@ -112,7 +129,10 @@ export default function LeaveRequestsPage() {
                     <TableCell>
                       <div className="flex items-center gap-1.5 text-sm">
                         <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                        {leave.start_date ? format(new Date(leave.start_date), "MMM d") : "?"} - {leave.end_date ? format(new Date(leave.end_date), "MMM d") : "?"}
+                        {leave.start_date
+                          ? format(new Date(leave.start_date), 'MMM d')
+                          : '?'} -{' '}
+                        {leave.end_date ? format(new Date(leave.end_date), 'MMM d') : '?'}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -121,21 +141,35 @@ export default function LeaveRequestsPage() {
                         {leave.total_days}d
                       </div>
                     </TableCell>
-                    <TableCell className="max-w-[200px] truncate text-sm">{leave.reason || "-"}</TableCell>
+                    <TableCell className="max-w-[200px] truncate text-sm">
+                      {leave.reason || '-'}
+                    </TableCell>
                     <TableCell>{statusBadge(leave.status)}</TableCell>
                     <TableCell>
-                      {leave.status === "Pending" ? (
+                      {leave.status === 'Pending' ? (
                         <div className="flex items-center gap-1">
-                          <Button size="icon" variant="ghost" className="h-7 w-7 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50" onClick={() => updateStatus(leave.id, "Approved")} title="Approve">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                            onClick={() => updateStatus(leave.id, 'Approved')}
+                            title="Approve"
+                          >
                             <Check className="h-4 w-4" />
                           </Button>
-                          <Button size="icon" variant="ghost" className="h-7 w-7 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => updateStatus(leave.id, "Rejected")} title="Reject">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => updateStatus(leave.id, 'Rejected')}
+                            title="Reject"
+                          >
                             <X className="h-4 w-4" />
                           </Button>
                         </div>
                       ) : (
                         <span className="text-xs text-muted-foreground">
-                          {leave.approver_name ? `By ${leave.approver_name}` : "-"}
+                          {leave.approver_name ? `By ${leave.approver_name}` : '-'}
                         </span>
                       )}
                     </TableCell>
@@ -143,7 +177,9 @@ export default function LeaveRequestsPage() {
                 ))}
                 {leaves?.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground py-12">No leave requests found</TableCell>
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-12">
+                      No leave requests found
+                    </TableCell>
                   </TableRow>
                 )}
               </TableBody>
@@ -152,5 +188,5 @@ export default function LeaveRequestsPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

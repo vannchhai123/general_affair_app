@@ -1,7 +1,7 @@
-"use client"
+'use client';
 
-import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   Users,
@@ -14,7 +14,7 @@ import {
   LogOut,
   Shield,
   ChevronDown,
-} from "lucide-react"
+} from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -27,53 +27,51 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/sidebar';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 const mainNav = [
-  { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { title: "Officers", href: "/dashboard/officers", icon: Users },
-  { title: "Attendance", href: "/dashboard/attendance", icon: ClipboardCheck },
-  { title: "Invitations", href: "/dashboard/invitations", icon: Mail },
-]
+  { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { title: 'Officers', href: '/dashboard/officers', icon: Users },
+  { title: 'Attendance', href: '/dashboard/attendance', icon: ClipboardCheck },
+  { title: 'Invitations', href: '/dashboard/invitations', icon: Mail },
+];
 
 const managementNav = [
-  { title: "Missions", href: "/dashboard/missions", icon: Target },
-  { title: "Leave Requests", href: "/dashboard/leave-requests", icon: CalendarOff },
-  { title: "Shifts", href: "/dashboard/shifts", icon: Clock },
-]
+  { title: 'Missions', href: '/dashboard/missions', icon: Target },
+  { title: 'Leave Requests', href: '/dashboard/leave-requests', icon: CalendarOff },
+  { title: 'Shifts', href: '/dashboard/shifts', icon: Clock },
+];
 
-const systemNav = [
-  { title: "Reports", href: "/dashboard/reports", icon: FileBarChart },
-]
+const systemNav = [{ title: 'Reports', href: '/dashboard/reports', icon: FileBarChart }];
 
 interface AppSidebarProps {
   user: {
-    full_name: string
-    role_name: string
-  }
+    full_name: string;
+    role_name: string;
+  };
 }
 
 export function AppSidebar({ user }: AppSidebarProps) {
-  const pathname = usePathname()
-  const router = useRouter()
+  const pathname = usePathname();
+  const router = useRouter();
 
   async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" })
-    router.push("/")
+    await fetch('/api/auth/logout', { method: 'POST' });
+    router.push('/');
   }
 
   const initials = user.full_name
-    .split(" ")
+    .split(' ')
     .map((n) => n[0])
-    .join("")
-    .toUpperCase()
+    .join('')
+    .toUpperCase();
 
   return (
     <Sidebar collapsible="icon">
@@ -102,11 +100,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
             <SidebarMenu>
               {mainNav.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname === item.href}
-                    tooltip={item.title}
-                  >
+                  <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.title}>
                     <Link href={item.href}>
                       <item.icon />
                       <span>{item.title}</span>
@@ -123,11 +117,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
             <SidebarMenu>
               {managementNav.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname === item.href}
-                    tooltip={item.title}
-                  >
+                  <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.title}>
                     <Link href={item.href}>
                       <item.icon />
                       <span>{item.title}</span>
@@ -144,11 +134,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
             <SidebarMenu>
               {systemNav.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname === item.href}
-                    tooltip={item.title}
-                  >
+                  <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.title}>
                     <Link href={item.href}>
                       <item.icon />
                       <span>{item.title}</span>
@@ -179,7 +165,10 @@ export function AppSidebar({ user }: AppSidebarProps) {
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" align="start" className="w-56">
-                <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="text-destructive focus:text-destructive"
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   Sign Out
                 </DropdownMenuItem>
@@ -189,5 +178,5 @@ export function AppSidebar({ user }: AppSidebarProps) {
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

@@ -1,9 +1,9 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -11,70 +11,70 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from '@/components/ui/select';
 
 export interface OfficerFormData {
-  first_name: string
-  last_name: string
-  email: string
-  position: string
-  department: string
-  phone: string
-  status: string
+  first_name: string;
+  last_name: string;
+  email: string;
+  position: string;
+  department: string;
+  phone: string;
+  status: string;
 }
 
 interface OfficerDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  officer?: OfficerFormData & { id: number }
-  onSubmit: (data: OfficerFormData) => Promise<void>
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  officer?: OfficerFormData & { id: number };
+  onSubmit: (data: OfficerFormData) => Promise<void>;
 }
 
 const emptyForm: OfficerFormData = {
-  first_name: "",
-  last_name: "",
-  email: "",
-  position: "",
-  department: "",
-  phone: "",
-  status: "active",
-}
+  first_name: '',
+  last_name: '',
+  email: '',
+  position: '',
+  department: '',
+  phone: '',
+  status: 'active',
+};
 
 export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: OfficerDialogProps) {
-  const [form, setForm] = useState<OfficerFormData>(emptyForm)
-  const [loading, setLoading] = useState(false)
+  const [form, setForm] = useState<OfficerFormData>(emptyForm);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (officer) {
       setForm({
-        first_name: officer.first_name || "",
-        last_name: officer.last_name || "",
-        email: officer.email || "",
-        position: officer.position || "",
-        department: officer.department || "",
-        phone: officer.phone || "",
-        status: officer.status || "active",
-      })
+        first_name: officer.first_name || '',
+        last_name: officer.last_name || '',
+        email: officer.email || '',
+        position: officer.position || '',
+        department: officer.department || '',
+        phone: officer.phone || '',
+        status: officer.status || 'active',
+      });
     } else {
-      setForm(emptyForm)
+      setForm(emptyForm);
     }
-  }, [officer, open])
+  }, [officer, open]);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
     try {
-      await onSubmit(form)
-      onOpenChange(false)
+      await onSubmit(form);
+      onOpenChange(false);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -82,9 +82,9 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{officer ? "Edit Officer" : "Add New Officer"}</DialogTitle>
+          <DialogTitle>{officer ? 'Edit Officer' : 'Add New Officer'}</DialogTitle>
           <DialogDescription>
-            {officer ? "Update officer information" : "Fill in the details to add a new officer"}
+            {officer ? 'Update officer information' : 'Fill in the details to add a new officer'}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -120,7 +120,10 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <Label htmlFor="position">Position</Label>
-              <Select value={form.position} onValueChange={(v) => setForm({ ...form, position: v })}>
+              <Select
+                value={form.position}
+                onValueChange={(v) => setForm({ ...form, position: v })}
+              >
                 <SelectTrigger id="position">
                   <SelectValue placeholder="Select position" />
                 </SelectTrigger>
@@ -133,7 +136,10 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="department">Department</Label>
-              <Select value={form.department} onValueChange={(v) => setForm({ ...form, department: v })}>
+              <Select
+                value={form.department}
+                onValueChange={(v) => setForm({ ...form, department: v })}
+              >
                 <SelectTrigger id="department">
                   <SelectValue placeholder="Select department" />
                 </SelectTrigger>
@@ -173,11 +179,11 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : officer ? "Update" : "Create"}
+              {loading ? 'Saving...' : officer ? 'Update' : 'Create'}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
