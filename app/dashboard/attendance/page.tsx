@@ -1,12 +1,12 @@
-"use client"
+'use client';
 
-import useSWR from "swr"
-import { format } from "date-fns"
-import { Check, X, Clock } from "lucide-react"
-import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import useSWR from 'swr';
+import { format } from 'date-fns';
+import { Check, X, Clock } from 'lucide-react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -14,71 +14,82 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from '@/components/ui/table';
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json())
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 interface AttendanceRecord {
-  id: number
-  officer_id: number
-  date: string
-  total_work_minutes: number
-  total_late_minutes: number
-  status: string
-  first_name: string
-  last_name: string
-  department: string
+  id: number;
+  officer_id: number;
+  date: string;
+  total_work_minutes: number;
+  total_late_minutes: number;
+  status: string;
+  first_name: string;
+  last_name: string;
+  department: string;
   sessions: Array<{
-    id: number
-    shift_name: string
-    check_in: string
-    check_out: string
-    status: string
-  }> | null
+    id: number;
+    shift_name: string;
+    check_in: string;
+    check_out: string;
+    status: string;
+  }> | null;
 }
 
 function statusBadge(status: string) {
   switch (status) {
-    case "APPROVED":
-      return <Badge className="bg-emerald-100 text-emerald-700 border-0">Approved</Badge>
-    case "PENDING":
-      return <Badge className="bg-amber-100 text-amber-700 border-0">Pending</Badge>
-    case "ABSENT":
-      return <Badge className="bg-red-100 text-red-700 border-0">Absent</Badge>
+    case 'APPROVED':
+      return <Badge className="bg-emerald-100 text-emerald-700 border-0">Approved</Badge>;
+    case 'PENDING':
+      return <Badge className="bg-amber-100 text-amber-700 border-0">Pending</Badge>;
+    case 'ABSENT':
+      return <Badge className="bg-red-100 text-red-700 border-0">Absent</Badge>;
     default:
-      return <Badge variant="secondary">{status}</Badge>
+      return <Badge variant="secondary">{status}</Badge>;
   }
 }
 
 function sessionBadge(status: string) {
   switch (status) {
-    case "PRESENT":
-      return <Badge variant="outline" className="text-emerald-600 border-emerald-300">Present</Badge>
-    case "LATE":
-      return <Badge variant="outline" className="text-amber-600 border-amber-300">Late</Badge>
+    case 'PRESENT':
+      return (
+        <Badge variant="outline" className="text-emerald-600 border-emerald-300">
+          Present
+        </Badge>
+      );
+    case 'LATE':
+      return (
+        <Badge variant="outline" className="text-amber-600 border-amber-300">
+          Late
+        </Badge>
+      );
     default:
-      return <Badge variant="outline">{status}</Badge>
+      return <Badge variant="outline">{status}</Badge>;
   }
 }
 
 function formatMinutes(mins: number) {
-  const h = Math.floor(mins / 60)
-  const m = mins % 60
-  return `${h}h ${m}m`
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return `${h}h ${m}m`;
 }
 
 export default function AttendancePage() {
-  const { data: attendance, mutate } = useSWR<AttendanceRecord[]>("/api/attendance", fetcher)
+  const { data: attendance, mutate } = useSWR<AttendanceRecord[]>('/api/attendance', fetcher);
 
   async function updateStatus(id: number, status: string) {
     const res = await fetch(`/api/attendance/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
-    })
-    if (!res.ok) { toast.error("Update failed"); return }
-    toast.success(`Attendance ${status.toLowerCase()}`)
-    mutate()
+    });
+    if (!res.ok) {
+      toast.error('Update failed');
+      return;
+    }
+    toast.success(`Attendance ${status.toLowerCase()}`);
+    mutate();
   }
 
   return (
@@ -92,7 +103,7 @@ export default function AttendancePage() {
         <CardHeader>
           <CardTitle className="text-base">Attendance Records</CardTitle>
           <CardDescription>
-            {attendance ? `${attendance.length} records` : "Loading..."}
+            {attendance ? `${attendance.length} records` : 'Loading...'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -117,13 +128,15 @@ export default function AttendancePage() {
                       {record.first_name} {record.last_name}
                     </TableCell>
                     <TableCell>
-                      {record.date ? format(new Date(record.date), "MMM d, yyyy") : "-"}
+                      {record.date ? format(new Date(record.date), 'MMM d, yyyy') : '-'}
                     </TableCell>
                     <TableCell>{record.department}</TableCell>
                     <TableCell>{formatMinutes(record.total_work_minutes)}</TableCell>
                     <TableCell>
                       {record.total_late_minutes > 0 ? (
-                        <span className="text-amber-600 font-medium">{record.total_late_minutes}m</span>
+                        <span className="text-amber-600 font-medium">
+                          {record.total_late_minutes}m
+                        </span>
                       ) : (
                         <span className="text-muted-foreground">0m</span>
                       )}
@@ -133,22 +146,20 @@ export default function AttendancePage() {
                         {record.sessions?.map((s) => (
                           <div key={s.id} className="flex items-center gap-1">
                             {sessionBadge(s.status)}
-                            <span className="text-xs text-muted-foreground">
-                              {s.shift_name}
-                            </span>
+                            <span className="text-xs text-muted-foreground">{s.shift_name}</span>
                           </div>
                         )) || <span className="text-xs text-muted-foreground">No sessions</span>}
                       </div>
                     </TableCell>
                     <TableCell>{statusBadge(record.status)}</TableCell>
                     <TableCell>
-                      {record.status === "PENDING" && (
+                      {record.status === 'PENDING' && (
                         <div className="flex items-center gap-1">
                           <Button
                             size="icon"
                             variant="ghost"
                             className="h-7 w-7 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
-                            onClick={() => updateStatus(record.id, "APPROVED")}
+                            onClick={() => updateStatus(record.id, 'APPROVED')}
                             title="Approve"
                           >
                             <Check className="h-4 w-4" />
@@ -157,19 +168,19 @@ export default function AttendancePage() {
                             size="icon"
                             variant="ghost"
                             className="h-7 w-7 text-red-600 hover:text-red-700 hover:bg-red-50"
-                            onClick={() => updateStatus(record.id, "ABSENT")}
+                            onClick={() => updateStatus(record.id, 'ABSENT')}
                             title="Mark Absent"
                           >
                             <X className="h-4 w-4" />
                           </Button>
                         </div>
                       )}
-                      {record.status !== "PENDING" && (
+                      {record.status !== 'PENDING' && (
                         <Button
                           size="icon"
                           variant="ghost"
                           className="h-7 w-7 text-muted-foreground"
-                          onClick={() => updateStatus(record.id, "PENDING")}
+                          onClick={() => updateStatus(record.id, 'PENDING')}
                           title="Reset to Pending"
                         >
                           <Clock className="h-4 w-4" />
@@ -191,5 +202,5 @@ export default function AttendancePage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

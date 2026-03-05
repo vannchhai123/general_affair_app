@@ -1,6 +1,6 @@
-"use client"
+'use client';
 
-import useSWR from "swr"
+import useSWR from 'swr';
 import {
   Users,
   ClipboardCheck,
@@ -10,9 +10,9 @@ import {
   Clock,
   TrendingUp,
   AlertCircle,
-} from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+} from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import {
   Table,
   TableBody,
@@ -20,10 +20,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Skeleton } from "@/components/ui/skeleton"
+} from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json())
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 function StatCard({
   title,
@@ -31,10 +31,10 @@ function StatCard({
   description,
   icon: Icon,
 }: {
-  title: string
-  value: string | number
-  description: string
-  icon: React.ElementType
+  title: string;
+  value: string | number;
+  description: string;
+  icon: React.ElementType;
 }) {
   return (
     <Card>
@@ -47,7 +47,7 @@ function StatCard({
         <p className="text-xs text-muted-foreground mt-1">{description}</p>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function StatsLoading() {
@@ -66,26 +66,26 @@ function StatsLoading() {
         </Card>
       ))}
     </div>
-  )
+  );
 }
 
 function statusBadge(status: string) {
   switch (status) {
-    case "APPROVED":
-      return <Badge className="bg-emerald-100 text-emerald-700 border-0">Approved</Badge>
-    case "PENDING":
-      return <Badge className="bg-amber-100 text-amber-700 border-0">Pending</Badge>
-    case "ABSENT":
-      return <Badge className="bg-red-100 text-red-700 border-0">Absent</Badge>
+    case 'APPROVED':
+      return <Badge className="bg-emerald-100 text-emerald-700 border-0">Approved</Badge>;
+    case 'PENDING':
+      return <Badge className="bg-amber-100 text-amber-700 border-0">Pending</Badge>;
+    case 'ABSENT':
+      return <Badge className="bg-red-100 text-red-700 border-0">Absent</Badge>;
     default:
-      return <Badge variant="secondary">{status}</Badge>
+      return <Badge variant="secondary">{status}</Badge>;
   }
 }
 
 export default function DashboardPage() {
-  const { data, isLoading } = useSWR("/api/dashboard", fetcher, {
+  const { data, isLoading } = useSWR('/api/dashboard', fetcher, {
     refreshInterval: 30000,
-  })
+  });
 
   if (isLoading || !data) {
     return (
@@ -96,7 +96,7 @@ export default function DashboardPage() {
         </div>
         <StatsLoading />
       </div>
-    )
+    );
   }
 
   return (
@@ -157,12 +157,12 @@ export default function DashboardPage() {
               <TableBody>
                 {data.recentAttendance?.map(
                   (record: {
-                    id: number
-                    first_name: string
-                    last_name: string
-                    department: string
-                    total_work_minutes: number
-                    status: string
+                    id: number;
+                    first_name: string;
+                    last_name: string;
+                    department: string;
+                    total_work_minutes: number;
+                    status: string;
                   }) => (
                     <TableRow key={record.id}>
                       <TableCell className="font-medium">
@@ -172,7 +172,7 @@ export default function DashboardPage() {
                       <TableCell>{record.total_work_minutes}</TableCell>
                       <TableCell>{statusBadge(record.status)}</TableCell>
                     </TableRow>
-                  )
+                  ),
                 )}
                 {(!data.recentAttendance || data.recentAttendance.length === 0) && (
                   <TableRow>
@@ -251,5 +251,5 @@ export default function DashboardPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

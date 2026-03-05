@@ -1,45 +1,45 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Shield, Eye, EyeOff, LogIn } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Shield, Eye, EyeOff, LogIn } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
+  const router = useRouter();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError("")
-    setLoading(true)
+    e.preventDefault();
+    setError('');
+    setLoading(true);
 
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
-      })
+      });
 
-      const data = await res.json()
+      const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Login failed")
-        return
+        setError(data.error || 'Login failed');
+        return;
       }
 
-      router.push("/dashboard")
+      router.push('/dashboard');
     } catch {
-      setError("Something went wrong. Please try again.")
+      setError('Something went wrong. Please try again.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -54,18 +54,14 @@ export default function LoginPage() {
             <h1 className="text-2xl font-bold tracking-tight text-foreground text-balance">
               Officer Management System
             </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Sign in to access the admin panel
-            </p>
+            <p className="mt-1 text-sm text-muted-foreground">Sign in to access the admin panel</p>
           </div>
         </div>
 
         <Card className="w-full">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg">Sign In</CardTitle>
-            <CardDescription>
-              Enter your credentials to continue
-            </CardDescription>
+            <CardDescription>Enter your credentials to continue</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -93,7 +89,7 @@ export default function LoginPage() {
                 <div className="relative">
                   <Input
                     id="password"
-                    type={showPassword ? "text" : "password"}
+                    type={showPassword ? 'text' : 'password'}
                     placeholder="Enter password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -105,13 +101,9 @@ export default function LoginPage() {
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
@@ -133,8 +125,26 @@ export default function LoginPage() {
               <div className="mt-2 rounded-lg bg-muted px-4 py-3">
                 <p className="text-xs font-medium text-muted-foreground">Demo Credentials</p>
                 <div className="mt-1.5 flex flex-col gap-1 text-xs text-muted-foreground">
-                  <span>Admin: <code className="rounded bg-background px-1 py-0.5 font-mono text-foreground">admin</code> / <code className="rounded bg-background px-1 py-0.5 font-mono text-foreground">admin123</code></span>
-                  <span>Manager: <code className="rounded bg-background px-1 py-0.5 font-mono text-foreground">manager1</code> / <code className="rounded bg-background px-1 py-0.5 font-mono text-foreground">manager123</code></span>
+                  <span>
+                    Admin:{' '}
+                    <code className="rounded bg-background px-1 py-0.5 font-mono text-foreground">
+                      admin
+                    </code>{' '}
+                    /{' '}
+                    <code className="rounded bg-background px-1 py-0.5 font-mono text-foreground">
+                      admin123
+                    </code>
+                  </span>
+                  <span>
+                    Manager:{' '}
+                    <code className="rounded bg-background px-1 py-0.5 font-mono text-foreground">
+                      manager1
+                    </code>{' '}
+                    /{' '}
+                    <code className="rounded bg-background px-1 py-0.5 font-mono text-foreground">
+                      manager123
+                    </code>
+                  </span>
                 </div>
               </div>
             </form>
@@ -142,5 +152,5 @@ export default function LoginPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

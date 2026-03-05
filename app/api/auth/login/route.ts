@@ -1,26 +1,20 @@
-import { NextResponse } from "next/server"
-import { users } from "@/lib/mock-data"
+import { NextResponse } from 'next/server';
+import { users } from '@/lib/mock-data';
 
 export async function POST(request: Request) {
   try {
-    const { username, password } = await request.json()
+    const { username, password } = await request.json();
 
     if (!username || !password) {
-      return NextResponse.json(
-        { error: "Username and password are required" },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Username and password are required' }, { status: 400 });
     }
 
     const user = users.find(
-      (u) => u.username === username && u.password === password && u.status === "active"
-    )
+      (u) => u.username === username && u.password === password && u.status === 'active',
+    );
 
     if (!user) {
-      return NextResponse.json(
-        { error: "Invalid username or password" },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Invalid username or password' }, { status: 401 });
     }
 
     const sessionData = Buffer.from(
@@ -30,8 +24,8 @@ export async function POST(request: Request) {
         full_name: user.full_name,
         role_id: user.role_id,
         role_name: user.role_name,
-      })
-    ).toString("base64")
+      }),
+    ).toString('base64');
 
     const response = NextResponse.json({
       success: true,
@@ -41,22 +35,19 @@ export async function POST(request: Request) {
         full_name: user.full_name,
         role_name: user.role_name,
       },
-    })
+    });
 
-    response.cookies.set("session", sessionData, {
+    response.cookies.set('session', sessionData, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
       maxAge: 60 * 60 * 24,
-      path: "/",
-    })
+      path: '/',
+    });
 
-    return response
+    return response;
   } catch (error) {
-    console.error("Login error:", error)
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    )
+    console.error('Login error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

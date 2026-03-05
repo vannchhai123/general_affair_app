@@ -1,19 +1,15 @@
-import { redirect } from "next/navigation"
-import { getSession } from "@/lib/auth"
-import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
-import { AppSidebar } from "@/components/app-sidebar"
-import { Separator } from "@/components/ui/separator"
-import { Toaster } from "@/components/ui/sonner"
+import { redirect } from 'next/navigation';
+import { getSession } from '@/lib/auth';
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import { AppSidebar } from '@/components/app-sidebar';
+import { Separator } from '@/components/ui/separator';
+import { Toaster } from '@/components/ui/sonner';
 
-export default async function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  const session = await getSession()
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const session = await getSession();
 
   if (!session) {
-    redirect("/")
+    redirect('/');
   }
 
   return (
@@ -36,5 +32,5 @@ export default async function DashboardLayout({
         <Toaster richColors />
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }
