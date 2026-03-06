@@ -27,16 +27,26 @@ export default function LoginPage() {
       const response = await apiFetch('/auth/login', {
         method: 'POST',
         body: JSON.stringify({ username, password }),
-      })
+      });
 
-      const data = await res.json()
-
-      if (!res.ok) {
-        setError(data.error || "Login failed")
-        return
+      if (!response.ok) {
+        const data = await response.json();
+        setError(data.message || 'Login failed');
+        return;
       }
 
-      router.push("/dashboard")
+      const data = await response.json();
+
+      setTokens(data.accessToken, data.refreshToken);
+      await createUserSession({
+        id: 0,
+        username: username,
+        full_name: data.data.fullName,
+        role_id: 0,
+        role_name: data.data.role,
+      });
+
+      router.push('/dashboard');
     } catch {
       setError('Something went wrong. Please try again.');
     } finally {
