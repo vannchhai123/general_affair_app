@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { apiFetch, setTokens } from '@/lib/client';
+import { createUserSession } from '@/lib/actions/auth';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -37,6 +38,13 @@ export default function LoginPage() {
       const data = await response.json();
 
       setTokens(data.accessToken, data.refreshToken);
+      await createUserSession({
+        id: 0,
+        username: username,
+        full_name: data.data.fullName,
+        role_id: 0,
+        role_name: data.data.role,
+      });
 
       router.push('/dashboard');
     } catch {
