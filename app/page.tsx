@@ -36,7 +36,6 @@ export default function LoginPage() {
       }
 
       const data = await response.json();
-
       setTokens(data.accessToken, data.refreshToken);
       await createUserSession({
         id: 0,
