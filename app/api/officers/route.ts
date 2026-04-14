@@ -7,6 +7,8 @@ export async function GET(request: Request) {
     const search = (searchParams.get('search') || '').toLowerCase();
     const department = searchParams.get('department') || '';
     const status = searchParams.get('status') || '';
+    const page = parseInt(searchParams.get('page') || '1');
+    const pageSize = parseInt(searchParams.get('pageSize') || '10');
 
     let filtered = [...officers];
 
@@ -25,7 +27,12 @@ export async function GET(request: Request) {
       filtered = filtered.filter((o) => o.status === status);
     }
 
-    return NextResponse.json(filtered);
+    const total = filtered.length;
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    const paginated = filtered.slice(start, end);
+
+    return NextResponse.json({ data: paginated, total });
   } catch (error) {
     console.error('Officers fetch error:', error);
     return NextResponse.json({ error: 'Failed to fetch officers' }, { status: 500 });
@@ -35,7 +42,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { first_name, last_name, email, position, department, phone, status } = body;
+    const { first_name, last_name, email, position, department, phone, status, code } = body;
 
     if (!first_name || !last_name) {
       return NextResponse.json({ error: 'First and last name required' }, { status: 400 });
@@ -51,6 +58,7 @@ export async function POST(request: Request) {
       department: department || '',
       phone: phone || '',
       status: status || 'active',
+      code: code || '',
     };
 
     officers.push(newOfficer);

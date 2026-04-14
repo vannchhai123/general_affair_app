@@ -1,34 +1,22 @@
 'use client';
 
 import { useState } from 'react';
-import useSWR from 'swr';
-import { Plus, Search, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
+import {
+  Plus,
+  Users,
+  SlidersHorizontal,
+  ChevronLeft,
+  ChevronRight,
+  UserCheck,
+  UserMinus,
+  Clock,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { useOfficers } from '@/hooks/useOfficers';
+import { useCreateOfficer, useUpdateOfficer, useDeleteOfficer } from '@/lib/hooks/use-api';
+import { OfficerFilters } from '@/components/offficers/officer-filters';
+import { OfficersTable } from '@/components/offficers/officers-table';
+import { OfficerDialog, type OfficerFormData } from '@/components/officer-dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,255 +27,261 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { OfficerDialog, type OfficerFormData } from '@/components/officer-dialog';
+import { Skeleton } from '@/components/ui/skeleton';
+import type { Officer } from '@/lib/mock-data';
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+function SummaryCards({
+  officers,
+  total,
+  isLoading,
+}: {
+  officers?: Officer[];
+  total: number;
+  isLoading: boolean;
+}) {
+  const list = officers ?? [];
+  const active = list.filter((o) => o.status?.toLowerCase() === 'active').length;
+  const onLeave = list.filter((o) => o.status?.toLowerCase() === 'on_leave').length;
+  const inactive = list.filter((o) => o.status?.toLowerCase() === 'inactive').length;
 
-interface Officer extends OfficerFormData {
-  id: number;
-  user_id: number | null;
-  username: string | null;
-}
+  const cards = [
+    {
+      label: 'Total',
+      value: isLoading ? null : total,
+      icon: Users,
+      color: 'text-slate-700',
+      bg: 'bg-slate-50',
+    },
+    {
+      label: 'Active',
+      value: isLoading ? null : active,
+      icon: UserCheck,
+      color: 'text-emerald-700',
+      bg: 'bg-emerald-50',
+    },
+    {
+      label: 'On Leave',
+      value: isLoading ? null : onLeave,
+      icon: Clock,
+      color: 'text-amber-700',
+      bg: 'bg-amber-50',
+    },
+    {
+      label: 'Inactive',
+      value: isLoading ? null : inactive,
+      icon: UserMinus,
+      color: 'text-red-700',
+      bg: 'bg-red-50',
+    },
+  ];
 
-function statusBadge(status: string) {
-  switch (status) {
-    case 'active':
-      return <Badge className="bg-emerald-100 text-emerald-700 border-0">Active</Badge>;
-    case 'on_leave':
-      return <Badge className="bg-amber-100 text-amber-700 border-0">On Leave</Badge>;
-    case 'inactive':
-      return <Badge className="bg-muted text-muted-foreground border-0">Inactive</Badge>;
-    default:
-      return <Badge variant="secondary">{status}</Badge>;
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {cards.map((c) => (
+          <div key={c.label} className={`rounded-lg border p-4 ${c.bg}`}>
+            <Skeleton className="mb-2 h-5 w-12" />
+            <Skeleton className="h-4 w-16" />
+          </div>
+        ))}
+      </div>
+    );
   }
+
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      {cards.map((c) => (
+        <div key={c.label} className={`rounded-lg border p-4 ${c.bg}`}>
+          <div className="flex items-center justify-between">
+            <p className={`text-2xl font-bold ${c.color}`}>{c.value}</p>
+            <c.icon className={`h-5 w-5 ${c.color}`} />
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">{c.label}</p>
+        </div>
+      ))}
+    </div>
+  );
 }
+
+const PAGE_SIZE = 5;
 
 export default function OfficersPage() {
   const [search, setSearch] = useState('');
   const [department, setDepartment] = useState('all');
   const [status, setStatus] = useState('all');
+  const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editOfficer, setEditOfficer] = useState<Officer | undefined>();
-  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [editingOfficer, setEditingOfficer] = useState<
+    (OfficerFormData & { id: number }) | undefined
+  >();
+  const [deleteOfficerData, setDeleteOfficerData] = useState<Officer | null>(null);
 
-  const queryParams = new URLSearchParams();
-  if (search) queryParams.set('search', search);
-  if (department && department !== 'all') queryParams.set('department', department);
-  if (status && status !== 'all') queryParams.set('status', status);
+  const { officers, total, mutate, isLoading } = useOfficers({
+    search,
+    department,
+    status,
+    page,
+    pageSize: PAGE_SIZE,
+  });
 
-  const { data: officers, mutate } = useSWR<Officer[]>(
-    `/api/officers?${queryParams.toString()}`,
-    fetcher,
-  );
-
-  async function handleCreate(data: OfficerFormData) {
-    const res = await fetch('/api/officers', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) {
-      toast.error('Failed to create officer');
-      return;
-    }
-    toast.success('Officer created successfully');
-    mutate();
+  // Reset to page 1 when filters change
+  function resetPage() {
+    setPage(1);
   }
 
-  async function handleUpdate(data: OfficerFormData) {
-    if (!editOfficer) return;
-    const res = await fetch(`/api/officers/${editOfficer.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) {
-      toast.error('Failed to update officer');
-      return;
-    }
-    toast.success('Officer updated successfully');
-    setEditOfficer(undefined);
-    mutate();
+  const createOfficer = useCreateOfficer();
+  const updateOfficer = useUpdateOfficer();
+  const deleteOfficer = useDeleteOfficer();
+
+  function handleAdd() {
+    setEditingOfficer(undefined);
+    setDialogOpen(true);
   }
 
-  async function handleDelete() {
-    if (!deleteId) return;
-    const res = await fetch(`/api/officers/${deleteId}`, { method: 'DELETE' });
-    if (!res.ok) {
-      toast.error('Failed to delete officer');
-      return;
+  function handleEdit(officer: Officer) {
+    setEditingOfficer({
+      id: officer.id,
+      first_name: officer.first_name,
+      last_name: officer.last_name,
+      email: officer.email || '',
+      position: officer.position,
+      department: officer.department,
+      phone: officer.phone || '',
+      status: officer.status,
+      officerCode: officer.officerCode || '',
+    });
+    setDialogOpen(true);
+  }
+
+  function handleDelete(officer: Officer) {
+    setDeleteOfficerData(officer);
+  }
+
+  async function confirmDelete() {
+    if (deleteOfficerData) {
+      await deleteOfficer.mutateAsync(deleteOfficerData.id);
+      mutate();
+      setDeleteOfficerData(null);
     }
-    toast.success('Officer deleted successfully');
-    setDeleteId(null);
+  }
+
+  async function handleSubmit(data: OfficerFormData) {
+    if (editingOfficer) {
+      await updateOfficer.mutateAsync({ id: editingOfficer.id, data });
+    } else {
+      await createOfficer.mutateAsync(data);
+    }
     mutate();
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Officers</h1>
-          <p className="text-muted-foreground">Manage officer records and information</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Officers</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Manage your organization&apos;s officers and their roles.
+          </p>
         </div>
-        <Button
-          onClick={() => {
-            setEditOfficer(undefined);
-            setDialogOpen(true);
-          }}
-        >
+        <Button onClick={handleAdd} className="self-start sm:self-auto">
           <Plus className="mr-2 h-4 w-4" />
           Add Officer
         </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Officer List</CardTitle>
-          <CardDescription>
-            {officers ? `${officers.length} officers found` : 'Loading...'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="relative flex-1 min-w-[200px]">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search officers..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-              <Select value={department} onValueChange={setDepartment}>
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder="Department" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Departments</SelectItem>
-                  <SelectItem value="Operations">Operations</SelectItem>
-                  <SelectItem value="Security">Security</SelectItem>
-                  <SelectItem value="Administration">Administration</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="on_leave">On Leave</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+      {/* Summary Cards */}
+      <SummaryCards officers={officers} total={total} isLoading={isLoading} />
 
-            <div className="rounded-lg border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Officer</TableHead>
-                    <TableHead>Position</TableHead>
-                    <TableHead>Department</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="w-[50px]">
-                      <span className="sr-only">Actions</span>
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {officers?.map((officer) => {
-                    const initials =
-                      `${officer.first_name?.[0] || ''}${officer.last_name?.[0] || ''}`.toUpperCase();
-                    return (
-                      <TableRow key={officer.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-8 w-8">
-                              <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                                {initials}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium text-sm">
-                                {officer.first_name} {officer.last_name}
-                              </p>
-                              <p className="text-xs text-muted-foreground">{officer.email}</p>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-sm">{officer.position}</TableCell>
-                        <TableCell className="text-sm">{officer.department}</TableCell>
-                        <TableCell className="text-sm">{officer.phone}</TableCell>
-                        <TableCell>{statusBadge(officer.status)}</TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Actions</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setEditOfficer(officer);
-                                  setDialogOpen(true);
-                                }}
-                              >
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="text-destructive focus:text-destructive"
-                                onClick={() => setDeleteId(officer.id)}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                  {officers?.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground py-12">
-                        No officers found
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Filters */}
+      <div className="rounded-lg border bg-card p-4">
+        <div className="mb-3 flex items-center gap-2">
+          <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-medium">Filters</span>
+        </div>
+        <OfficerFilters
+          search={search}
+          setSearch={setSearch}
+          department={department}
+          setDepartment={(v) => {
+            setDepartment(v);
+            resetPage();
+          }}
+          status={status}
+          setStatus={(v) => {
+            setStatus(v);
+            resetPage();
+          }}
+        />
+      </div>
 
+      {/* Table */}
+      <div className="rounded-lg border bg-card">
+        <OfficersTable
+          officers={officers}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          isLoading={isLoading}
+          totalOfficer={total}
+        />
+      </div>
+
+      {/* Pagination */}
+      {total > 0 && (
+        <div className="flex justify-end items-center gap-2">
+          <p className="text-sm text-muted-foreground">
+            Page {page} of {Math.ceil(total / PAGE_SIZE)}
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((p) => Math.min(Math.ceil(total / PAGE_SIZE), p + 1))}
+            disabled={page >= Math.ceil(total / PAGE_SIZE)}
+          >
+            Next
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+
+      {/* Create / Edit Dialog */}
       <OfficerDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        officer={editOfficer}
-        onSubmit={editOfficer ? handleUpdate : handleCreate}
+        officer={editingOfficer}
+        onSubmit={handleSubmit}
       />
 
-      <AlertDialog open={deleteId !== null} onOpenChange={() => setDeleteId(null)}>
+      {/* Delete Confirmation */}
+      <AlertDialog
+        open={!!deleteOfficerData}
+        onOpenChange={(open) => !open && setDeleteOfficerData(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Officer</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this officer? This action cannot be undone.
+              Are you sure you want to delete{' '}
+              <strong>
+                {deleteOfficerData?.first_name} {deleteOfficerData?.last_name}
+              </strong>
+              ? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={confirmDelete}
+              className="bg-destructive text-white hover:bg-destructive/90"
             >
               Delete
             </AlertDialogAction>

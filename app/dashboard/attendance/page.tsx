@@ -1,12 +1,41 @@
 'use client';
 
-import useSWR from 'swr';
+import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
-import { Check, X, Clock } from 'lucide-react';
+import {
+  Search,
+  CalendarIcon,
+  Filter,
+  Download,
+  Upload,
+  Plus,
+  Eye,
+  Pencil,
+  Users,
+  UserCheck,
+  UserX,
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  AlertCircle,
+  RefreshCw,
+} from 'lucide-react';
+import useSWR from 'swr';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -15,9 +44,20 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
-
+// ─── Types ─────────────────────────────────────────────
 interface AttendanceRecord {
   id: number;
   officer_id: number;
@@ -28,179 +68,667 @@ interface AttendanceRecord {
   first_name: string;
   last_name: string;
   department: string;
-  sessions: Array<{
-    id: number;
-    shift_name: string;
-    check_in: string;
-    check_out: string;
-    status: string;
-  }> | null;
+  employee_code?: string;
+  check_in?: string | null;
+  check_out?: string | null;
 }
 
-function statusBadge(status: string) {
-  switch (status) {
-    case 'APPROVED':
-      return <Badge className="bg-emerald-100 text-emerald-700 border-0">Approved</Badge>;
-    case 'PENDING':
-      return <Badge className="bg-amber-100 text-amber-700 border-0">Pending</Badge>;
-    case 'ABSENT':
-      return <Badge className="bg-red-100 text-red-700 border-0">Absent</Badge>;
+interface AttendanceFormData {
+  officer_id: number;
+  date: string;
+  check_in: string;
+  check_out: string;
+  status: string;
+  notes: string;
+}
+
+// ─── Mock Data (Replace with API call) ─────────────────
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
+
+function generateMockData(): AttendanceRecord[] {
+  const departments = ['HR', 'IT', 'Finance', 'Operations', 'Marketing'];
+  const statuses = ['Present', 'Absent', 'Late', 'Half-day'];
+  const today = format(new Date(), 'yyyy-MM-dd');
+
+  return Array.from({ length: 25 }, (_, i) => {
+    const status = statuses[Math.floor(Math.random() * statuses.length)];
+    const isLate = status === 'Late';
+    const isPresent = status === 'Present' || status === 'Late' || status === 'Half-day';
+    const hasCheckOut = isPresent && Math.random() > 0.3;
+
+    return {
+      id: i + 1,
+      officer_id: i + 1,
+      date: today,
+      total_work_minutes: isPresent ? Math.floor(Math.random() * 480) : 0,
+      total_late_minutes: isLate ? Math.floor(Math.random() * 60) : 0,
+      status,
+      first_name: ['John', 'Jane', 'Mike', 'Sarah', 'David', 'Emma', 'Chris', 'Lisa'][i % 8],
+      last_name: ['Doe', 'Smith', 'Johnson', 'Williams', 'Brown', 'Davis', 'Wilson', 'Taylor'][
+        i % 8
+      ],
+      department: departments[i % 5],
+      employee_code: `EMP-${String(i + 1).padStart(3, '0')}`,
+      check_in: isPresent
+        ? `${String(isLate ? 9 + Math.floor(Math.random() * 2) : 8).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`
+        : null,
+      check_out: hasCheckOut
+        ? `${String(17 + Math.floor(Math.random() * 2)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`
+        : null,
+    };
+  });
+}
+
+// ─── Utility Functions ─────────────────────────────────
+function getInitials(firstName: string, lastName: string) {
+  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+}
+
+function formatTime(time: string | null | undefined): string {
+  if (!time) return '--';
+  return time;
+}
+
+function getStatusColor(status: string): string {
+  switch (status.toLowerCase()) {
+    case 'present':
+      return 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100';
+    case 'absent':
+      return 'bg-red-100 text-red-700 hover:bg-red-100';
+    case 'late':
+      return 'bg-amber-100 text-amber-700 hover:bg-amber-100';
+    case 'half-day':
+      return 'bg-blue-100 text-blue-700 hover:bg-blue-100';
     default:
-      return <Badge variant="secondary">{status}</Badge>;
+      return 'bg-slate-100 text-slate-700 hover:bg-slate-100';
   }
 }
 
-function sessionBadge(status: string) {
-  switch (status) {
-    case 'PRESENT':
-      return (
-        <Badge variant="outline" className="text-emerald-600 border-emerald-300">
-          Present
-        </Badge>
-      );
-    case 'LATE':
-      return (
-        <Badge variant="outline" className="text-amber-600 border-amber-300">
-          Late
-        </Badge>
-      );
-    default:
-      return <Badge variant="outline">{status}</Badge>;
+// ─── Summary Cards Component ───────────────────────────
+function SummaryCards({
+  records,
+  isLoading,
+  error,
+}: {
+  records?: AttendanceRecord[];
+  isLoading: boolean;
+  error?: Error | null;
+}) {
+  const stats = useMemo(() => {
+    if (!records) return { total: 0, present: 0, absent: 0, late: 0 };
+    return {
+      total: records.length,
+      present: records.filter((r) => r.status === 'Present').length,
+      absent: records.filter((r) => r.status === 'Absent').length,
+      late: records.filter((r) => r.status === 'Late').length,
+    };
+  }, [records]);
+
+  const cards = [
+    {
+      label: 'Total Employees',
+      value: stats.total,
+      icon: Users,
+      color: 'text-slate-700',
+      bg: 'bg-slate-50',
+      trend: '+2%',
+      trendColor: 'text-emerald-600',
+    },
+    {
+      label: 'Present Today',
+      value: stats.present,
+      icon: UserCheck,
+      color: 'text-emerald-700',
+      bg: 'bg-emerald-50',
+      trend: '+5%',
+      trendColor: 'text-emerald-600',
+    },
+    {
+      label: 'Absent Today',
+      value: stats.absent,
+      icon: UserX,
+      color: 'text-red-700',
+      bg: 'bg-red-50',
+      trend: '-3%',
+      trendColor: 'text-red-600',
+    },
+    {
+      label: 'Late Today',
+      value: stats.late,
+      icon: Clock,
+      color: 'text-amber-700',
+      bg: 'bg-amber-50',
+      trend: '+1%',
+      trendColor: 'text-amber-600',
+    },
+  ];
+
+  if (isLoading || error) {
+    return (
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {cards.map((card) => (
+          <div key={card.label} className={`rounded-lg border p-5 ${card.bg} shadow-sm`}>
+            <Skeleton className="mb-3 h-6 w-16" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+        ))}
+      </div>
+    );
   }
+
+  return (
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      {cards.map((card) => (
+        <div
+          key={card.label}
+          className={`rounded-lg border p-5 ${card.bg} shadow-sm transition-shadow hover:shadow-md`}
+        >
+          <div className="flex items-center justify-between">
+            <p className={`text-3xl font-bold ${card.color}`}>{card.value}</p>
+            <card.icon className={`h-6 w-6 ${card.color}`} />
+          </div>
+          <p className="mt-2 text-sm text-muted-foreground">{card.label}</p>
+          <p className={`mt-1 text-xs font-medium ${card.trendColor}`}>
+            {card.trend} from yesterday
+          </p>
+        </div>
+      ))}
+    </div>
+  );
 }
 
-function formatMinutes(mins: number) {
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  return `${h}h ${m}m`;
+// ─── Attendance Modal Component ────────────────────────
+function AttendanceModal({
+  open,
+  onOpenChange,
+  onSubmit,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (data: AttendanceFormData) => Promise<void>;
+}) {
+  const [form, setForm] = useState<AttendanceFormData>({
+    officer_id: 0,
+    date: format(new Date(), 'yyyy-MM-dd'),
+    check_in: '09:00',
+    check_out: '17:00',
+    status: 'Present',
+    notes: '',
+  });
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await onSubmit(form);
+      onOpenChange(false);
+      toast.success('Attendance marked successfully');
+    } catch {
+      toast.error('Failed to save attendance');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Mark Attendance</DialogTitle>
+          <DialogDescription>Record attendance for an employee</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="employee">Employee</Label>
+            <Select
+              value={String(form.officer_id)}
+              onValueChange={(v) => setForm({ ...form, officer_id: Number(v) })}
+            >
+              <SelectTrigger id="employee">
+                <SelectValue placeholder="Select employee" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">John Doe (EMP-001)</SelectItem>
+                <SelectItem value="2">Jane Smith (EMP-002)</SelectItem>
+                <SelectItem value="3">Mike Johnson (EMP-003)</SelectItem>
+                <SelectItem value="4">Sarah Williams (EMP-004)</SelectItem>
+                <SelectItem value="5">David Brown (EMP-005)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="date">Date</Label>
+            <Input
+              id="date"
+              type="date"
+              value={form.date}
+              onChange={(e) => setForm({ ...form, date: e.target.value })}
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="check-in">Check-in Time</Label>
+              <Input
+                id="check-in"
+                type="time"
+                value={form.check_in}
+                onChange={(e) => setForm({ ...form, check_in: e.target.value })}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="check-out">Check-out Time</Label>
+              <Input
+                id="check-out"
+                type="time"
+                value={form.check_out}
+                onChange={(e) => setForm({ ...form, check_out: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="status">Status</Label>
+            <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
+              <SelectTrigger id="status">
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Present">Present</SelectItem>
+                <SelectItem value="Absent">Absent</SelectItem>
+                <SelectItem value="Late">Late</SelectItem>
+                <SelectItem value="Half-day">Half-day</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="notes">Notes (Optional)</Label>
+            <Textarea
+              id="notes"
+              value={form.notes}
+              onChange={(e) => setForm({ ...form, notes: e.target.value })}
+              placeholder="Add any additional notes..."
+              rows={3}
+            />
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? 'Saving...' : 'Save'}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
 }
+
+// ─── Main Page Component ───────────────────────────────
+const PAGE_SIZE = 10;
 
 export default function AttendancePage() {
-  const { data: attendance, mutate } = useSWR<AttendanceRecord[]>('/api/attendance', fetcher);
+  // State
+  const [search, setSearch] = useState('');
+  const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [department, setDepartment] = useState('all');
+  const [status, setStatus] = useState('all');
+  const [viewMode, setViewMode] = useState('daily');
+  const [page, setPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [modalOpen, setModalOpen] = useState(false);
 
-  async function updateStatus(id: number, status: string) {
-    const res = await fetch(`/api/attendance/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
+  // Fetch data (replace with actual API endpoint)
+  const {
+    data: records,
+    mutate,
+    isLoading,
+    error,
+  } = useSWR<AttendanceRecord[]>('/api/attendance', fetcher, { fallbackData: generateMockData() });
+
+  // Filtered records
+  const filteredRecords = useMemo(() => {
+    if (!records) return [];
+    return records.filter((r) => {
+      const matchSearch =
+        !search ||
+        r.first_name.toLowerCase().includes(search.toLowerCase()) ||
+        r.last_name.toLowerCase().includes(search.toLowerCase()) ||
+        r.employee_code?.toLowerCase().includes(search.toLowerCase());
+      const matchDepartment = department === 'all' || r.department === department;
+      const matchStatus = status === 'all' || r.status === status;
+      return matchSearch && matchDepartment && matchStatus;
     });
-    if (!res.ok) {
-      toast.error('Update failed');
-      return;
+  }, [records, search, department, status]);
+
+  // Paginated records
+  const paginatedRecords = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filteredRecords.slice(start, start + PAGE_SIZE);
+  }, [filteredRecords, page]);
+
+  const totalPages = Math.ceil(filteredRecords.length / PAGE_SIZE);
+
+  // Handlers
+  function resetPage() {
+    setPage(1);
+  }
+
+  function toggleSelect(id: number) {
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.length === paginatedRecords.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(paginatedRecords.map((r) => r.id));
     }
-    toast.success(`Attendance ${status.toLowerCase()}`);
-    mutate();
+  }
+
+  async function handleSubmitAttendance(data: AttendanceFormData) {
+    // Replace with actual API call
+    console.log('Submitting attendance:', data);
+    await mutate();
+  }
+
+  function handleExport() {
+    toast.success('Export started');
+  }
+
+  function handleBulkUpload() {
+    toast.info('Bulk upload feature coming soon');
   }
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Page Title */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Attendance</h1>
-        <p className="text-muted-foreground">View and manage daily attendance records</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          Attendance Management
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">Manage and track employee attendance</p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Attendance Records</CardTitle>
-          <CardDescription>
-            {attendance ? `${attendance.length} records` : 'Loading...'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-lg border">
+      {/* Error Alert */}
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="flex items-center justify-between">
+            <span>Failed to load attendance data</span>
+            <Button variant="outline" size="sm" onClick={() => mutate()} className="ml-auto">
+              <RefreshCw className="mr-2 h-3 w-3" />
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Summary Cards */}
+      <SummaryCards records={records} isLoading={isLoading} error={error} />
+
+      {/* Filters & Actions */}
+      <div className="rounded-lg border bg-card p-4">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+            {/* Search */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  resetPage();
+                }}
+                placeholder="Search employee by name or ID"
+                className="pl-9"
+              />
+            </div>
+
+            {/* Date Picker */}
+            <div className="flex items-center gap-2">
+              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+              <Input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="w-[180px]"
+              />
+            </div>
+
+            {/* Department Filter */}
+            <Select
+              value={department}
+              onValueChange={(v) => {
+                setDepartment(v);
+                resetPage();
+              }}
+            >
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Department" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Departments</SelectItem>
+                <SelectItem value="HR">HR</SelectItem>
+                <SelectItem value="IT">IT</SelectItem>
+                <SelectItem value="Finance">Finance</SelectItem>
+                <SelectItem value="Operations">Operations</SelectItem>
+                <SelectItem value="Marketing">Marketing</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Status Filter */}
+            <Select
+              value={status}
+              onValueChange={(v) => {
+                setStatus(v);
+                resetPage();
+              }}
+            >
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="Present">Present</SelectItem>
+                <SelectItem value="Absent">Absent</SelectItem>
+                <SelectItem value="Late">Late</SelectItem>
+                <SelectItem value="Half-day">Half-day</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-wrap items-center gap-2 border-t pt-4">
+            <Button onClick={() => setModalOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Mark Attendance
+            </Button>
+            <Button variant="outline" onClick={handleExport}>
+              <Download className="mr-2 h-4 w-4" />
+              Export Report
+            </Button>
+            <Button variant="outline" onClick={handleBulkUpload}>
+              <Upload className="mr-2 h-4 w-4" />
+              Bulk Upload
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* View Toggle */}
+      <div className="flex items-center justify-between">
+        <Tabs value={viewMode} onValueChange={setViewMode}>
+          <TabsList>
+            <TabsTrigger value="daily">Daily</TabsTrigger>
+            <TabsTrigger value="weekly">Weekly</TabsTrigger>
+            <TabsTrigger value="monthly">Monthly</TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        {selectedIds.length > 0 && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">{selectedIds.length} selected</span>
+            <Button variant="outline" size="sm">
+              Bulk Action
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Attendance Table */}
+      <div className="rounded-lg border bg-card">
+        {isLoading ? (
+          <div className="p-4">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-4 border-b py-4">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-16" />
+              </div>
+            ))}
+          </div>
+        ) : filteredRecords.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+              <Users className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <h3 className="text-sm font-medium">No attendance records found</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Try adjusting filters or add new attendance
+            </p>
+            <Button onClick={() => setModalOpen(true)} className="mt-4">
+              <Plus className="mr-2 h-4 w-4" />
+              Mark Attendance
+            </Button>
+          </div>
+        ) : (
+          <>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Officer</TableHead>
-                  <TableHead>Date</TableHead>
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={
+                        selectedIds.length === paginatedRecords.length &&
+                        paginatedRecords.length > 0
+                      }
+                      onCheckedChange={toggleSelectAll}
+                    />
+                  </TableHead>
+                  <TableHead>Employee</TableHead>
+                  <TableHead>Employee ID</TableHead>
                   <TableHead>Department</TableHead>
-                  <TableHead>Work Time</TableHead>
-                  <TableHead>Late</TableHead>
-                  <TableHead>Sessions</TableHead>
+                  <TableHead>Check-in</TableHead>
+                  <TableHead>Check-out</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="w-[120px]">Actions</TableHead>
+                  <TableHead className="w-[100px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {attendance?.map((record) => (
-                  <TableRow key={record.id}>
-                    <TableCell className="font-medium">
-                      {record.first_name} {record.last_name}
-                    </TableCell>
-                    <TableCell>
-                      {record.date ? format(new Date(record.date), 'MMM d, yyyy') : '-'}
-                    </TableCell>
-                    <TableCell>{record.department}</TableCell>
-                    <TableCell>{formatMinutes(record.total_work_minutes)}</TableCell>
-                    <TableCell>
-                      {record.total_late_minutes > 0 ? (
-                        <span className="text-amber-600 font-medium">
-                          {record.total_late_minutes}m
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground">0m</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {record.sessions?.map((s) => (
-                          <div key={s.id} className="flex items-center gap-1">
-                            {sessionBadge(s.status)}
-                            <span className="text-xs text-muted-foreground">{s.shift_name}</span>
+                {paginatedRecords.map((record) => {
+                  const isLate = record.status === 'Late';
+                  return (
+                    <TableRow
+                      key={record.id}
+                      className={`transition-colors hover:bg-muted/50 ${
+                        isLate ? 'bg-amber-50/50' : ''
+                      }`}
+                    >
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedIds.includes(record.id)}
+                          onCheckedChange={() => toggleSelect(record.id)}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-9 w-9">
+                            <AvatarFallback className="bg-primary/10 text-xs font-medium text-primary">
+                              {getInitials(record.first_name, record.last_name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium">
+                              {record.first_name} {record.last_name}
+                            </p>
                           </div>
-                        )) || <span className="text-xs text-muted-foreground">No sessions</span>}
-                      </div>
-                    </TableCell>
-                    <TableCell>{statusBadge(record.status)}</TableCell>
-                    <TableCell>
-                      {record.status === 'PENDING' && (
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-mono text-sm text-muted-foreground">
+                        {record.employee_code || '—'}
+                      </TableCell>
+                      <TableCell className="text-sm">{record.department}</TableCell>
+                      <TableCell className="text-sm">{formatTime(record.check_in)}</TableCell>
+                      <TableCell className="text-sm">{formatTime(record.check_out)}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className={getStatusColor(record.status)}>
+                          {record.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
                         <div className="flex items-center gap-1">
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-7 w-7 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
-                            onClick={() => updateStatus(record.id, 'APPROVED')}
-                            title="Approve"
-                          >
-                            <Check className="h-4 w-4" />
+                          <Button variant="ghost" size="icon" className="h-8 w-8" title="View">
+                            <Eye className="h-4 w-4" />
                           </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-7 w-7 text-red-600 hover:text-red-700 hover:bg-red-50"
-                            onClick={() => updateStatus(record.id, 'ABSENT')}
-                            title="Mark Absent"
-                          >
-                            <X className="h-4 w-4" />
+                          <Button variant="ghost" size="icon" className="h-8 w-8" title="Edit">
+                            <Pencil className="h-4 w-4" />
                           </Button>
                         </div>
-                      )}
-                      {record.status !== 'PENDING' && (
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-7 w-7 text-muted-foreground"
-                          onClick={() => updateStatus(record.id, 'PENDING')}
-                          title="Reset to Pending"
-                        >
-                          <Clock className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {attendance?.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center text-muted-foreground py-12">
-                      No attendance records found
-                    </TableCell>
-                  </TableRow>
-                )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
-          </div>
-        </CardContent>
-      </Card>
+
+            {/* Pagination */}
+            {totalPages > 0 && (
+              <div className="flex justify-end items-center gap-2 border-t px-4 py-3">
+                <p className="text-sm text-muted-foreground">
+                  Page {page} of {totalPages}
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Attendance Modal */}
+      <AttendanceModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        onSubmit={handleSubmitAttendance}
+      />
     </div>
   );
 }

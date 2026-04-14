@@ -10,6 +10,7 @@ export interface Officer {
   phone: string;
   status: string;
   username?: string;
+  officerCode?: string;
 }
 
 export interface Attendance {
@@ -89,6 +90,21 @@ export interface Shift {
   is_active: boolean;
 }
 
+export interface Permission {
+  id: number;
+  permission_name: string;
+  description?: string;
+  category?: string;
+}
+
+export interface OfficerPermission {
+  id: number;
+  officer_id: number;
+  permission_id: number;
+  granted_at: string;
+  granted_by: number | null;
+}
+
 export interface AuditLogEntry {
   id: number;
   user_id: number;
@@ -108,6 +124,8 @@ let nextInvitationId = 4;
 let nextMissionId = 4;
 let nextLeaveId = 4;
 let nextShiftId = 4;
+let nextPermissionId = 11;
+let nextOfficerPermissionId = 9;
 
 export const users = [
   {
@@ -619,6 +637,128 @@ export const auditLog: AuditLogEntry[] = [
   },
 ];
 
+export const permissions: Permission[] = [
+  {
+    id: 1,
+    permission_name: 'officer.view',
+    description: 'View officer records and information',
+    category: 'Officers',
+  },
+  {
+    id: 2,
+    permission_name: 'officer.create',
+    description: 'Create new officer records',
+    category: 'Officers',
+  },
+  {
+    id: 3,
+    permission_name: 'officer.edit',
+    description: 'Edit existing officer records',
+    category: 'Officers',
+  },
+  {
+    id: 4,
+    permission_name: 'officer.delete',
+    description: 'Delete officer records',
+    category: 'Officers',
+  },
+  {
+    id: 5,
+    permission_name: 'attendance.view',
+    description: 'View attendance records',
+    category: 'Attendance',
+  },
+  {
+    id: 6,
+    permission_name: 'attendance.approve',
+    description: 'Approve or reject attendance records',
+    category: 'Attendance',
+  },
+  {
+    id: 7,
+    permission_name: 'mission.view',
+    description: 'View mission records',
+    category: 'Missions',
+  },
+  {
+    id: 8,
+    permission_name: 'mission.approve',
+    description: 'Approve or reject mission requests',
+    category: 'Missions',
+  },
+  {
+    id: 9,
+    permission_name: 'leave.view',
+    description: 'View leave requests',
+    category: 'Leave Management',
+  },
+  {
+    id: 10,
+    permission_name: 'leave.approve',
+    description: 'Approve or reject leave requests',
+    category: 'Leave Management',
+  },
+];
+
+export const officerPermissions: OfficerPermission[] = [
+  {
+    id: 1,
+    officer_id: 1,
+    permission_id: 1,
+    granted_at: '2026-01-15T08:00:00',
+    granted_by: 1,
+  },
+  {
+    id: 2,
+    officer_id: 1,
+    permission_id: 2,
+    granted_at: '2026-01-15T08:00:00',
+    granted_by: 1,
+  },
+  {
+    id: 3,
+    officer_id: 1,
+    permission_id: 3,
+    granted_at: '2026-01-15T08:00:00',
+    granted_by: 1,
+  },
+  {
+    id: 4,
+    officer_id: 1,
+    permission_id: 5,
+    granted_at: '2026-01-15T08:00:00',
+    granted_by: 1,
+  },
+  {
+    id: 5,
+    officer_id: 2,
+    permission_id: 1,
+    granted_at: '2026-01-20T09:00:00',
+    granted_by: 1,
+  },
+  {
+    id: 6,
+    officer_id: 2,
+    permission_id: 6,
+    granted_at: '2026-01-20T09:00:00',
+    granted_by: 1,
+  },
+  {
+    id: 7,
+    officer_id: 3,
+    permission_id: 1,
+    granted_at: '2026-02-01T10:00:00',
+    granted_by: 1,
+  },
+  {
+    id: 8,
+    officer_id: 3,
+    permission_id: 7,
+    granted_at: '2026-02-01T10:00:00',
+    granted_by: 1,
+  },
+];
+
 // ─── Helper functions to get next IDs ──────────────────
 export function getNextOfficerId() {
   return nextOfficerId++;
@@ -637,4 +777,10 @@ export function getNextLeaveId() {
 }
 export function getNextShiftId() {
   return nextShiftId++;
+}
+export function getNextPermissionId() {
+  return nextPermissionId++;
+}
+export function getNextOfficerPermissionId() {
+  return nextOfficerPermissionId++;
 }

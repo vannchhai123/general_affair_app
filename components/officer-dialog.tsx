@@ -28,6 +28,7 @@ export interface OfficerFormData {
   department: string;
   phone: string;
   status: string;
+  officerCode?: string;
 }
 
 interface OfficerDialogProps {
@@ -45,6 +46,7 @@ const emptyForm: OfficerFormData = {
   department: '',
   phone: '',
   status: 'active',
+  officerCode: '',
 };
 
 export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: OfficerDialogProps) {
@@ -61,6 +63,7 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
         department: officer.department || '',
         phone: officer.phone || '',
         status: officer.status || 'active',
+        officerCode: officer.officerCode || '',
       });
     } else {
       setForm(emptyForm);
@@ -88,6 +91,15 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="officerCode">Officer Code</Label>
+            <Input
+              id="officerCode"
+              value={form.officerCode || ''}
+              onChange={(e) => setForm({ ...form, officerCode: e.target.value })}
+              placeholder="e.g. OFF-001"
+            />
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <Label htmlFor="first_name">First Name</Label>
