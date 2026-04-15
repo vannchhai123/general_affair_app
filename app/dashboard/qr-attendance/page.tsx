@@ -11,6 +11,7 @@ import { QRDisplay } from '@/components/qr/qr-display';
 import { SessionControls } from '@/components/qr/session-controls';
 import { CheckInList } from '@/components/qr/checkin-list';
 import { SummaryCard } from '@/components/qr/summary-card';
+import { useCreateQrSession, useQrSession, useUpdateQrSession } from '@/lib/hooks/use-api';
 
 // ─── Types ─────────────────────────────────────────────
 export type SessionStatus = 'idle' | 'active' | 'paused' | 'stopped';
@@ -23,40 +24,7 @@ export interface CheckInRecord {
   status: 'checked-in' | 'checked-out' | 'late';
 }
 
-// ─── Mock Data Generator ───────────────────────────────
-const MOCK_EMPLOYEES = [
-  { name: 'John Doe', code: 'EMP-001' },
-  { name: 'Jane Smith', code: 'EMP-002' },
-  { name: 'Mike Johnson', code: 'EMP-003' },
-  { name: 'Sarah Williams', code: 'EMP-004' },
-  { name: 'David Brown', code: 'EMP-005' },
-  { name: 'Emma Davis', code: 'EMP-006' },
-  { name: 'Chris Wilson', code: 'EMP-007' },
-  { name: 'Lisa Taylor', code: 'EMP-008' },
-];
-
-function generateCheckIn(): CheckInRecord {
-  const emp = MOCK_EMPLOYEES[Math.floor(Math.random() * MOCK_EMPLOYEES.length)];
-  const statuses: Array<'checked-in' | 'checked-out' | 'late'> = [
-    'checked-in',
-    'checked-out',
-    'late',
-  ];
-  const status = statuses[Math.floor(Math.random() * statuses.length)];
-  const now = new Date();
-  const time = format(now, 'hh:mm a');
-
-  return {
-    id: Date.now(),
-    employeeName: emp.name,
-    employeeCode: emp.code,
-    time,
-    status,
-  };
-}
-
-// ─── Main Page Component ───────────────────────────────
-const QR_REFRESH_INTERVAL = 60; // seconds
+const QR_REFRESH_INTERVAL = 60; 
 
 export default function QRAttendancePage() {
   // Session state
@@ -68,51 +36,102 @@ export default function QRAttendancePage() {
 
   // Check-ins state
   const [checkIns, setCheckIns] = useState<CheckInRecord[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
 
-  // Simulate QR refresh
-  const refreshQR = useCallback(() => {
+  // API hooks
+  const createQrSession = useCreateQrSession();
+  const updateQrSession = useUpdateQrSession();
+  const { data: qrSessionData, refetch: refetchSession } = useQrSession(sessionId || '');
+
+  // Map API status to local status
+  const mapApiStatus = (apiStatus?: string): SessionStatus => {
+    switch (apiStatus) {
+      case 'active':
+        return 'active';
+      case 'paused':
+        return 'paused';
+      case 'stopped':
+        return 'stopped';
+      default:
+        return 'idle';
+    }
+  };
+
+  // Update local status when API data changes
+  useEffect(() => {
+    if (qrSessionData?.status) {
+      setSessionStatus(mapApiStatus(qrSessionData.status));
+    }
+  }, [qrSessionData?.status]);
+
+  // Start session - call API to create QR session
+  const startSession = async () => {
+    try {
+      const response = await createQrSession.mutateAsync({
+        created_by: 1, // TODO: Get from auth context
+        duration_seconds: QR_REFRESH_INTERVAL,
+        location: 'Main Office',
+      });
+
+      setSessionId(response.id);
+      setSessionStatus('active');
+      setCountdown(QR_REFRESH_INTERVAL);
+      toast.success('Session started');
+    } catch (error) {
+      toast.error('Failed to start session');
+    }
+  };
+
+  // Pause session - call API to update status
+  const pauseSession = async () => {
+    if (!sessionId) return;
+
+    try {
+      await updateQrSession.mutateAsync({
+        id: sessionId,
+        data: { action: 'pause' },
+      });
+      setSessionStatus('paused');
+      toast.info('Session paused');
+    } catch (error) {
+      toast.error('Failed to pause session');
+    }
+  };
+
+  // Stop session - call API to update status
+  const stopSession = async () => {
+    if (!sessionId) return;
+
+    try {
+      await updateQrSession.mutateAsync({
+        id: sessionId,
+        data: { action: 'stop' },
+      });
+      setSessionStatus('stopped');
+      setCountdown(0);
+      toast.warning('Session stopped');
+    } catch (error) {
+      toast.error('Failed to stop session');
+    }
+  };
+
+  // Regenerate QR - call API to update/regenerate
+  const regenerateQR = async () => {
+    if (!sessionId) return;
+
     setIsRefreshing(true);
-    setTimeout(() => {
-      setSessionId(`QR-${Date.now().toString(36).toUpperCase()}`);
+    try {
+      await updateQrSession.mutateAsync({
+        id: sessionId,
+        data: { action: 'regenerate' },
+      });
+      
       setCountdown(QR_REFRESH_INTERVAL);
       setIsRefreshing(false);
-    }, 500);
-  }, []);
-
-  // Start session
-  const startSession = () => {
-    setSessionStatus('active');
-    refreshQR();
-    toast.success('Session started');
-
-    // Simulate incoming check-ins
-    const interval = setInterval(() => {
-      if (sessionStatus === 'active') {
-        setCheckIns((prev) => [generateCheckIn(), ...prev].slice(0, 50));
-      }
-    }, 3000);
-
-    return () => clearInterval(interval);
-  };
-
-  // Pause session
-  const pauseSession = () => {
-    setSessionStatus('paused');
-    toast.info('Session paused');
-  };
-
-  // Stop session
-  const stopSession = () => {
-    setSessionStatus('stopped');
-    setCountdown(0);
-    toast.warning('Session stopped');
-  };
-
-  // Regenerate QR
-  const regenerateQR = () => {
-    refreshQR();
-    toast.success('QR code regenerated');
+      toast.success('QR code regenerated');
+    } catch (error) {
+      setIsRefreshing(false);
+      toast.error('Failed to regenerate QR');
+    }
   };
 
   // Countdown timer
@@ -122,7 +141,7 @@ export default function QRAttendancePage() {
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
-          refreshQR();
+          regenerateQR();
           return QR_REFRESH_INTERVAL;
         }
         return prev - 1;
@@ -130,7 +149,7 @@ export default function QRAttendancePage() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [sessionStatus, countdown, refreshQR]);
+  }, [sessionStatus, countdown, regenerateQR]);
 
   // Statistics
   const stats = useMemo(() => {
@@ -190,9 +209,13 @@ export default function QRAttendancePage() {
           <p className="mt-2 text-sm text-muted-foreground">
             Start a session to generate a QR code for attendance
           </p>
-          <Button onClick={startSession} className="mt-6">
+          <Button 
+            onClick={startSession} 
+            className="mt-6"
+            disabled={createQrSession.isPending}
+          >
             <Play className="mr-2 h-4 w-4" />
-            Start Session
+            {createQrSession.isPending ? 'Starting...' : 'Start Session'}
           </Button>
         </div>
       ) : (
@@ -205,7 +228,7 @@ export default function QRAttendancePage() {
                 sessionId={sessionId}
                 countdown={countdown}
                 isRefreshing={isRefreshing}
-                isLoading={isLoading}
+                isLoading={createQrSession.isPending || updateQrSession.isPending}
               />
             </div>
 

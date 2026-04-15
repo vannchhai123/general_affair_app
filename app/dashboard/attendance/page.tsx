@@ -21,7 +21,6 @@ import {
   AlertCircle,
   RefreshCw,
 } from 'lucide-react';
-import useSWR from 'swr';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,67 +55,17 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useAttendance } from '@/lib/hooks/use-api';
+import type { Attendance } from '@/lib/schemas/api-schemas';
 
 // ─── Types ─────────────────────────────────────────────
-interface AttendanceRecord {
-  id: number;
-  officer_id: number;
-  date: string;
-  total_work_minutes: number;
-  total_late_minutes: number;
-  status: string;
-  first_name: string;
-  last_name: string;
-  department: string;
-  employee_code?: string;
-  check_in?: string | null;
-  check_out?: string | null;
-}
-
 interface AttendanceFormData {
-  officer_id: number;
+  officerId: number;
   date: string;
-  check_in: string;
-  check_out: string;
+  checkIn: string;
+  checkOut: string;
   status: string;
   notes: string;
-}
-
-// ─── Mock Data (Replace with API call) ─────────────────
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
-
-function generateMockData(): AttendanceRecord[] {
-  const departments = ['HR', 'IT', 'Finance', 'Operations', 'Marketing'];
-  const statuses = ['Present', 'Absent', 'Late', 'Half-day'];
-  const today = format(new Date(), 'yyyy-MM-dd');
-
-  return Array.from({ length: 25 }, (_, i) => {
-    const status = statuses[Math.floor(Math.random() * statuses.length)];
-    const isLate = status === 'Late';
-    const isPresent = status === 'Present' || status === 'Late' || status === 'Half-day';
-    const hasCheckOut = isPresent && Math.random() > 0.3;
-
-    return {
-      id: i + 1,
-      officer_id: i + 1,
-      date: today,
-      total_work_minutes: isPresent ? Math.floor(Math.random() * 480) : 0,
-      total_late_minutes: isLate ? Math.floor(Math.random() * 60) : 0,
-      status,
-      first_name: ['John', 'Jane', 'Mike', 'Sarah', 'David', 'Emma', 'Chris', 'Lisa'][i % 8],
-      last_name: ['Doe', 'Smith', 'Johnson', 'Williams', 'Brown', 'Davis', 'Wilson', 'Taylor'][
-        i % 8
-      ],
-      department: departments[i % 5],
-      employee_code: `EMP-${String(i + 1).padStart(3, '0')}`,
-      check_in: isPresent
-        ? `${String(isLate ? 9 + Math.floor(Math.random() * 2) : 8).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`
-        : null,
-      check_out: hasCheckOut
-        ? `${String(17 + Math.floor(Math.random() * 2)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`
-        : null,
-    };
-  });
 }
 
 // ─── Utility Functions ─────────────────────────────────
@@ -146,23 +95,23 @@ function getStatusColor(status: string): string {
 
 // ─── Summary Cards Component ───────────────────────────
 function SummaryCards({
-  records,
+  data,
   isLoading,
   error,
 }: {
-  records?: AttendanceRecord[];
+  data?: { content: Attendance[]; totalElements: number };
   isLoading: boolean;
   error?: Error | null;
 }) {
   const stats = useMemo(() => {
-    if (!records) return { total: 0, present: 0, absent: 0, late: 0 };
+    if (!data?.content) return { total: 0, present: 0, absent: 0, late: 0 };
     return {
-      total: records.length,
-      present: records.filter((r) => r.status === 'Present').length,
-      absent: records.filter((r) => r.status === 'Absent').length,
-      late: records.filter((r) => r.status === 'Late').length,
+      total: data.totalElements || data.content.length,
+      present: data.content.filter((r) => r.status === 'Present').length,
+      absent: data.content.filter((r) => r.status === 'Absent').length,
+      late: data.content.filter((r) => r.status === 'Late').length,
     };
-  }, [records]);
+  }, [data]);
 
   const cards = [
     {
@@ -248,10 +197,10 @@ function AttendanceModal({
   onSubmit: (data: AttendanceFormData) => Promise<void>;
 }) {
   const [form, setForm] = useState<AttendanceFormData>({
-    officer_id: 0,
+    officerId: 0,
     date: format(new Date(), 'yyyy-MM-dd'),
-    check_in: '09:00',
-    check_out: '17:00',
+    checkIn: '09:00',
+    checkOut: '17:00',
     status: 'Present',
     notes: '',
   });
@@ -282,18 +231,18 @@ function AttendanceModal({
           <div className="flex flex-col gap-2">
             <Label htmlFor="employee">Employee</Label>
             <Select
-              value={String(form.officer_id)}
-              onValueChange={(v) => setForm({ ...form, officer_id: Number(v) })}
+              value={String(form.officerId)}
+              onValueChange={(v) => setForm({ ...form, officerId: Number(v) })}
             >
               <SelectTrigger id="employee">
                 <SelectValue placeholder="Select employee" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="1">John Doe (EMP-001)</SelectItem>
-                <SelectItem value="2">Jane Smith (EMP-002)</SelectItem>
-                <SelectItem value="3">Mike Johnson (EMP-003)</SelectItem>
-                <SelectItem value="4">Sarah Williams (EMP-004)</SelectItem>
-                <SelectItem value="5">David Brown (EMP-005)</SelectItem>
+                <SelectItem value="1">John Doe (OFF-001)</SelectItem>
+                <SelectItem value="2">Jane Smith (OFF-002)</SelectItem>
+                <SelectItem value="3">Mike Johnson (OFF-003)</SelectItem>
+                <SelectItem value="4">Sarah Williams (OFF-004)</SelectItem>
+                <SelectItem value="5">David Brown (OFF-005)</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -315,8 +264,8 @@ function AttendanceModal({
               <Input
                 id="check-in"
                 type="time"
-                value={form.check_in}
-                onChange={(e) => setForm({ ...form, check_in: e.target.value })}
+                value={form.checkIn}
+                onChange={(e) => setForm({ ...form, checkIn: e.target.value })}
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -324,8 +273,8 @@ function AttendanceModal({
               <Input
                 id="check-out"
                 type="time"
-                value={form.check_out}
-                onChange={(e) => setForm({ ...form, check_out: e.target.value })}
+                value={form.checkOut}
+                onChange={(e) => setForm({ ...form, checkOut: e.target.value })}
               />
             </div>
           </div>
@@ -371,7 +320,6 @@ function AttendanceModal({
 }
 
 // ─── Main Page Component ───────────────────────────────
-const PAGE_SIZE = 10;
 
 export default function AttendancePage() {
   // State
@@ -380,44 +328,42 @@ export default function AttendancePage() {
   const [department, setDepartment] = useState('all');
   const [status, setStatus] = useState('all');
   const [viewMode, setViewMode] = useState('daily');
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(0); // API uses 0-indexed page
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
 
-  // Fetch data (replace with actual API endpoint)
+  // Fetch data from API
   const {
-    data: records,
-    mutate,
+    data: attendanceData,
     isLoading,
     error,
-  } = useSWR<AttendanceRecord[]>('/api/attendance', fetcher, { fallbackData: generateMockData() });
+    refetch,
+  } = useAttendance({ page, size: 10 });
 
-  // Filtered records
+  console.log("Attendance List: ", {data: attendanceData})
+
+  // Records from API response
+  const records = attendanceData?.content || [];
+
+  // Client-side filtered records (for display within current page)
   const filteredRecords = useMemo(() => {
-    if (!records) return [];
     return records.filter((r) => {
       const matchSearch =
         !search ||
-        r.first_name.toLowerCase().includes(search.toLowerCase()) ||
-        r.last_name.toLowerCase().includes(search.toLowerCase()) ||
-        r.employee_code?.toLowerCase().includes(search.toLowerCase());
+        r.firstName.toLowerCase().includes(search.toLowerCase()) ||
+        r.lastName.toLowerCase().includes(search.toLowerCase()) ||
+        r.officerCode?.toLowerCase().includes(search.toLowerCase());
       const matchDepartment = department === 'all' || r.department === department;
       const matchStatus = status === 'all' || r.status === status;
       return matchSearch && matchDepartment && matchStatus;
     });
   }, [records, search, department, status]);
 
-  // Paginated records
-  const paginatedRecords = useMemo(() => {
-    const start = (page - 1) * PAGE_SIZE;
-    return filteredRecords.slice(start, start + PAGE_SIZE);
-  }, [filteredRecords, page]);
-
-  const totalPages = Math.ceil(filteredRecords.length / PAGE_SIZE);
+  const totalPages = attendanceData?.totalPages || 0;
 
   // Handlers
   function resetPage() {
-    setPage(1);
+    setPage(0);
   }
 
   function toggleSelect(id: number) {
@@ -425,17 +371,17 @@ export default function AttendancePage() {
   }
 
   function toggleSelectAll() {
-    if (selectedIds.length === paginatedRecords.length) {
+    if (selectedIds.length === filteredRecords.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(paginatedRecords.map((r) => r.id));
+      setSelectedIds(filteredRecords.map((r) => r.id));
     }
   }
 
   async function handleSubmitAttendance(data: AttendanceFormData) {
     // Replace with actual API call
     console.log('Submitting attendance:', data);
-    await mutate();
+    await refetch();
   }
 
   function handleExport() {
@@ -462,7 +408,7 @@ export default function AttendancePage() {
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="flex items-center justify-between">
             <span>Failed to load attendance data</span>
-            <Button variant="outline" size="sm" onClick={() => mutate()} className="ml-auto">
+            <Button variant="outline" size="sm" onClick={() => refetch()} className="ml-auto">
               <RefreshCw className="mr-2 h-3 w-3" />
               Retry
             </Button>
@@ -471,7 +417,11 @@ export default function AttendancePage() {
       )}
 
       {/* Summary Cards */}
-      <SummaryCards records={records} isLoading={isLoading} error={error} />
+      <SummaryCards 
+        data={attendanceData ? { content: records, totalElements: attendanceData.totalElements } : undefined} 
+        isLoading={isLoading} 
+        error={error} 
+      />
 
       {/* Filters & Actions */}
       <div className="rounded-lg border bg-card p-4">
@@ -621,8 +571,8 @@ export default function AttendancePage() {
                   <TableHead className="w-12">
                     <Checkbox
                       checked={
-                        selectedIds.length === paginatedRecords.length &&
-                        paginatedRecords.length > 0
+                        selectedIds.length === filteredRecords.length &&
+                        filteredRecords.length > 0
                       }
                       onCheckedChange={toggleSelectAll}
                     />
@@ -637,7 +587,7 @@ export default function AttendancePage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedRecords.map((record) => {
+                {filteredRecords.map((record) => {
                   const isLate = record.status === 'Late';
                   return (
                     <TableRow
@@ -656,22 +606,22 @@ export default function AttendancePage() {
                         <div className="flex items-center gap-3">
                           <Avatar className="h-9 w-9">
                             <AvatarFallback className="bg-primary/10 text-xs font-medium text-primary">
-                              {getInitials(record.first_name, record.last_name)}
+                              {getInitials(record.firstName, record.lastName)}
                             </AvatarFallback>
                           </Avatar>
                           <div>
                             <p className="font-medium">
-                              {record.first_name} {record.last_name}
+                              {record.firstName} {record.lastName}
                             </p>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell className="font-mono text-sm text-muted-foreground">
-                        {record.employee_code || '—'}
+                        {record.officerCode || '—'}
                       </TableCell>
                       <TableCell className="text-sm">{record.department}</TableCell>
-                      <TableCell className="text-sm">{formatTime(record.check_in)}</TableCell>
-                      <TableCell className="text-sm">{formatTime(record.check_out)}</TableCell>
+                      <TableCell className="text-sm">{formatTime(record.checkIn)}</TableCell>
+                      <TableCell className="text-sm">{formatTime(record.checkOut)}</TableCell>
                       <TableCell>
                         <Badge variant="secondary" className={getStatusColor(record.status)}>
                           {record.status}
@@ -697,13 +647,13 @@ export default function AttendancePage() {
             {totalPages > 0 && (
               <div className="flex justify-end items-center gap-2 border-t px-4 py-3">
                 <p className="text-sm text-muted-foreground">
-                  Page {page} of {totalPages}
+                  Page {page + 1} of {totalPages}
                 </p>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
+                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  disabled={page === 0}
                 >
                   <ChevronLeft className="h-4 w-4" />
                   Previous
@@ -711,8 +661,8 @@ export default function AttendancePage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page >= totalPages}
+                  onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                  disabled={page >= totalPages - 1}
                 >
                   Next
                   <ChevronRight className="h-4 w-4" />

@@ -133,28 +133,67 @@ export const assignPermissionSchema = z.object({
 
 export const attendanceSessionSchema = z.object({
   id: z.number(),
-  shift_name: z.string(),
-  check_in: z.string(),
-  check_out: z.string().nullable(),
+  shiftName: z.string(),
+  checkIn: z.string(),
+  checkOut: z.string().nullable(),
   status: z.string(),
 });
 
 export const attendanceSchema = z.object({
   id: z.number(),
-  officer_id: z.number(),
+  officerId: z.number(),
   date: z.string(),
-  total_work_minutes: z.number(),
-  total_late_minutes: z.number(),
+  checkIn: z.string().nullable(),
+  checkOut: z.string().nullable(),
+  totalWorkMin: z.number(),
+  totalLateMin: z.number(),
   status: z.string(),
-  approved_by: z.number().nullable(),
-  approved_at: z.string().nullable(),
-  first_name: z.string(),
-  last_name: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
   department: z.string(),
+  officerCode: z.string(),
   sessions: z.array(attendanceSessionSchema).nullable(),
 });
 
-export const attendanceResponseSchema = z.array(attendanceSchema);
+export const attendanceResponseSchema = z.object({
+  content: z.array(attendanceSchema),
+  page: z.number(),
+  size: z.number(),
+  totalElements: z.number(),
+  totalPages: z.number(),
+  last: z.boolean(),
+});
+
+export const attendanceListResponseSchema = z.array(attendanceSchema);
+
+// ─── QR Session Schemas ─────────────────────────────────────
+
+export const qrSessionSchema = z.object({
+  id: z.string(),
+  qr_token: z.string(),
+  status: z.string(),
+  created_at: z.string(),
+  expires_at: z.string(),
+  qr_code_url: z.string(),
+  location: z.string().optional().nullable(),
+  created_by: z.number().optional(),
+});
+
+export const createQrSessionSchema = z.object({
+  created_by: z.number(),
+  duration_seconds: z.number(),
+  location: z.string(),
+});
+
+export const updateQrSessionSchema = z.object({
+  action: z.string(),
+});
+
+export const updateQrSessionResponseSchema = z.object({
+  id: z.string(),
+  status: z.string(),
+  updated_at: z.string(),
+});
 
 // ─── Invitation Schemas ───────────────────────────────────────
 
@@ -343,6 +382,11 @@ export type OfficerPermission = z.infer<typeof officerPermissionSchema>;
 export type AssignPermission = z.infer<typeof assignPermissionSchema>;
 
 export type Attendance = z.infer<typeof attendanceSchema>;
+export type AttendanceResponse = z.infer<typeof attendanceResponseSchema>;
+export type QrSession = z.infer<typeof qrSessionSchema>;
+export type CreateQrSession = z.infer<typeof createQrSessionSchema>;
+export type UpdateQrSession = z.infer<typeof updateQrSessionSchema>;
+export type UpdateQrSessionResponse = z.infer<typeof updateQrSessionResponseSchema>;
 export type Invitation = z.infer<typeof invitationSchema>;
 export type Mission = z.infer<typeof missionSchema>;
 export type LeaveRequest = z.infer<typeof leaveRequestSchema>;

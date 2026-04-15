@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { apiFetch } from '@/lib/client';
 
 export class ApiError extends Error {
   constructor(
@@ -18,18 +19,12 @@ export async function fetchApi<T, S extends z.ZodType<T>>(
   options?: RequestInit,
 ): Promise<T> {
   try {
-    const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
-      ...options,
-    });
+    const response = await apiFetch(url, options);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new ApiError(
-        errorData.error || `API request failed: ${response.statusText}`,
+        (errorData as { error?: string }).error || `API request failed: ${response.statusText}`,
         response.status,
         response.statusText,
         errorData,
@@ -37,9 +32,18 @@ export async function fetchApi<T, S extends z.ZodType<T>>(
     }
 
     const data = await response.json();
-    const parsed = schema.parse(data);
+    const parsed = schema.safeParse(data);
 
-    return parsed;
+    if (!parsed.success) {
+      throw new ApiError(
+        `Validation failed: ${parsed.error.errors.map((e) => e.message).join(', ')}`,
+        500,
+        'Validation Error',
+        { zodErrors: parsed.error.errors },
+      );
+    }
+
+    return parsed.data;
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;
@@ -93,6 +97,11 @@ export const queryKeys = {
     lists: () => [...queryKeys.attendance.all, 'list'] as const,
     list: (filters?: Record<string, string>) =>
       [...queryKeys.attendance.lists(), { filters }] as const,
+  },
+  qrSessions: {
+    all: ['qrSessions'] as const,
+    lists: () => [...queryKeys.qrSessions.all, 'list'] as const,
+    detail: (id: string) => [...queryKeys.qrSessions.all, 'detail', id] as const,
   },
   invitations: {
     all: ['invitations'] as const,

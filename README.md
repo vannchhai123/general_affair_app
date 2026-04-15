@@ -263,31 +263,56 @@ npm start
 
 | Method | Endpoint              | Description                       |
 | ------ | --------------------- | --------------------------------- |
-| GET    | `/api/attendance`     | Get all attendance records        |
+| GET    | `/api/attendance`     | Get all attendance records (paginated) |
 | POST   | `/api/attendance`     | Create attendance record          |
 | PUT    | `/api/attendance/:id` | Update attendance (e.g., approve) |
 
 **Query Parameters (GET):**
 
-- No required parameters, returns all records sorted by date (newest first)
+- `page` - Page number (default: 0)
+- `size` - Items per page (default: 10)
 
-**Request Body (POST):**
-
-```json
-{
-  "officer_id": 1,
-  "date": "2026-04-07",
-  "total_work_minutes": 480,
-  "total_late_minutes": 0,
-  "status": "PENDING"
-}
-```
-
-**Request Body (PUT):**
+**Response (GET):**
 
 ```json
 {
-  "status": "APPROVED"
+  "content": [
+    {
+      "id": 1,
+      "officerId": 1,
+      "firstName": "John",
+      "lastName": "Doe",
+      "department": "Human Resources",
+      "officerCode": "OFF-001",
+      "date": "2026-04-14",
+      "checkIn": "2026-04-14T08:00:00",
+      "checkOut": "2026-04-14T17:00:00",
+      "totalWorkMin": 480,
+      "totalLateMin": 0,
+      "status": "Present",
+      "sessions": [
+        {
+          "id": 1,
+          "shiftName": "Morning Shift",
+          "checkIn": "08:00",
+          "checkOut": "12:00",
+          "status": "Present"
+        },
+        {
+          "id": 2,
+          "shiftName": "Afternoon Shift",
+          "checkIn": "13:00",
+          "checkOut": "17:00",
+          "status": "Present"
+        }
+      ]
+    }
+  ],
+  "page": 0,
+  "size": 10,
+  "totalElements": 2,
+  "totalPages": 1,
+  "last": true
 }
 ```
 
@@ -702,6 +727,682 @@ The permission system uses a hierarchical tree structure with categories:
 │   └── client.ts           # API client
 └── hooks/                  # Custom hooks
 ```
+
+## Database Design
+
+### Schema Overview
+
+```
+┌─────────────┐       ┌──────────────────┐       ┌───────────────────┐
+│  officers   │       │   attendance     │       │attendance_sessions│
+├─────────────┤       ├──────────────────┤       ├───────────────────┤
+│ id (PK)     │──┐    │ id (PK)          │  ┌───│ id (PK)           │
+│ employee_code│ │    │ officer_id (FK)  │──┘   │ shift_id (FK)     │
+│ first_name  │ │    │ date             │       │ session_date      │
+│ last_name   │ │    │ check_in         │       │ label             │
+│ email       │ │    │ check_out        │       │ created_by (FK)   │
+│ department  │ │    │ total_work_min   │       └───────────────────┘
+│ position    │ │    │ total_late_min   │
+│ status      │ │    │ status           │       ┌───────────────────┐
+└─────────────┘ │    │ approved_by (FK) │       │     shifts        │
+                │    │ notes            │       ├───────────────────┤
+                │    └──────────────────┘       │ id (PK)           │
+                │                               │ name              │
+                │    ┌──────────────────┐       │ start_time        │
+                └───│qr_session_checkins│       │ end_time          │
+                    ├──────────────────┤       │ is_active         │
+                    │ id (PK)          │       └───────────────────┘
+                    │ qr_session_id(FK)│
+                    │ officer_id (FK)  │       ┌───────────────────┐
+                    │ action           │       │   qr_sessions     │
+                    │ status           │       ├───────────────────┤
+                    │ scanned_at       │──┐    │ id (PK)           │
+                    │ device_info      │  │    │ token             │
+                    └──────────────────┘  └───│ status            │
+                                              │ location          │
+                    ┌──────────────────┐      │ valid_until       │
+                    │qr_session_logs   │      │ qr_refresh_interval│
+                    ├──────────────────┤      │ created_by (FK)   │
+                    │ id (PK)          │      │ started_at        │
+                    │ qr_session_id(FK)│      │ stopped_at        │
+                    │ action           │      └───────────────────┘
+                    │ performed_by(FK) │
+                    │ details          │
+                    └──────────────────┘
+```
+
+### Table: `officers`
+
+```sql
+CREATE TABLE officers (
+    id              SERIAL PRIMARY KEY,
+    user_id         INT NULL,
+    employee_code   VARCHAR(50) UNIQUE NOT NULL,
+    first_name      VARCHAR(100) NOT NULL,
+    last_name       VARCHAR(100) NOT NULL,
+    email           VARCHAR(255) UNIQUE NOT NULL,
+    position        VARCHAR(100),
+    department      VARCHAR(100),
+    phone           VARCHAR(50),
+    status          VARCHAR(20) DEFAULT 'active',
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+**Sample Data:**
+```json
+{
+  "id": 1,
+  "user_id": 101,
+  "employee_code": "EMP-001",
+  "first_name": "John",
+  "last_name": "Doe",
+  "email": "john.doe@gov.org",
+  "position": "Senior Officer",
+  "department": "Operations",
+  "phone": "555-0123",
+  "status": "active",
+  "created_at": "2026-01-15T08:00:00Z",
+  "updated_at": "2026-01-15T08:00:00Z"
+}
+```
+
+---
+
+### Table: `shifts`
+
+```sql
+CREATE TABLE shifts (
+    id              SERIAL PRIMARY KEY,
+    name            VARCHAR(100) NOT NULL,
+    start_time      TIME NOT NULL,
+    end_time        TIME NOT NULL,
+    is_active       BOOLEAN DEFAULT true,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+**Sample Data:**
+```json
+{
+  "id": 1,
+  "name": "Morning Shift",
+  "start_time": "08:00:00",
+  "end_time": "17:00:00",
+  "is_active": true,
+  "created_at": "2026-01-01T00:00:00Z"
+}
+```
+
+---
+
+### Table: `attendance`
+
+```sql
+CREATE TABLE attendance (
+    id                  SERIAL PRIMARY KEY,
+    officer_id          INT NOT NULL REFERENCES officers(id),
+    date                DATE NOT NULL,
+    check_in            TIME NULL,
+    check_out           TIME NULL,
+    total_work_minutes  INT DEFAULT 0,
+    total_late_minutes  INT DEFAULT 0,
+    status              VARCHAR(20) DEFAULT 'PENDING',
+    notes               TEXT NULL,
+    approved_by         INT NULL REFERENCES officers(id),
+    approved_at         TIMESTAMP NULL,
+    created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(officer_id, date)
+);
+
+CREATE INDEX idx_attendance_officer_date ON attendance(officer_id, date);
+CREATE INDEX idx_attendance_date ON attendance(date);
+CREATE INDEX idx_attendance_status ON attendance(status);
+```
+
+**Sample Data:**
+```json
+{
+  "id": 1,
+  "officer_id": 1,
+  "date": "2026-04-14",
+  "check_in": "08:00:00",
+  "check_out": "17:00:00",
+  "total_work_minutes": 480,
+  "total_late_minutes": 0,
+  "status": "APPROVED",
+  "notes": null,
+  "approved_by": 5,
+  "approved_at": "2026-04-14T18:00:00Z",
+  "created_at": "2026-04-14T08:00:00Z",
+  "updated_at": "2026-04-14T18:00:00Z"
+}
+```
+
+---
+
+### Table: `attendance_sessions`
+
+```sql
+CREATE TABLE attendance_sessions (
+    id              SERIAL PRIMARY KEY,
+    shift_id        INT NULL REFERENCES shifts(id),
+    session_date    DATE NOT NULL,
+    label           VARCHAR(100),
+    created_by      INT NOT NULL REFERENCES officers(id),
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_sessions_date ON attendance_sessions(session_date);
+```
+
+**Sample Data:**
+```json
+{
+  "id": 1,
+  "shift_id": 1,
+  "session_date": "2026-04-14",
+  "label": "Morning Shift - Apr 14",
+  "created_by": 5,
+  "created_at": "2026-04-14T07:00:00Z",
+  "updated_at": "2026-04-14T07:00:00Z"
+}
+```
+
+---
+
+### Table: `qr_sessions`
+
+```sql
+CREATE TABLE qr_sessions (
+    id                  VARCHAR(50) PRIMARY KEY,
+    token               VARCHAR(255) UNIQUE NOT NULL,
+    status              VARCHAR(20) DEFAULT 'idle',
+    location            VARCHAR(255),
+    valid_until         TIMESTAMP NULL,
+    qr_refresh_interval INT DEFAULT 60,
+    created_by          INT NOT NULL REFERENCES officers(id),
+    created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    started_at          TIMESTAMP NULL,
+    stopped_at          TIMESTAMP NULL
+);
+
+CREATE INDEX idx_qr_status ON qr_sessions(status);
+CREATE INDEX idx_qr_created_by ON qr_sessions(created_by);
+```
+
+**Sample Data:**
+```json
+{
+  "id": "sess_abc123xyz",
+  "token": "attendance://sess_abc123xyz",
+  "status": "active",
+  "location": "Main Office - Building A",
+  "valid_until": "2026-04-14T12:00:00Z",
+  "qr_refresh_interval": 60,
+  "created_by": 1,
+  "created_at": "2026-04-14T08:00:00Z",
+  "updated_at": "2026-04-14T08:00:00Z",
+  "started_at": "2026-04-14T08:00:05Z",
+  "stopped_at": null
+}
+```
+
+---
+
+### Table: `qr_session_checkins`
+
+```sql
+CREATE TABLE qr_session_checkins (
+    id                  SERIAL PRIMARY KEY,
+    qr_session_id       VARCHAR(50) NOT NULL REFERENCES qr_sessions(id) ON DELETE CASCADE,
+    officer_id          INT NOT NULL REFERENCES officers(id),
+    action              VARCHAR(20) NOT NULL,
+    status              VARCHAR(20) NOT NULL,
+    scanned_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    device_info         JSONB NULL,
+    created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(qr_session_id, officer_id, action)
+);
+
+CREATE INDEX idx_checkins_session ON qr_session_checkins(qr_session_id);
+CREATE INDEX idx_checkins_officer ON qr_session_checkins(officer_id);
+CREATE INDEX idx_checkins_scanned_at ON qr_session_checkins(scanned_at);
+```
+
+**Sample Data:**
+```json
+[
+  {
+    "id": 1,
+    "qr_session_id": "sess_abc123xyz",
+    "officer_id": 1,
+    "action": "check-in",
+    "status": "checked-in",
+    "scanned_at": "2026-04-14T08:05:23Z",
+    "device_info": {
+      "ip": "192.168.1.100",
+      "user_agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0)"
+    },
+    "created_at": "2026-04-14T08:05:23Z"
+  },
+  {
+    "id": 2,
+    "qr_session_id": "sess_abc123xyz",
+    "officer_id": 2,
+    "action": "check-in",
+    "status": "late",
+    "scanned_at": "2026-04-14T08:45:12Z",
+    "device_info": {
+      "ip": "192.168.1.105",
+      "user_agent": "Mozilla/5.0 (Android 14)"
+    },
+    "created_at": "2026-04-14T08:45:12Z"
+  },
+  {
+    "id": 3,
+    "qr_session_id": "sess_abc123xyz",
+    "officer_id": 3,
+    "action": "check-out",
+    "status": "checked-out",
+    "scanned_at": "2026-04-14T17:00:45Z",
+    "device_info": null,
+    "created_at": "2026-04-14T17:00:45Z"
+  }
+]
+```
+
+---
+
+### Table: `qr_session_logs`
+
+```sql
+CREATE TABLE qr_session_logs (
+    id              SERIAL PRIMARY KEY,
+    qr_session_id   VARCHAR(50) NOT NULL REFERENCES qr_sessions(id) ON DELETE CASCADE,
+    action          VARCHAR(50) NOT NULL,
+    performed_by    INT NULL REFERENCES officers(id),
+    details         JSONB NULL,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_qr_logs_session ON qr_session_logs(qr_session_id);
+```
+
+**Sample Data:**
+```json
+[
+  {
+    "id": 1,
+    "qr_session_id": "sess_abc123xyz",
+    "action": "started",
+    "performed_by": 1,
+    "details": null,
+    "created_at": "2026-04-14T08:00:05Z"
+  },
+  {
+    "id": 2,
+    "qr_session_id": "sess_abc123xyz",
+    "action": "regenerated",
+    "performed_by": 1,
+    "details": {
+      "reason": "auto_refresh",
+      "previous_token": "attendance://sess_old123"
+    },
+    "created_at": "2026-04-14T08:01:05Z"
+  },
+  {
+    "id": 3,
+    "qr_session_id": "sess_abc123xyz",
+    "action": "paused",
+    "performed_by": 1,
+    "details": null,
+    "created_at": "2026-04-14T09:30:00Z"
+  }
+]
+```
+
+---
+
+## API Endpoints
+
+### 📊 Attendance Endpoints
+
+#### **GET** `/api/attendance`
+Get all attendance records (paginated)
+
+**Query Parameters:**
+
+- `page` - Page number (default: 0)
+- `size` - Items per page (default: 10)
+
+**Sample Response:**
+```json
+{
+  "content": [
+    {
+      "id": 1,
+      "officerId": 1,
+      "firstName": "John",
+      "lastName": "Doe",
+      "department": "Human Resources",
+      "officerCode": "OFF-001",
+      "date": "2026-04-14",
+      "checkIn": "2026-04-14T08:00:00",
+      "checkOut": "2026-04-14T17:00:00",
+      "totalWorkMin": 480,
+      "totalLateMin": 0,
+      "status": "Present",
+      "sessions": [
+        {
+          "id": 1,
+          "shiftName": "Morning Shift",
+          "checkIn": "08:00",
+          "checkOut": "12:00",
+          "status": "Present"
+        },
+        {
+          "id": 2,
+          "shiftName": "Afternoon Shift",
+          "checkIn": "13:00",
+          "checkOut": "17:00",
+          "status": "Present"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "officerId": 2,
+      "firstName": "Jane",
+      "lastName": "Smith",
+      "department": "IT Department",
+      "officerCode": "OFF-002",
+      "date": "2026-04-14",
+      "checkIn": "2026-04-14T08:45:00",
+      "checkOut": "2026-04-14T17:15:00",
+      "totalWorkMin": 450,
+      "totalLateMin": 45,
+      "status": "Late",
+      "sessions": [
+        {
+          "id": 3,
+          "shiftName": "Morning Shift",
+          "checkIn": "08:45",
+          "checkOut": "12:00",
+          "status": "Late"
+        },
+        {
+          "id": 4,
+          "shiftName": "Afternoon Shift",
+          "checkIn": "13:00",
+          "checkOut": "17:15",
+          "status": "Present"
+        }
+      ]
+    }
+  ],
+  "page": 0,
+  "size": 10,
+  "totalElements": 2,
+  "totalPages": 1,
+  "last": true
+}
+```
+
+---
+
+#### **POST** `/api/attendance`
+Create a new attendance record
+
+**Request Body:**
+```json
+{
+  "officerId": 1,
+  "date": "2026-04-14",
+  "checkIn": "08:00",
+  "checkOut": "17:00",
+  "status": "Present"
+}
+```
+
+**Sample Response (201 Created):**
+```json
+{
+  "id": 26,
+  "officerId": 1,
+  "firstName": "John",
+  "lastName": "Doe",
+  "department": "Operations",
+  "officerCode": "OFF-001",
+  "date": "2026-04-14",
+  "checkIn": "08:00",
+  "checkOut": "17:00",
+  "totalWorkMin": 480,
+  "totalLateMin": 0,
+  "status": "Present",
+  "sessions": []
+}
+```
+
+---
+
+#### **PUT** `/api/attendance/:id`
+Update attendance record (e.g., approve, reject)
+
+**Request Body:**
+```json
+{
+  "status": "APPROVED"
+}
+```
+
+**Sample Response:**
+```json
+{
+  "id": 1,
+  "officerId": 1,
+  "date": "2026-04-14",
+  "totalWorkMin": 480,
+  "totalLateMin": 0,
+  "status": "APPROVED",
+  "firstName": "John",
+  "lastName": "Doe",
+  "department": "Operations"
+}
+```
+
+---
+
+### 📱 QR Attendance Endpoints
+
+#### **POST** `/api/v1/qr-sessions`
+Create a new QR attendance session
+
+**Request Body:**
+```json
+{
+  "created_by": 1,
+  "duration_seconds": 60,
+  "location": "Main Office"
+}
+```
+
+**Sample Response (201 Created):**
+```json
+{
+  "id": "sess_abc123",
+  "qr_token": "attendance://sess_abc123",
+  "status": "active",
+  "created_at": "2026-04-14T08:00:00Z",
+  "expires_at": "2026-04-14T08:01:00Z",
+  "qr_code_url": "/api/qr/sess_abc123.png"
+}
+```
+
+---
+
+#### **GET** `/api/qr-sessions/:id`
+Get QR session details
+
+**Sample Response:**
+```json
+{
+  "id": "sess_abc123",
+  "status": "active",
+  "created_by": 1,
+  "created_at": "2026-04-14T08:00:00Z",
+  "expires_at": "2026-04-14T08:01:00Z",
+  "qr_token": "attendance://sess_abc123",
+  "scan_count": 15,
+  "location": "Main Office"
+}
+```
+
+---
+
+#### **PUT** `/api/qr-sessions/:id`
+Update QR session status (pause, stop, regenerate)
+
+**Request Body:**
+```json
+{
+  "action": "pause"
+}
+```
+
+**Allowed Actions:** `pause` | `resume` | `stop` | `regenerate`
+
+**Sample Response:**
+```json
+{
+  "id": "sess_abc123",
+  "status": "paused",
+  "updated_at": "2026-04-14T08:30:00Z"
+}
+```
+
+---
+
+#### **GET** `/api/qr-sessions/:id/checkins`
+Get all check-ins for a QR session
+
+**Sample Response:**
+```json
+[
+  {
+    "id": 1,
+    "employee_name": "John Doe",
+    "employee_code": "EMP-001",
+    "department": "Operations",
+    "status": "checked-in",
+    "scanned_at": "2026-04-14T08:05:23Z"
+  },
+  {
+    "id": 2,
+    "employee_name": "Jane Smith",
+    "employee_code": "EMP-002",
+    "department": "HR",
+    "status": "late",
+    "scanned_at": "2026-04-14T08:45:12Z"
+  },
+  {
+    "id": 3,
+    "employee_name": "Mike Johnson",
+    "employee_code": "EMP-003",
+    "department": "IT",
+    "status": "checked-out",
+    "scanned_at": "2026-04-14T17:00:45Z"
+  }
+]
+```
+
+---
+
+#### **POST** `/api/qr-sessions/:id/checkins`
+Record a new check-in/check-out via QR scan
+
+**Request Body:**
+```json
+{
+  "employee_id": 1,
+  "action": "check-in",
+  "timestamp": "2026-04-14T08:05:23Z"
+}
+```
+
+**Sample Response (201 Created):**
+```json
+{
+  "id": 4,
+  "employee_name": "David Brown",
+  "employee_code": "EMP-005",
+  "department": "Finance",
+  "status": "checked-in",
+  "scanned_at": "2026-04-14T08:05:23Z",
+  "message": "Check-in successful"
+}
+```
+
+---
+
+#### **GET** `/api/qr-sessions/:id/stats`
+Get statistics for a QR session
+
+**Sample Response:**
+```json
+{
+  "session_id": "sess_abc123",
+  "total_scans": 25,
+  "checked_in": 18,
+  "checked_out": 5,
+  "late": 2,
+  "status": "active",
+  "started_at": "2026-04-14T08:00:00Z",
+  "last_scan_at": "2026-04-14T08:45:12Z"
+}
+```
+
+---
+
+#### **DELETE** `/api/qr-sessions/:id`
+Delete/end a QR session
+
+**Sample Response:**
+```json
+{
+  "message": "Session ended successfully",
+  "id": "sess_abc123",
+  "final_stats": {
+    "total_scans": 25,
+    "checked_in": 18,
+    "checked_out": 5,
+    "late": 2
+  }
+}
+```
+
+---
+
+### Endpoint Summary Table
+
+| Module | Method | Endpoint | Description |
+|--------|--------|----------|-------------|
+| Attendance | GET | `/api/attendance` | Get all attendance records (paginated) |
+| Attendance | POST | `/api/attendance` | Create attendance record |
+| Attendance | PUT | `/api/attendance/:id` | Update attendance record |
+| QR Attendance | POST | `/api/v1/qr-sessions` | Create QR session |
+| QR Attendance | GET | `/api/v1/qr-sessions/:id` | Get QR session details |
+| QR Attendance | PUT | `/api/v1/qr-sessions/:id` | Update session (pause/stop/regenerate) |
+| QR Attendance | GET | `/api/v1/qr-sessions/:id/checkins` | Get session check-ins |
+| QR Attendance | POST | `/api/v1/qr-sessions/:id/checkins` | Record check-in/out |
+| QR Attendance | GET | `/api/v1/qr-sessions/:id/stats` | Get session statistics |
+| QR Attendance | DELETE | `/api/v1/qr-sessions/:id` | Delete/end session |
+
+---
 
 ## Default Login Credentials
 

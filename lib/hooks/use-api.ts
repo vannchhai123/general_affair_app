@@ -20,7 +20,12 @@ import {
   officerPermissionSchema,
   backendOfficerPermissionsPaginatedResponseSchema,
   attendanceResponseSchema,
+  attendanceListResponseSchema,
   attendanceSchema,
+  qrSessionSchema,
+  createQrSessionSchema,
+  updateQrSessionSchema,
+  updateQrSessionResponseSchema,
   invitationsResponseSchema,
   invitationSchema,
   missionsResponseSchema,
@@ -41,6 +46,11 @@ import {
   type AssignPermissionToRole,
   type OfficerPermission,
   type Attendance,
+  type AttendanceResponse,
+  type QrSession,
+  type CreateQrSession,
+  type UpdateQrSession,
+  type UpdateQrSessionResponse,
   type Invitation,
   type Mission,
   type LeaveRequest,
@@ -360,7 +370,7 @@ export function useAssignPermission() {
 
   return useMutation({
     mutationFn: (data: { officer_id: number; permission_id: number }) =>
-      fetchApi('/api/officer-permissions', officerPermissionSchema, {
+      fetchApi('/officer-permissions', officerPermissionSchema, {
         method: 'POST',
         body: JSON.stringify(data),
       }),
@@ -379,7 +389,7 @@ export function useRevokePermission() {
 
   return useMutation({
     mutationFn: (id: number) =>
-      fetchApi(`/api/officer-permissions/${id}`, successResponseSchema, {
+      fetchApi(`/officer-permissions/${id}`, successResponseSchema, {
         method: 'DELETE',
       }),
     onSuccess: () => {
@@ -392,13 +402,26 @@ export function useRevokePermission() {
   });
 }
 
-// ─── Attendance Hooks ─────────────────────────────────────────
+export function useAttendance(params?: { page?: number; size?: number }) {
+  const queryParams = new URLSearchParams();
+  if (params?.page !== undefined) queryParams.set('page', String(params.page));
+  if (params?.size !== undefined) queryParams.set('size', String(params.size));
+  const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
 
-export function useAttendance() {
+  const filters: Record<string, string> = {};
+  if (params?.page !== undefined) filters.page = String(params.page);
+  if (params?.size !== undefined) filters.size = String(params.size);
+
   return useQuery({
-    queryKey: queryKeys.attendance.list(),
-    queryFn: () => fetchApi('/api/attendance', attendanceResponseSchema),
-  });
+    queryKey: queryKeys.attendance.list(filters),
+    queryFn: () => fetchApi(`/attendance${queryString}`, attendanceResponseSchema),
+  }) as {
+    data: AttendanceResponse | undefined;
+    isLoading: boolean;
+    isError: boolean;
+    error: Error | null;
+    refetch: () => void;
+  };
 }
 
 export function useCreateAttendance() {
@@ -406,7 +429,7 @@ export function useCreateAttendance() {
 
   return useMutation({
     mutationFn: (data: Partial<Attendance>) =>
-      fetchApi('/api/attendance', attendanceSchema, {
+      fetchApi('/attendance', attendanceSchema, {
         method: 'POST',
         body: JSON.stringify(data),
       }),
@@ -425,13 +448,92 @@ export function useUpdateAttendance() {
 
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<Attendance> }) =>
-      fetchApi(`/api/attendance/${id}`, attendanceSchema, {
+      fetchApi(`/attendance/${id}`, attendanceSchema, {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.attendance.all });
       toast.success('Attendance updated');
+    },
+    onError: (error: ApiError) => {
+      toast.error(error.message);
+    },
+  });
+}
+
+// ─── QR Session Hooks ─────────────────────────────────────────
+
+export function useCreateQrSession() {
+  const queryClient = useQueryClient();
+
+  return useMutation<QrSession, ApiError, CreateQrSession>({
+    mutationFn: (data: CreateQrSession) =>
+      fetchApi('/qr-sessions', qrSessionSchema, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.qrSessions.all });
+      toast.success('QR session created');
+    },
+    onError: (error: ApiError) => {
+      toast.error(error.message);
+    },
+  });
+}
+
+export function useQrSession(id: string) {
+  return useQuery({
+    queryKey: queryKeys.qrSessions.detail(id),
+    queryFn: () => fetchApi(`/qr-sessions/${id}`, qrSessionSchema),
+    enabled: !!id,
+  }) as {
+    data: QrSession | undefined;
+    isLoading: boolean;
+    isError: boolean;
+    error: Error | null;
+    refetch: () => void;
+  };
+}
+
+export function useUpdateQrSession() {
+  const queryClient = useQueryClient();
+
+  return useMutation<UpdateQrSessionResponse, ApiError, { id: string; data: UpdateQrSession }>({
+    mutationFn: ({ id, data }: { id: string; data: UpdateQrSession }) =>
+      fetchApi(`/qr-sessions/${id}`, updateQrSessionResponseSchema, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+    onSuccess: (data) => {
+      // Update the cache with the new status
+      queryClient.setQueryData(['qr-sessions', data.id], (oldData: QrSession | undefined) => {
+        if (oldData) {
+          return { ...oldData, status: data.status };
+        }
+        return oldData;
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.qrSessions.all });
+      toast.success('QR session updated');
+    },
+    onError: (error: ApiError) => {
+      toast.error(error.message);
+    },
+  });
+}
+
+export function useDeleteQrSession() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) =>
+      fetchApi(`/qr-sessions/${id}`, successResponseSchema, {
+        method: 'DELETE',
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.qrSessions.all });
+      toast.success('QR session deleted');
     },
     onError: (error: ApiError) => {
       toast.error(error.message);
