@@ -54,7 +54,8 @@ lib/
 #### Fetching Data
 
 ```tsx
-import { useOfficers, usePermissions } from '@/lib/hooks/use-api';
+import { useOfficers } from '@/hooks/officers/use-officers';
+import { usePermissions } from '@/hooks/permissions/use-permissions';
 
 function MyComponent() {
   // Fetch officers with optional filters
@@ -83,7 +84,8 @@ function MyComponent() {
 #### Mutating Data
 
 ```tsx
-import { useCreateOfficer, useDeletePermission } from '@/lib/hooks/use-api';
+import { useCreateOfficer } from '@/hooks/officers/use-officer-mutations';
+import { useDeletePermission } from '@/hooks/permissions/use-permission-mutations';
 
 function MyForm() {
   const createOfficer = useCreateOfficer();
@@ -112,10 +114,10 @@ function MyForm() {
 #### Role Permissions
 
 ```tsx
-import { useRolePermissions } from '@/lib/hooks/use-api';
+import { usePermissionsByRole } from '@/hooks/permissions/use-role-permissions';
 
 function RolePermissionsView({ roleId }) {
-  const { data, isLoading } = useRolePermissions(roleId, {
+  const { data, isLoading } = usePermissionsByRole(roleId, {
     page: 0,
     size: 10,
   });
@@ -261,11 +263,11 @@ npm start
 
 ### 📊 Attendance
 
-| Method | Endpoint              | Description                       |
-| ------ | --------------------- | --------------------------------- |
+| Method | Endpoint              | Description                            |
+| ------ | --------------------- | -------------------------------------- |
 | GET    | `/api/attendance`     | Get all attendance records (paginated) |
-| POST   | `/api/attendance`     | Create attendance record          |
-| PUT    | `/api/attendance/:id` | Update attendance (e.g., approve) |
+| POST   | `/api/attendance`     | Create attendance record               |
+| PUT    | `/api/attendance/:id` | Update attendance (e.g., approve)      |
 
 **Query Parameters (GET):**
 
@@ -791,6 +793,7 @@ CREATE TABLE officers (
 ```
 
 **Sample Data:**
+
 ```json
 {
   "id": 1,
@@ -824,6 +827,7 @@ CREATE TABLE shifts (
 ```
 
 **Sample Data:**
+
 ```json
 {
   "id": 1,
@@ -863,6 +867,7 @@ CREATE INDEX idx_attendance_status ON attendance(status);
 ```
 
 **Sample Data:**
+
 ```json
 {
   "id": 1,
@@ -900,6 +905,7 @@ CREATE INDEX idx_sessions_date ON attendance_sessions(session_date);
 ```
 
 **Sample Data:**
+
 ```json
 {
   "id": 1,
@@ -936,6 +942,7 @@ CREATE INDEX idx_qr_created_by ON qr_sessions(created_by);
 ```
 
 **Sample Data:**
+
 ```json
 {
   "id": "sess_abc123xyz",
@@ -975,6 +982,7 @@ CREATE INDEX idx_checkins_scanned_at ON qr_session_checkins(scanned_at);
 ```
 
 **Sample Data:**
+
 ```json
 [
   {
@@ -1034,6 +1042,7 @@ CREATE INDEX idx_qr_logs_session ON qr_session_logs(qr_session_id);
 ```
 
 **Sample Data:**
+
 ```json
 [
   {
@@ -1073,6 +1082,7 @@ CREATE INDEX idx_qr_logs_session ON qr_session_logs(qr_session_id);
 ### 📊 Attendance Endpoints
 
 #### **GET** `/api/attendance`
+
 Get all attendance records (paginated)
 
 **Query Parameters:**
@@ -1081,6 +1091,7 @@ Get all attendance records (paginated)
 - `size` - Items per page (default: 10)
 
 **Sample Response:**
+
 ```json
 {
   "content": [
@@ -1156,9 +1167,11 @@ Get all attendance records (paginated)
 ---
 
 #### **POST** `/api/attendance`
+
 Create a new attendance record
 
 **Request Body:**
+
 ```json
 {
   "officerId": 1,
@@ -1170,6 +1183,7 @@ Create a new attendance record
 ```
 
 **Sample Response (201 Created):**
+
 ```json
 {
   "id": 26,
@@ -1191,9 +1205,11 @@ Create a new attendance record
 ---
 
 #### **PUT** `/api/attendance/:id`
+
 Update attendance record (e.g., approve, reject)
 
 **Request Body:**
+
 ```json
 {
   "status": "APPROVED"
@@ -1201,6 +1217,7 @@ Update attendance record (e.g., approve, reject)
 ```
 
 **Sample Response:**
+
 ```json
 {
   "id": 1,
@@ -1220,9 +1237,11 @@ Update attendance record (e.g., approve, reject)
 ### 📱 QR Attendance Endpoints
 
 #### **POST** `/api/v1/qr-sessions`
+
 Create a new QR attendance session
 
 **Request Body:**
+
 ```json
 {
   "created_by": 1,
@@ -1232,6 +1251,7 @@ Create a new QR attendance session
 ```
 
 **Sample Response (201 Created):**
+
 ```json
 {
   "id": "sess_abc123",
@@ -1246,9 +1266,11 @@ Create a new QR attendance session
 ---
 
 #### **GET** `/api/qr-sessions/:id`
+
 Get QR session details
 
 **Sample Response:**
+
 ```json
 {
   "id": "sess_abc123",
@@ -1265,9 +1287,11 @@ Get QR session details
 ---
 
 #### **PUT** `/api/qr-sessions/:id`
+
 Update QR session status (pause, stop, regenerate)
 
 **Request Body:**
+
 ```json
 {
   "action": "pause"
@@ -1277,6 +1301,7 @@ Update QR session status (pause, stop, regenerate)
 **Allowed Actions:** `pause` | `resume` | `stop` | `regenerate`
 
 **Sample Response:**
+
 ```json
 {
   "id": "sess_abc123",
@@ -1288,9 +1313,11 @@ Update QR session status (pause, stop, regenerate)
 ---
 
 #### **GET** `/api/qr-sessions/:id/checkins`
+
 Get all check-ins for a QR session
 
 **Sample Response:**
+
 ```json
 [
   {
@@ -1323,9 +1350,11 @@ Get all check-ins for a QR session
 ---
 
 #### **POST** `/api/qr-sessions/:id/checkins`
+
 Record a new check-in/check-out via QR scan
 
 **Request Body:**
+
 ```json
 {
   "employee_id": 1,
@@ -1335,6 +1364,7 @@ Record a new check-in/check-out via QR scan
 ```
 
 **Sample Response (201 Created):**
+
 ```json
 {
   "id": 4,
@@ -1350,9 +1380,11 @@ Record a new check-in/check-out via QR scan
 ---
 
 #### **GET** `/api/qr-sessions/:id/stats`
+
 Get statistics for a QR session
 
 **Sample Response:**
+
 ```json
 {
   "session_id": "sess_abc123",
@@ -1369,9 +1401,11 @@ Get statistics for a QR session
 ---
 
 #### **DELETE** `/api/qr-sessions/:id`
+
 Delete/end a QR session
 
 **Sample Response:**
+
 ```json
 {
   "message": "Session ended successfully",
@@ -1389,18 +1423,18 @@ Delete/end a QR session
 
 ### Endpoint Summary Table
 
-| Module | Method | Endpoint | Description |
-|--------|--------|----------|-------------|
-| Attendance | GET | `/api/attendance` | Get all attendance records (paginated) |
-| Attendance | POST | `/api/attendance` | Create attendance record |
-| Attendance | PUT | `/api/attendance/:id` | Update attendance record |
-| QR Attendance | POST | `/api/v1/qr-sessions` | Create QR session |
-| QR Attendance | GET | `/api/v1/qr-sessions/:id` | Get QR session details |
-| QR Attendance | PUT | `/api/v1/qr-sessions/:id` | Update session (pause/stop/regenerate) |
-| QR Attendance | GET | `/api/v1/qr-sessions/:id/checkins` | Get session check-ins |
-| QR Attendance | POST | `/api/v1/qr-sessions/:id/checkins` | Record check-in/out |
-| QR Attendance | GET | `/api/v1/qr-sessions/:id/stats` | Get session statistics |
-| QR Attendance | DELETE | `/api/v1/qr-sessions/:id` | Delete/end session |
+| Module        | Method | Endpoint                           | Description                            |
+| ------------- | ------ | ---------------------------------- | -------------------------------------- |
+| Attendance    | GET    | `/api/attendance`                  | Get all attendance records (paginated) |
+| Attendance    | POST   | `/api/attendance`                  | Create attendance record               |
+| Attendance    | PUT    | `/api/attendance/:id`              | Update attendance record               |
+| QR Attendance | POST   | `/api/v1/qr-sessions`              | Create QR session                      |
+| QR Attendance | GET    | `/api/v1/qr-sessions/:id`          | Get QR session details                 |
+| QR Attendance | PUT    | `/api/v1/qr-sessions/:id`          | Update session (pause/stop/regenerate) |
+| QR Attendance | GET    | `/api/v1/qr-sessions/:id/checkins` | Get session check-ins                  |
+| QR Attendance | POST   | `/api/v1/qr-sessions/:id/checkins` | Record check-in/out                    |
+| QR Attendance | GET    | `/api/v1/qr-sessions/:id/stats`    | Get session statistics                 |
+| QR Attendance | DELETE | `/api/v1/qr-sessions/:id`          | Delete/end session                     |
 
 ---
 

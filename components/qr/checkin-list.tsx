@@ -4,6 +4,7 @@ import { Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface CheckInRecord {
   id: number;
@@ -15,6 +16,7 @@ interface CheckInRecord {
 
 interface CheckInListProps {
   checkIns: CheckInRecord[];
+  isLoading?: boolean;
 }
 
 function getInitials(firstName: string, lastName: string) {
@@ -33,7 +35,7 @@ function CheckInStatusBadge({ status }: { status: CheckInRecord['status'] }) {
   return <Badge className={`px-2 py-0.5 ${color} border-0 text-xs`}>{label}</Badge>;
 }
 
-export function CheckInList({ checkIns }: CheckInListProps) {
+export function CheckInList({ checkIns, isLoading = false }: CheckInListProps) {
   return (
     <div className="rounded-lg border bg-card">
       <div className="border-b p-4">
@@ -44,7 +46,20 @@ export function CheckInList({ checkIns }: CheckInListProps) {
         <p className="mt-1 text-sm text-muted-foreground">Real-time attendance scans</p>
       </div>
       <ScrollArea className="h-[400px] p-4">
-        {checkIns.length === 0 ? (
+        {isLoading ? (
+          <div className="space-y-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                </div>
+                <Skeleton className="h-6 w-16" />
+              </div>
+            ))}
+          </div>
+        ) : checkIns.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Users className="h-8 w-8 text-muted-foreground" />
             <p className="mt-2 text-sm text-muted-foreground">No scans yet</p>

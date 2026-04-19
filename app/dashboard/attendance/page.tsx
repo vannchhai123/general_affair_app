@@ -55,8 +55,8 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { useAttendance } from '@/lib/hooks/use-api';
-import type { Attendance } from '@/lib/schemas/api-schemas';
+import { useAttendance } from '@/hooks/attendance/use-attendance';
+import type { Attendance } from '@/lib/schemas';
 
 // ─── Types ─────────────────────────────────────────────
 interface AttendanceFormData {
@@ -333,14 +333,9 @@ export default function AttendancePage() {
   const [modalOpen, setModalOpen] = useState(false);
 
   // Fetch data from API
-  const {
-    data: attendanceData,
-    isLoading,
-    error,
-    refetch,
-  } = useAttendance({ page, size: 10 });
+  const { data: attendanceData, isLoading, error, refetch } = useAttendance({ page, size: 10 });
 
-  console.log("Attendance List: ", {data: attendanceData})
+  console.log('Attendance List: ', { data: attendanceData });
 
   // Records from API response
   const records = attendanceData?.content || [];
@@ -417,10 +412,14 @@ export default function AttendancePage() {
       )}
 
       {/* Summary Cards */}
-      <SummaryCards 
-        data={attendanceData ? { content: records, totalElements: attendanceData.totalElements } : undefined} 
-        isLoading={isLoading} 
-        error={error} 
+      <SummaryCards
+        data={
+          attendanceData
+            ? { content: records, totalElements: attendanceData.totalElements }
+            : undefined
+        }
+        isLoading={isLoading}
+        error={error}
       />
 
       {/* Filters & Actions */}
@@ -571,8 +570,7 @@ export default function AttendancePage() {
                   <TableHead className="w-12">
                     <Checkbox
                       checked={
-                        selectedIds.length === filteredRecords.length &&
-                        filteredRecords.length > 0
+                        selectedIds.length === filteredRecords.length && filteredRecords.length > 0
                       }
                       onCheckedChange={toggleSelectAll}
                     />

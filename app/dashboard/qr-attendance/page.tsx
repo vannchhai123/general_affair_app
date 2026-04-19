@@ -11,7 +11,12 @@ import { QRDisplay } from '@/components/qr/qr-display';
 import { SessionControls } from '@/components/qr/session-controls';
 import { CheckInList } from '@/components/qr/checkin-list';
 import { SummaryCard } from '@/components/qr/summary-card';
-import { useCreateQrSession, useQrSession, useUpdateQrSession } from '@/lib/hooks/use-api';
+import {
+  useCreateQrSession,
+  useUpdateQrSession,
+} from '@/hooks/qr-sessions/use-qr-session-mutations';
+import { useQrSession } from '@/hooks/qr-sessions/use-qr-session';
+import { useQrSessionCheckIns } from '@/hooks/qr-sessions/use-qr-checkins';
 
 // ─── Types ─────────────────────────────────────────────
 export type SessionStatus = 'idle' | 'active' | 'paused' | 'stopped';
@@ -24,7 +29,7 @@ export interface CheckInRecord {
   status: 'checked-in' | 'checked-out' | 'late';
 }
 
-const QR_REFRESH_INTERVAL = 60; 
+const QR_REFRESH_INTERVAL = 60;
 
 export default function QRAttendancePage() {
   // Session state
@@ -34,8 +39,8 @@ export default function QRAttendancePage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const isExpired = countdown <= 0;
 
-  // Check-ins state
-  const [checkIns, setCheckIns] = useState<CheckInRecord[]>([]);
+  // Check-ins state - now fetched from API
+  const { data: checkInsData = [], isLoading: checkInsLoading } = useQrSessionCheckIns(sessionId);
 
   // API hooks
   const createQrSession = useCreateQrSession();
@@ -97,7 +102,6 @@ export default function QRAttendancePage() {
     }
   };
 
-  // Stop session - call API to update status
   const stopSession = async () => {
     if (!sessionId) return;
 
@@ -114,17 +118,18 @@ export default function QRAttendancePage() {
     }
   };
 
-  // Regenerate QR - call API to update/regenerate
   const regenerateQR = async () => {
     if (!sessionId) return;
 
     setIsRefreshing(true);
     try {
-      await updateQrSession.mutateAsync({
+      const response = await updateQrSession.mutateAsync({
         id: sessionId,
         data: { action: 'regenerate' },
       });
-      
+
+      setSessionId(response.id);
+
       setCountdown(QR_REFRESH_INTERVAL);
       setIsRefreshing(false);
       toast.success('QR code regenerated');
@@ -151,7 +156,16 @@ export default function QRAttendancePage() {
     return () => clearInterval(timer);
   }, [sessionStatus, countdown, regenerateQR]);
 
-  // Statistics
+  const checkIns: CheckInRecord[] = useMemo(() => {
+    return checkInsData.map((checkIn: any) => ({
+      id: checkIn.id,
+      employeeName: checkIn.employee_name,
+      employeeCode: checkIn.employee_code,
+      time: new Date(checkIn.scanned_at).toLocaleTimeString(),
+      status: checkIn.status as 'checked-in' | 'checked-out' | 'late',
+    }));
+  }, [checkInsData]);
+
   const stats = useMemo(() => {
     return {
       totalScans: checkIns.length,
@@ -209,11 +223,7 @@ export default function QRAttendancePage() {
           <p className="mt-2 text-sm text-muted-foreground">
             Start a session to generate a QR code for attendance
           </p>
-          <Button 
-            onClick={startSession} 
-            className="mt-6"
-            disabled={createQrSession.isPending}
-          >
+          <Button onClick={startSession} className="mt-6" disabled={createQrSession.isPending}>
             <Play className="mr-2 h-4 w-4" />
             {createQrSession.isPending ? 'Starting...' : 'Start Session'}
           </Button>
@@ -234,7 +244,7 @@ export default function QRAttendancePage() {
 
             {/* Live Check-ins Section */}
             <div className="lg:col-span-1">
-              <CheckInList checkIns={checkIns} />
+              <CheckInList checkIns={checkIns} isLoading={checkInsLoading} />
             </div>
           </div>
 

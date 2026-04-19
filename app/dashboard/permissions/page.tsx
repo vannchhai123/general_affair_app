@@ -21,7 +21,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PermissionsTable } from '@/components/permissions/permissions-table';
 import OfficersTable from '@/components/permissions/officers-table';
-import type { Permission } from '@/lib/schemas/api-schemas';
+import type { Permission } from '@/lib/schemas';
 
 function SummaryCards({
   permissions,

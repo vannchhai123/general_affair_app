@@ -1,36 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import useSWR from 'swr';
-import { format } from 'date-fns';
-import { Plus, MapPin, Calendar, Users, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { useEffect, useState } from 'react';
+import { isAfter, isBefore, startOfDay } from 'date-fns';
+import { Plus } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import type { DateRange } from 'react-day-picker';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,248 +15,361 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { InvitationDetail } from '@/components/invitation-detail';
+import { InvitationFilters } from '@/components/invitation-filters';
+import { InvitationForm } from '@/components/invitation-form';
+import { InvitationStats } from '@/components/invitation-stats';
+import { InvitationTable } from '@/components/invitation-table';
+import {
+  useCreateInvitation,
+  useDeleteInvitation,
+  useUpdateInvitation,
+} from '@/hooks/invitations/use-invitation-mutations';
+import { useInvitations } from '@/hooks/invitations/use-invitations';
+import { officersResponseSchema, type Invitation, type Officer } from '@/lib/schemas';
+import type { InvitationFormValues } from '@/lib/schemas/invitation/invitation';
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+type SortKey = 'id' | 'subject' | 'organization' | 'date' | 'status';
 
-interface Invitation {
-  id: number;
-  title: string;
-  organizer: string;
-  date: string;
-  location: string;
-  status: string;
-  total_assigned: number;
-  accepted_count: number;
-  pending_count: number;
-}
+async function fetchOfficers() {
+  const response = await fetch('/api/officers', { cache: 'no-store' });
 
-const emptyForm = { title: '', organizer: '', date: '', location: '', status: 'active' };
-
-function statusBadge(status: string) {
-  switch (status) {
-    case 'active':
-      return <Badge className="bg-emerald-100 text-emerald-700 border-0">Active</Badge>;
-    case 'completed':
-      return <Badge className="bg-blue-100 text-blue-700 border-0">Completed</Badge>;
-    case 'cancelled':
-      return <Badge className="bg-red-100 text-red-700 border-0">Cancelled</Badge>;
-    default:
-      return <Badge variant="secondary">{status}</Badge>;
+  if (!response.ok) {
+    throw new Error('Failed to fetch officers');
   }
+
+  return officersResponseSchema.parse(await response.json());
 }
 
 export default function InvitationsPage() {
-  const { data: invitations, mutate } = useSWR<Invitation[]>('/api/invitations', fetcher);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editItem, setEditItem] = useState<Invitation | null>(null);
-  const [form, setForm] = useState(emptyForm);
-  const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [loading, setLoading] = useState(false);
+  const { data: invitationsData, isLoading } = useInvitations();
+  const invitations: Invitation[] = invitationsData ?? [];
+  const { data: officers = [] } = useQuery<Officer[]>({
+    queryKey: ['officers', 'invitation-selector'],
+    queryFn: fetchOfficers,
+  });
 
-  function openCreate() {
-    setEditItem(null);
-    setForm(emptyForm);
-    setDialogOpen(true);
-  }
+  const createInvitation = useCreateInvitation();
+  const updateInvitation = useUpdateInvitation();
+  const deleteInvitation = useDeleteInvitation();
 
-  function openEdit(inv: Invitation) {
-    setEditItem(inv);
-    setForm({
-      title: inv.title || '',
-      organizer: inv.organizer || '',
-      date: inv.date ? inv.date.split('T')[0] : '',
-      location: inv.location || '',
-      status: inv.status || 'active',
-    });
-    setDialogOpen(true);
-  }
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [page, setPage] = useState(1);
+  const [sortKey, setSortKey] = useState<SortKey>('date');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const url = editItem ? `/api/invitations/${editItem.id}` : '/api/invitations';
-      const method = editItem ? 'PUT' : 'POST';
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-      if (!res.ok) throw new Error();
-      toast.success(editItem ? 'Invitation updated' : 'Invitation created');
-      setDialogOpen(false);
-      mutate();
-    } catch {
-      toast.error('Operation failed');
-    } finally {
-      setLoading(false);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [selectedInvitation, setSelectedInvitation] = useState<Invitation | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Invitation | null>(null);
+  const [statusValue, setStatusValue] = useState<Invitation['status']>('pending');
+  const [formMode, setFormMode] = useState<'create' | 'edit' | 'assign'>('create');
+
+  const pageSize = 7;
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedSearch(search.trim().toLowerCase());
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [search]);
+
+  const hasActiveFilters =
+    search.length > 0 || statusFilter !== 'all' || typeFilter !== 'all' || Boolean(dateRange?.from);
+
+  const filteredInvitations = invitations.filter((invitation: Invitation) => {
+    const officerMatch = invitation.assigned_officers.some(
+      (officer: Invitation['assigned_officers'][number]) =>
+        `${officer.first_name} ${officer.last_name}`.toLowerCase().includes(debouncedSearch),
+    );
+
+    const textMatch =
+      !debouncedSearch ||
+      invitation.subject.toLowerCase().includes(debouncedSearch) ||
+      invitation.organization.toLowerCase().includes(debouncedSearch) ||
+      invitation.location.toLowerCase().includes(debouncedSearch) ||
+      officerMatch;
+
+    const statusMatch = statusFilter === 'all' || invitation.status === statusFilter;
+    const typeMatch = typeFilter === 'all' || invitation.type === typeFilter;
+
+    const invitationDate = startOfDay(new Date(invitation.date));
+    const fromMatch = !dateRange?.from || !isBefore(invitationDate, startOfDay(dateRange.from));
+    const toMatch = !dateRange?.to || !isAfter(invitationDate, startOfDay(dateRange.to));
+
+    return textMatch && statusMatch && typeMatch && fromMatch && toMatch;
+  });
+
+  const sortedInvitations = [...filteredInvitations].sort((left, right) => {
+    let comparison = 0;
+
+    switch (sortKey) {
+      case 'id':
+        comparison = left.id - right.id;
+        break;
+      case 'date':
+        comparison = new Date(left.date).getTime() - new Date(right.date).getTime();
+        break;
+      case 'subject':
+        comparison = left.subject.localeCompare(right.subject);
+        break;
+      case 'organization':
+        comparison = left.organization.localeCompare(right.organization);
+        break;
+      case 'status':
+        comparison = left.status.localeCompare(right.status);
+        break;
     }
+
+    return sortDirection === 'asc' ? comparison : -comparison;
+  });
+
+  const pageCount = Math.max(1, Math.ceil(sortedInvitations.length / pageSize));
+  const currentPage = Math.min(page, pageCount);
+  const paginatedInvitations = sortedInvitations.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, statusFilter, typeFilter, dateRange?.from, dateRange?.to]);
+
+  function handleSort(nextSortKey: SortKey) {
+    if (sortKey === nextSortKey) {
+      setSortDirection((current) => (current === 'asc' ? 'desc' : 'asc'));
+      return;
+    }
+
+    setSortKey(nextSortKey);
+    setSortDirection(nextSortKey === 'date' ? 'desc' : 'asc');
+  }
+
+  function resetFilters() {
+    setSearch('');
+    setDebouncedSearch('');
+    setStatusFilter('all');
+    setTypeFilter('all');
+    setDateRange(undefined);
+    setPage(1);
+  }
+
+  function openCreateDialog() {
+    setSelectedInvitation(null);
+    setFormMode('create');
+    setFormOpen(true);
+  }
+
+  function openEditDialog(invitation: Invitation) {
+    setSelectedInvitation(invitation);
+    setFormMode('edit');
+    setFormOpen(true);
+  }
+
+  function openAssignDialog(invitation: Invitation) {
+    setSelectedInvitation(invitation);
+    setFormMode('assign');
+    setFormOpen(true);
+  }
+
+  function openDetail(invitation: Invitation) {
+    setSelectedInvitation(invitation);
+    setDetailOpen(true);
+  }
+
+  function openStatusDialog(invitation: Invitation) {
+    setSelectedInvitation(invitation);
+    setStatusValue(invitation.status);
+    setStatusDialogOpen(true);
+  }
+
+  async function handleFormSubmit(values: InvitationFormValues) {
+    if (selectedInvitation) {
+      await updateInvitation.mutateAsync({ id: selectedInvitation.id, data: values });
+    } else {
+      await createInvitation.mutateAsync(values);
+    }
+
+    setFormOpen(false);
+    setSelectedInvitation(null);
+  }
+
+  async function handleStatusSubmit() {
+    if (!selectedInvitation) {
+      return;
+    }
+
+    await updateInvitation.mutateAsync({
+      id: selectedInvitation.id,
+      data: { status: statusValue },
+    });
+    setStatusDialogOpen(false);
+    setDetailOpen(false);
+    setSelectedInvitation(null);
   }
 
   async function handleDelete() {
-    if (!deleteId) return;
-    const res = await fetch(`/api/invitations/${deleteId}`, { method: 'DELETE' });
-    if (!res.ok) {
-      toast.error('Delete failed');
+    if (!deleteTarget) {
       return;
     }
-    toast.success('Invitation deleted');
-    setDeleteId(null);
-    mutate();
+
+    await deleteInvitation.mutateAsync(deleteTarget.id);
+    setDeleteTarget(null);
+    if (selectedInvitation?.id === deleteTarget.id) {
+      setSelectedInvitation(null);
+      setDetailOpen(false);
+    }
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Invitations</h1>
-          <p className="text-muted-foreground">Manage events and officer assignments</p>
+          <h1 className="text-3xl font-semibold tracking-tight">Invitation Management</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Manage and track all invitations</p>
         </div>
-        <Button onClick={openCreate}>
+
+        <Button className="rounded-lg shadow-sm" onClick={openCreateDialog}>
           <Plus className="mr-2 h-4 w-4" />
-          New Invitation
+          Create Invitation
         </Button>
       </div>
 
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        {invitations?.map((inv) => (
-          <Card key={inv.id} className="relative">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex-1 pr-8">
-                  <CardTitle className="text-base leading-tight">{inv.title}</CardTitle>
-                  <CardDescription className="mt-1">{inv.organizer}</CardDescription>
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => openEdit(inv)}>
-                      <Pencil className="mr-2 h-4 w-4" /> Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="text-destructive"
-                      onClick={() => setDeleteId(inv.id)}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" /> Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col gap-2.5">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="h-3.5 w-3.5" />
-                  {inv.date ? format(new Date(inv.date), 'MMM d, yyyy') : 'No date set'}
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <MapPin className="h-3.5 w-3.5" />
-                  {inv.location || 'No location'}
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Users className="h-3.5 w-3.5" />
-                  {inv.total_assigned} assigned ({inv.accepted_count} accepted, {inv.pending_count}{' '}
-                  pending)
-                </div>
-                <div className="mt-1">{statusBadge(inv.status)}</div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-        {invitations?.length === 0 && (
-          <div className="col-span-full text-center text-muted-foreground py-12">
-            No invitations found
-          </div>
-        )}
-      </div>
+      <InvitationStats invitations={invitations} isLoading={isLoading} />
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+      <InvitationFilters
+        search={search}
+        onSearchChange={setSearch}
+        status={statusFilter}
+        onStatusChange={setStatusFilter}
+        type={typeFilter}
+        onTypeChange={setTypeFilter}
+        dateRange={dateRange}
+        onDateRangeChange={setDateRange}
+        onReset={resetFilters}
+        hasActiveFilters={hasActiveFilters}
+      />
+
+      <InvitationTable
+        invitations={paginatedInvitations}
+        isLoading={isLoading}
+        page={currentPage}
+        pageCount={pageCount}
+        onPageChange={setPage}
+        sortKey={sortKey}
+        sortDirection={sortDirection}
+        onSort={handleSort}
+        onView={openDetail}
+        onEdit={openEditDialog}
+        onAssign={openAssignDialog}
+        onChangeStatus={openStatusDialog}
+        onDelete={setDeleteTarget}
+      />
+
+      <InvitationDetail
+        invitation={selectedInvitation}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        onEdit={(invitation) => {
+          setDetailOpen(false);
+          openEditDialog(invitation);
+        }}
+        onChangeStatus={(invitation) => {
+          setDetailOpen(false);
+          openStatusDialog(invitation);
+        }}
+      />
+
+      <InvitationForm
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        invitation={selectedInvitation}
+        officers={officers}
+        mode={formMode}
+        isPending={createInvitation.isPending || updateInvitation.isPending}
+        onSubmit={handleFormSubmit}
+      />
+
+      <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{editItem ? 'Edit Invitation' : 'New Invitation'}</DialogTitle>
+            <DialogTitle>Change Status</DialogTitle>
             <DialogDescription>
-              {editItem ? 'Update invitation details' : 'Create a new event invitation'}
+              Update the workflow state for{' '}
+              <span className="font-medium text-foreground">{selectedInvitation?.subject}</span>.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="title">Title</Label>
-              <Input
-                id="title"
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                required
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="organizer">Organizer</Label>
-              <Input
-                id="organizer"
-                value={form.organizer}
-                onChange={(e) => setForm({ ...form, organizer: e.target.value })}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="date">Date</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={form.date}
-                  onChange={(e) => setForm({ ...form, date: e.target.value })}
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="inv-status">Status</Label>
-                <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
-                  <SelectTrigger id="inv-status">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="location">Location</Label>
-              <Input
-                id="location"
-                value={form.location}
-                onChange={(e) => setForm({ ...form, location: e.target.value })}
-              />
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={loading}>
-                {loading ? 'Saving...' : editItem ? 'Update' : 'Create'}
-              </Button>
-            </DialogFooter>
-          </form>
+
+          <div className="grid gap-2">
+            <Label htmlFor="status">Status</Label>
+            <Select
+              value={statusValue}
+              onValueChange={(value) => setStatusValue(value as Invitation['status'])}
+            >
+              <SelectTrigger id="status">
+                <SelectValue placeholder="Select a status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="accepted">Accepted</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setStatusDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleStatusSubmit} disabled={updateInvitation.isPending}>
+              {updateInvitation.isPending ? 'Updating...' : 'Update Status'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={deleteId !== null} onOpenChange={() => setDeleteId(null)}>
+      <AlertDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Invitation</AlertDialogTitle>
+            <AlertDialogTitle>Delete invitation</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure? This will also remove all officer assignments.
+              This will permanently remove{' '}
+              <span className="font-medium text-foreground">{deleteTarget?.subject}</span> and its
+              officer assignments.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleDelete}
             >
               Delete
             </AlertDialogAction>

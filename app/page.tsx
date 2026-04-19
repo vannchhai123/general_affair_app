@@ -7,48 +7,35 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { apiFetch, setTokens } from '@/lib/client';
-import { createUserSession } from '@/lib/actions/auth';
+import { loginAction } from '@/lib/actions/auth';
+import { setTokens } from '@/lib/client';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(formData: FormData) {
     setError('');
     setLoading(true);
 
     try {
-      const response = await apiFetch('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ username, password }),
-      });
+      const result = await loginAction(formData);
 
-      if (!response.ok) {
-        const data = await response.json();
-        setError(data.message || 'Login failed');
+      if (result.error) {
+        setError(result.error);
+        setLoading(false);
         return;
       }
 
-      const data = await response.json();
-      setTokens(data.accessToken, data.refreshToken);
-      await createUserSession({
-        id: 0,
-        username: username,
-        full_name: data.data.fullName,
-        role_id: 0,
-        role_name: data.data.role,
-      });
-
-      router.push('/dashboard');
+      if (result.success) {
+        // Set client-side tokens
+        setTokens(result.accessToken, result.refreshToken);
+        router.push('/dashboard');
+      }
     } catch {
       setError('Something went wrong. Please try again.');
-    } finally {
       setLoading(false);
     }
   }
@@ -73,7 +60,7 @@ export default function LoginPage() {
             <CardDescription>Enter your credentials to continue</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <form action={handleSubmit} className="flex flex-col gap-4">
               {error && (
                 <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
                   {error}
@@ -84,12 +71,12 @@ export default function LoginPage() {
                 <Label htmlFor="username">Username</Label>
                 <Input
                   id="username"
+                  name="username"
                   type="text"
                   placeholder="Enter username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
                   required
                   autoComplete="username"
+                  disabled={loading}
                 />
               </div>
 
@@ -98,13 +85,13 @@ export default function LoginPage() {
                 <div className="relative">
                   <Input
                     id="password"
+                    name="password"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Enter password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
                     required
                     autoComplete="current-password"
                     className="pr-10"
+                    disabled={loading}
                   />
                   <button
                     type="button"

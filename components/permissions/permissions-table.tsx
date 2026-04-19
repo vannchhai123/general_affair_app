@@ -37,7 +37,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Permission } from '@/lib/schemas/api-schemas';
+import type { Permission } from '@/lib/schemas';
 
 interface PermissionsTableProps {
   ctx: {

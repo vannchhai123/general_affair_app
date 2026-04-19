@@ -51,11 +51,11 @@ export async function GET() {
 
     // Invitation response rates
     const invitationStats = invitations.map((inv) => ({
-      title: inv.title,
-      total_assigned: inv.total_assigned,
-      accepted: inv.accepted_count,
-      pending: inv.pending_count,
-      declined: inv.total_assigned - inv.accepted_count - inv.pending_count,
+      title: inv.subject,
+      total_assigned: inv.assigned_officer_ids.length,
+      accepted: inv.status === 'accepted' ? inv.assigned_officer_ids.length : 0,
+      pending: inv.status === 'pending' ? inv.assigned_officer_ids.length : 0,
+      declined: inv.status === 'rejected' ? inv.assigned_officer_ids.length : 0,
     }));
 
     // Leave request summary

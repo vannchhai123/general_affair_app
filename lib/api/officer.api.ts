@@ -1,5 +1,5 @@
 import { apiFetch } from '@/lib/client';
-import type { CreateOfficer, UpdateOfficer } from '@/lib/schemas/api-schemas';
+import type { CreateOfficer, UpdateOfficer } from '@/lib/schemas';
 
 const OFFICER_ENDPOINT = '/officer';
 

@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { Skeleton } from '../ui/skeleton';
-import { Officer } from '@/lib/mock-data';
+import { Officer } from '@/lib/schemas';
 
 interface OfficersTableProps {
   officers?: Officer[];

@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Officer, OfficerPermission } from '@/lib/schemas/api-schemas';
+import type { Officer, OfficerPermission } from '@/lib/schemas';
 
 interface OfficersTableProps {
   ctx: {

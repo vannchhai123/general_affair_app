@@ -7,7 +7,7 @@
 Fetch permissions assigned to a specific role with pagination.
 
 ```tsx
-import { usePermissionsByRole } from '@/lib/hooks/use-api';
+import { usePermissionsByRole } from '@/hooks/permissions/use-role-permissions';
 
 function RolePermissions({ role }: { role: string }) {
   const { data, isLoading, isError } = usePermissionsByRole(role, { page: 0, size: 10 });
@@ -36,7 +36,7 @@ function RolePermissions({ role }: { role: string }) {
 Create a new permission.
 
 ```tsx
-import { useCreatePermission } from '@/lib/hooks/use-api';
+import { useCreatePermission } from '@/hooks/permissions/use-permission-mutations';
 
 function CreatePermissionForm() {
   const mutation = useCreatePermission();
@@ -70,7 +70,7 @@ function CreatePermissionForm() {
 Update an existing permission.
 
 ```tsx
-import { useUpdatePermission } from '@/lib/hooks/use-api';
+import { useUpdatePermission } from '@/hooks/permissions/use-permission-mutations';
 
 function EditPermission({ permissionId }: { permissionId: number }) {
   const mutation = useUpdatePermission();
@@ -99,7 +99,7 @@ function EditPermission({ permissionId }: { permissionId: number }) {
 Delete a permission.
 
 ```tsx
-import { useDeletePermission } from '@/lib/hooks/use-api';
+import { useDeletePermission } from '@/hooks/permissions/use-permission-mutations';
 
 function DeletePermissionButton({ permissionId }: { permissionId: number }) {
   const mutation = useDeletePermission();
@@ -123,7 +123,7 @@ function DeletePermissionButton({ permissionId }: { permissionId: number }) {
 Assign a permission to a role.
 
 ```tsx
-import { useAssignPermissionToRole } from '@/lib/hooks/use-api';
+import { useAssignPermissionToRole } from '@/hooks/permissions/use-role-permissions';
 
 function AssignPermissionForm({ role }: { role: string }) {
   const mutation = useAssignPermissionToRole();
@@ -163,7 +163,8 @@ import {
   useUpdatePermission,
   useDeletePermission,
   useAssignPermissionToRole,
-} from '@/lib/hooks/use-api';
+} from '@/hooks/permissions/use-permission-mutations';
+import { usePermissionsByRole } from '@/hooks/permissions/use-role-permissions';
 
 export default function PermissionManager() {
   const [selectedRole, setSelectedRole] = useState('ROLE_ADMIN');

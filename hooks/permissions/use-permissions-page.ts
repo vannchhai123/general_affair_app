@@ -1,21 +1,24 @@
 'use client';
 
 import { useState } from 'react';
+import { usePermissions } from './use-permissions';
 import {
-  usePermissions,
-  useOfficers,
-  useOfficerPermissions,
   useCreatePermission,
   useUpdatePermission,
   useDeletePermission,
+} from './use-permission-mutations';
+import {
   useAssignPermission,
   useRevokePermission,
-} from '@/lib/hooks/use-api';
+} from '../officer-permissions/use-officer-permission-mutations';
+import { useOfficers } from '../officers/use-officers';
+import { useOfficerPermissions } from '../officer-permissions/use-officer-permissions';
 import {
+  type Officer,
   type Permission,
   type CreatePermission,
   type UpdatePermission,
-} from '@/lib/schemas/api-schemas';
+} from '@/lib/schemas';
 
 export function usePermissionsPage() {
   const pageSize = 8;
@@ -33,7 +36,7 @@ export function usePermissionsPage() {
   const { data: permissions, isLoading: permissionsLoading } = usePermissions(
     category !== 'all' ? category : undefined,
   );
-  const { data: officers, isLoading: officersLoading } = useOfficers();
+  const { officers, isLoading: officersLoading } = useOfficers();
   const { data: assignments, isLoading: assignmentsLoading } = useOfficerPermissions();
 
   const createPermission = useCreatePermission();
@@ -54,7 +57,7 @@ export function usePermissionsPage() {
 
   const isLoading = permissionsLoading || officersLoading || assignmentsLoading;
 
-  const selectedOfficer = officers?.find((o) => o.id === selectedOfficerId) || null;
+  const selectedOfficer = officers?.find((o: Officer) => o.id === selectedOfficerId) || null;
 
   const manageTotalPages = Math.max(1, Math.ceil((filteredPermissions?.length || 0) / pageSize));
   const assignTotalPages = Math.max(1, Math.ceil((officers?.length || 0) / pageSize));

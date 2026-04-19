@@ -38,15 +38,17 @@ export interface AttendanceSession {
 
 export interface Invitation {
   id: number;
-  title: string;
-  organizer: string;
+  subject: string;
+  organization: string;
+  type: 'incoming' | 'outgoing';
   date: string;
+  time?: string | null;
   location: string;
-  status: string;
-  image_url: string | null;
-  total_assigned: number;
-  accepted_count: number;
-  pending_count: number;
+  description?: string | null;
+  status: 'pending' | 'accepted' | 'rejected' | 'completed';
+  assigned_officer_ids: number[];
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Mission {
@@ -419,39 +421,63 @@ export const attendance: Attendance[] = [
 export const invitations: Invitation[] = [
   {
     id: 1,
-    title: 'Annual Security Conference 2026',
-    organizer: 'National Security Agency',
+    subject: 'Annual Security Conference 2026',
+    organization: 'National Security Agency',
+    type: 'incoming',
     date: '2026-03-15',
+    time: '09:00',
     location: 'Convention Center Hall A',
-    status: 'active',
-    image_url: null,
-    total_assigned: 5,
-    accepted_count: 3,
-    pending_count: 2,
+    description:
+      'Review security posture, inter-agency protocols, and preparedness planning for the 2026 operational year.',
+    status: 'pending',
+    assigned_officer_ids: [1, 2, 3, 4, 7],
+    created_at: '2026-02-18T09:00:00.000Z',
+    updated_at: '2026-02-20T10:30:00.000Z',
   },
   {
     id: 2,
-    title: 'Inter-Agency Coordination Meeting',
-    organizer: 'Department of Defense',
+    subject: 'Inter-Agency Coordination Meeting',
+    organization: 'Department of Defense',
+    type: 'outgoing',
     date: '2026-03-20',
+    time: '14:30',
     location: 'Federal Building Room 301',
-    status: 'active',
-    image_url: null,
-    total_assigned: 3,
-    accepted_count: 1,
-    pending_count: 2,
+    description:
+      'Coordinate departmental representation and finalize speaking points for the quarterly executive meeting.',
+    status: 'accepted',
+    assigned_officer_ids: [3, 6, 8],
+    created_at: '2026-02-21T08:15:00.000Z',
+    updated_at: '2026-02-23T12:45:00.000Z',
   },
   {
     id: 3,
-    title: 'Community Outreach Program',
-    organizer: 'Public Relations Office',
+    subject: 'Community Outreach Program',
+    organization: 'Public Relations Office',
+    type: 'outgoing',
     date: '2026-02-10',
+    time: '10:00',
     location: 'City Community Center',
+    description:
+      'Deploy a mixed team for stakeholder engagement, public briefings, and post-event reporting.',
     status: 'completed',
-    image_url: null,
-    total_assigned: 4,
-    accepted_count: 4,
-    pending_count: 0,
+    assigned_officer_ids: [2, 4, 5, 6],
+    created_at: '2026-01-28T07:45:00.000Z',
+    updated_at: '2026-02-11T16:10:00.000Z',
+  },
+  {
+    id: 4,
+    subject: 'Regional Security Roundtable',
+    organization: 'Regional Affairs Bureau',
+    type: 'incoming',
+    date: '2026-04-07',
+    time: '13:00',
+    location: 'Embassy Annex Auditorium',
+    description:
+      'Review shared incident response processes with regional partners and confirm officer attendance roster.',
+    status: 'rejected',
+    assigned_officer_ids: [1, 7],
+    created_at: '2026-03-29T11:20:00.000Z',
+    updated_at: '2026-03-31T09:05:00.000Z',
   },
 ];
 

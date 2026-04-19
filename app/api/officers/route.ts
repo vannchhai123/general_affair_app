@@ -32,7 +32,7 @@ export async function GET(request: Request) {
     const end = start + pageSize;
     const paginated = filtered.slice(start, end);
 
-    return NextResponse.json({ data: paginated, total });
+    return NextResponse.json(paginated);
   } catch (error) {
     console.error('Officers fetch error:', error);
     return NextResponse.json({ error: 'Failed to fetch officers' }, { status: 500 });

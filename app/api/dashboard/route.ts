@@ -21,7 +21,7 @@ export async function GET() {
 
     const invitationStats = {
       total: invitations.length,
-      active: invitations.filter((i) => i.status === 'active').length,
+      active: invitations.filter((i) => i.status === 'pending' || i.status === 'accepted').length,
     };
 
     const missionStats = {

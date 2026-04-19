@@ -11,12 +11,20 @@ import {
   UserMinus,
   Clock,
 } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
-import { useOfficers } from '@/hooks/useOfficers';
-import { useCreateOfficer, useUpdateOfficer, useDeleteOfficer } from '@/lib/hooks/use-api';
+import { useOfficers } from '@/hooks/officers/use-officers';
+import {
+  useCreateOfficer,
+  useUpdateOfficer,
+  useDeleteOfficer,
+} from '@/hooks/officers/use-officer-mutations';
+
+import { useOfficerStats } from '@/hooks/officers/use-officer-stats';
 import { OfficerFilters } from '@/components/offficers/officer-filters';
 import { OfficersTable } from '@/components/offficers/officers-table';
 import { OfficerDialog, type OfficerFormData } from '@/components/officer-dialog';
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,48 +35,49 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Officer } from '@/lib/mock-data';
+import type { Officer } from '@/lib/schemas';
+
+const PAGE_SIZE = 5;
 
 function SummaryCards({
-  officers,
-  total,
+  stats,
   isLoading,
 }: {
-  officers?: Officer[];
-  total: number;
+  stats?: {
+    total: number;
+    active: number;
+    inactive: number;
+    onLeave: number;
+  };
   isLoading: boolean;
 }) {
-  const list = officers ?? [];
-  const active = list.filter((o) => o.status?.toLowerCase() === 'active').length;
-  const onLeave = list.filter((o) => o.status?.toLowerCase() === 'on_leave').length;
-  const inactive = list.filter((o) => o.status?.toLowerCase() === 'inactive').length;
-
   const cards = [
     {
       label: 'Total',
-      value: isLoading ? null : total,
+      value: stats?.total ?? 0,
       icon: Users,
       color: 'text-slate-700',
       bg: 'bg-slate-50',
     },
     {
       label: 'Active',
-      value: isLoading ? null : active,
+      value: stats?.active ?? 0,
       icon: UserCheck,
       color: 'text-emerald-700',
       bg: 'bg-emerald-50',
     },
     {
       label: 'On Leave',
-      value: isLoading ? null : onLeave,
+      value: stats?.onLeave ?? 0,
       icon: Clock,
       color: 'text-amber-700',
       bg: 'bg-amber-50',
     },
     {
       label: 'Inactive',
-      value: isLoading ? null : inactive,
+      value: stats?.inactive ?? 0,
       icon: UserMinus,
       color: 'text-red-700',
       bg: 'bg-red-50',
@@ -103,35 +112,42 @@ function SummaryCards({
   );
 }
 
-const PAGE_SIZE = 5;
-
 export default function OfficersPage() {
   const [search, setSearch] = useState('');
   const [department, setDepartment] = useState('all');
   const [status, setStatus] = useState('all');
   const [page, setPage] = useState(1);
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingOfficer, setEditingOfficer] = useState<
     (OfficerFormData & { id: number }) | undefined
   >();
   const [deleteOfficerData, setDeleteOfficerData] = useState<Officer | null>(null);
+  const { data: stats, isLoading: statsLoading } = useOfficerStats();
+  console.log('officer stats:', { data: stats });
 
-  const { officers, total, mutate, isLoading } = useOfficers({
+  const {
+    officers = [],
+    total = 0,
+    mutate,
+    isLoading,
+    isError,
+    error,
+  } = useOfficers({
     search,
-    department,
-    status,
-    page,
+    department: department === 'all' ? undefined : department,
+    status: status === 'all' ? undefined : status,
+    page: page - 1,
     pageSize: PAGE_SIZE,
   });
-
-  // Reset to page 1 when filters change
-  function resetPage() {
-    setPage(1);
-  }
 
   const createOfficer = useCreateOfficer();
   const updateOfficer = useUpdateOfficer();
   const deleteOfficer = useDeleteOfficer();
+
+  function resetPage() {
+    setPage(1);
+  }
 
   function handleAdd() {
     setEditingOfficer(undefined);
@@ -158,11 +174,10 @@ export default function OfficersPage() {
   }
 
   async function confirmDelete() {
-    if (deleteOfficerData) {
-      await deleteOfficer.mutateAsync(deleteOfficerData.id);
-      mutate();
-      setDeleteOfficerData(null);
-    }
+    if (!deleteOfficerData) return;
+    await deleteOfficer.mutateAsync(deleteOfficerData.id);
+    mutate();
+    setDeleteOfficerData(null);
   }
 
   async function handleSubmit(data: OfficerFormData) {
@@ -174,24 +189,30 @@ export default function OfficersPage() {
     mutate();
   }
 
+  if (isError) {
+    return <div className="text-red-500">Failed to load officers: {error?.message}</div>;
+  }
+
+  const isSummaryLoading = statsLoading || !stats;
+
   return (
     <div className="space-y-6">
-      {/* Page Header */}
+      {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Officers</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Manage your organization&apos;s officers and their roles.
+          <h1 className="text-2xl font-semibold tracking-tight">Officers</h1>
+          <p className="text-sm text-muted-foreground">
+            Manage your organization&apos;s officers and roles.
           </p>
         </div>
-        <Button onClick={handleAdd} className="self-start sm:self-auto">
+
+        <Button onClick={handleAdd}>
           <Plus className="mr-2 h-4 w-4" />
           Add Officer
         </Button>
       </div>
 
-      {/* Summary Cards */}
-      <SummaryCards officers={officers} total={total} isLoading={isLoading} />
+      <SummaryCards stats={stats} isLoading={isSummaryLoading} />
 
       {/* Filters */}
       <div className="rounded-lg border bg-card p-4">
@@ -199,9 +220,13 @@ export default function OfficersPage() {
           <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm font-medium">Filters</span>
         </div>
+
         <OfficerFilters
           search={search}
-          setSearch={setSearch}
+          setSearch={(v) => {
+            setSearch(v);
+            resetPage();
+          }}
           department={department}
           setDepartment={(v) => {
             setDepartment(v);
@@ -228,10 +253,11 @@ export default function OfficersPage() {
 
       {/* Pagination */}
       {total > 0 && (
-        <div className="flex justify-end items-center gap-2">
+        <div className="flex items-center justify-end gap-2">
           <p className="text-sm text-muted-foreground">
             Page {page} of {Math.ceil(total / PAGE_SIZE)}
           </p>
+
           <Button
             variant="outline"
             size="sm"
@@ -241,6 +267,7 @@ export default function OfficersPage() {
             <ChevronLeft className="h-4 w-4" />
             Previous
           </Button>
+
           <Button
             variant="outline"
             size="sm"
@@ -253,7 +280,7 @@ export default function OfficersPage() {
         </div>
       )}
 
-      {/* Create / Edit Dialog */}
+      {/* Dialog */}
       <OfficerDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
@@ -261,7 +288,7 @@ export default function OfficersPage() {
         onSubmit={handleSubmit}
       />
 
-      {/* Delete Confirmation */}
+      {/* Delete Dialog */}
       <AlertDialog
         open={!!deleteOfficerData}
         onOpenChange={(open) => !open && setDeleteOfficerData(null)}
@@ -274,17 +301,13 @@ export default function OfficersPage() {
               <strong>
                 {deleteOfficerData?.first_name} {deleteOfficerData?.last_name}
               </strong>
-              ? This action cannot be undone.
+              ?
             </AlertDialogDescription>
           </AlertDialogHeader>
+
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelete}
-              className="bg-destructive text-white hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
+            <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
