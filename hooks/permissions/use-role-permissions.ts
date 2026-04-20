@@ -17,7 +17,7 @@ export function usePermissionsByRole(role: string, params?: { page?: number; siz
     queryKey: queryKeys.rolePermissions.byRole(role, Object.fromEntries(queryParams)),
     queryFn: () =>
       fetchApi(
-        `/api/permissions/${role}/permissions?${queryParams.toString()}`,
+        `/permissions/${role}/permissions?${queryParams.toString()}`,
         permissionsResponseSchema,
       ),
     enabled: !!role,
@@ -29,7 +29,7 @@ export function useAssignPermissionToRole() {
 
   return useMutation({
     mutationFn: ({ role, data }: { role: string; data: AssignPermissionToRole }) =>
-      fetchApi(`/api/permissions/roles/${role}/assign`, successResponseSchema, {
+      fetchApi(`/permissions/roles/${role}/assign`, successResponseSchema, {
         method: 'POST',
         body: JSON.stringify(data),
       }),

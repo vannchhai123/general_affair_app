@@ -6,7 +6,7 @@ import { type Officer } from '@/lib/schemas';
 export function useOfficer(id: number) {
   return useQuery({
     queryKey: queryKeys.officers.detail(id),
-    queryFn: () => fetchApi(`/api/officer/${id}`, officerSchema),
+    queryFn: () => fetchApi(`/officer/${id}`, officerSchema),
     enabled: !!id,
   });
 }

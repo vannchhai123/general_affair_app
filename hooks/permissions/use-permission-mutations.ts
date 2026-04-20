@@ -14,7 +14,7 @@ export function useCreatePermission() {
 
   return useMutation<Permission, ApiError, CreatePermission>({
     mutationFn: (data: CreatePermission) =>
-      fetchApi('/api/permissions', permissionSchema, {
+      fetchApi('/permissions', permissionSchema, {
         method: 'POST',
         body: JSON.stringify(data),
       }),
@@ -34,7 +34,7 @@ export function useUpdatePermission() {
 
   return useMutation<Permission, ApiError, { id: number; data: UpdatePermission }>({
     mutationFn: ({ id, data }: { id: number; data: UpdatePermission }) =>
-      fetchApi(`/api/permissions/${id}`, permissionSchema, {
+      fetchApi(`/permissions/${id}`, permissionSchema, {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
@@ -54,7 +54,7 @@ export function useDeletePermission() {
 
   return useMutation({
     mutationFn: (id: number) =>
-      fetchApi(`/api/permissions/${id}`, successResponseSchema, {
+      fetchApi(`/permissions/${id}`, successResponseSchema, {
         method: 'DELETE',
       }),
     onSuccess: () => {

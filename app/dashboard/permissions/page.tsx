@@ -187,17 +187,15 @@ export default function PermissionsPage() {
       />
 
       {/* Permission Assignment Dialog */}
-      {ctx.permissions && ctx.assignments && (
-        <PermissionAssignmentDialog
-          open={ctx.assignmentDialogOpen}
-          onOpenChange={ctx.setAssignmentDialogOpen}
-          officer={ctx.selectedOfficer}
-          permissions={ctx.permissions}
-          assignments={ctx.assignments}
-          onAssign={ctx.handleAssign}
-          onRevoke={ctx.handleRevoke}
-        />
-      )}
+      <PermissionAssignmentDialog
+        open={ctx.assignmentDialogOpen}
+        onOpenChange={ctx.setAssignmentDialogOpen}
+        officer={ctx.selectedOfficer}
+        permissions={ctx.permissions ?? []}
+        assignments={ctx.assignments ?? []}
+        onAssign={ctx.handleAssign}
+        onRevoke={ctx.handleRevoke}
+      />
 
       {/* Delete Confirmation */}
       <AlertDialog

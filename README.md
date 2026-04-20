@@ -1236,7 +1236,9 @@ Update attendance record (e.g., approve, reject)
 
 ### 📱 QR Attendance Endpoints
 
-#### **POST** `/api/v1/qr-sessions`
+These QR endpoints are the ones referenced by the frontend hooks in this project. They are resolved against `NEXT_PUBLIC_API_URL`, so the effective request URL is `{NEXT_PUBLIC_API_URL}/qr-sessions/...`.
+
+#### **POST** `/qr-sessions`
 
 Create a new QR attendance session
 
@@ -1259,13 +1261,15 @@ Create a new QR attendance session
   "status": "active",
   "created_at": "2026-04-14T08:00:00Z",
   "expires_at": "2026-04-14T08:01:00Z",
-  "qr_code_url": "/api/qr/sess_abc123.png"
+  "qr_code_url": "/qr/sess_abc123.png",
+  "location": "Main Office",
+  "created_by": 1
 }
 ```
 
 ---
 
-#### **GET** `/api/qr-sessions/:id`
+#### **GET** `/qr-sessions/:id`
 
 Get QR session details
 
@@ -1279,14 +1283,14 @@ Get QR session details
   "created_at": "2026-04-14T08:00:00Z",
   "expires_at": "2026-04-14T08:01:00Z",
   "qr_token": "attendance://sess_abc123",
-  "scan_count": 15,
+  "qr_code_url": "/qr/sess_abc123.png",
   "location": "Main Office"
 }
 ```
 
 ---
 
-#### **PUT** `/api/qr-sessions/:id`
+#### **PUT** `/qr-sessions/:id`
 
 Update QR session status (pause, stop, regenerate)
 
@@ -1298,7 +1302,7 @@ Update QR session status (pause, stop, regenerate)
 }
 ```
 
-**Allowed Actions:** `pause` | `resume` | `stop` | `regenerate`
+**Allowed Actions:** `pause` | `stop` | `regenerate`
 
 **Sample Response:**
 
@@ -1312,7 +1316,7 @@ Update QR session status (pause, stop, regenerate)
 
 ---
 
-#### **GET** `/api/qr-sessions/:id/checkins`
+#### **GET** `/qr-sessions/:id/checkins`
 
 Get all check-ins for a QR session
 
@@ -1349,7 +1353,7 @@ Get all check-ins for a QR session
 
 ---
 
-#### **POST** `/api/qr-sessions/:id/checkins`
+#### **POST** `/qr-sessions/:id/checkins`
 
 Record a new check-in/check-out via QR scan
 
@@ -1379,7 +1383,7 @@ Record a new check-in/check-out via QR scan
 
 ---
 
-#### **GET** `/api/qr-sessions/:id/stats`
+#### **GET** `/qr-sessions/:id/stats`
 
 Get statistics for a QR session
 
@@ -1400,7 +1404,7 @@ Get statistics for a QR session
 
 ---
 
-#### **DELETE** `/api/qr-sessions/:id`
+#### **DELETE** `/qr-sessions/:id`
 
 Delete/end a QR session
 
@@ -1423,18 +1427,18 @@ Delete/end a QR session
 
 ### Endpoint Summary Table
 
-| Module        | Method | Endpoint                           | Description                            |
-| ------------- | ------ | ---------------------------------- | -------------------------------------- |
-| Attendance    | GET    | `/api/attendance`                  | Get all attendance records (paginated) |
-| Attendance    | POST   | `/api/attendance`                  | Create attendance record               |
-| Attendance    | PUT    | `/api/attendance/:id`              | Update attendance record               |
-| QR Attendance | POST   | `/api/v1/qr-sessions`              | Create QR session                      |
-| QR Attendance | GET    | `/api/v1/qr-sessions/:id`          | Get QR session details                 |
-| QR Attendance | PUT    | `/api/v1/qr-sessions/:id`          | Update session (pause/stop/regenerate) |
-| QR Attendance | GET    | `/api/v1/qr-sessions/:id/checkins` | Get session check-ins                  |
-| QR Attendance | POST   | `/api/v1/qr-sessions/:id/checkins` | Record check-in/out                    |
-| QR Attendance | GET    | `/api/v1/qr-sessions/:id/stats`    | Get session statistics                 |
-| QR Attendance | DELETE | `/api/v1/qr-sessions/:id`          | Delete/end session                     |
+| Module        | Method | Endpoint                    | Description                            |
+| ------------- | ------ | --------------------------- | -------------------------------------- |
+| Attendance    | GET    | `/api/attendance`           | Get all attendance records (paginated) |
+| Attendance    | POST   | `/api/attendance`           | Create attendance record               |
+| Attendance    | PUT    | `/api/attendance/:id`       | Update attendance record               |
+| QR Attendance | POST   | `/qr-sessions`              | Create QR session                      |
+| QR Attendance | GET    | `/qr-sessions/:id`          | Get QR session details                 |
+| QR Attendance | PUT    | `/qr-sessions/:id`          | Update session (pause/stop/regenerate) |
+| QR Attendance | GET    | `/qr-sessions/:id/checkins` | Get session check-ins                  |
+| QR Attendance | POST   | `/qr-sessions/:id/checkins` | Record check-in/out                    |
+| QR Attendance | GET    | `/qr-sessions/:id/stats`    | Get session statistics                 |
+| QR Attendance | DELETE | `/qr-sessions/:id`          | Delete/end session                     |
 
 ---
 

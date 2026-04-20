@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/client';
 import { queryKeys, ApiError } from '@/lib/api/fetcher';
+import { z } from 'zod';
 import {
   officerPermissionsResponseSchema,
+  backendOfficerPermissionSchema,
   backendOfficerPermissionsPaginatedResponseSchema,
   type OfficerPermission,
 } from '@/lib/schemas';
@@ -24,10 +26,17 @@ export function useOfficerPermissions() {
       }
 
       const data = await response.json();
-      const parsed = backendOfficerPermissionsPaginatedResponseSchema.parse(data);
+      const parsed = z
+        .union([
+          z.array(backendOfficerPermissionSchema),
+          backendOfficerPermissionsPaginatedResponseSchema,
+        ])
+        .parse(data);
+
+      const assignments = Array.isArray(parsed) ? parsed : parsed.content;
 
       return officerPermissionsResponseSchema.parse(
-        parsed.content.map((assignment) => ({
+        assignments.map((assignment) => ({
           id: assignment.id,
           officer_id: assignment.officerId,
           permission_id: assignment.permissionId,

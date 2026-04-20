@@ -2,20 +2,10 @@
 
 import { useState } from 'react';
 import { ChevronRight, ChevronDown, UserCog } from 'lucide-react';
-import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
@@ -66,8 +56,8 @@ interface PermissionAssignmentDialogProps {
   officer: Officer | null;
   permissions: Permission[];
   assignments: OfficerPermission[];
-  onAssign: (officerId: number, permissionId: number) => void;
-  onRevoke: (assignmentId: number) => void;
+  onAssign: (officerId: number, permissionId: number) => Promise<void>;
+  onRevoke: (assignmentId: number) => Promise<void>;
 }
 
 export function PermissionAssignmentDialog({
@@ -81,6 +71,7 @@ export function PermissionAssignmentDialog({
 }: PermissionAssignmentDialogProps) {
   const [search, setSearch] = useState('');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [pendingChanges, setPendingChanges] = useState<{
     toAdd: Set<number>;
     toRemove: Set<number>;
@@ -196,27 +187,35 @@ export function PermissionAssignmentDialog({
   };
 
   const handleAssign = async () => {
-    if (!officer) return;
+    if (!officer || isSubmitting) return;
 
-    // Process removals
-    for (const permissionId of pendingChanges.toRemove) {
-      const assignment = currentAssignments.find((a) => a.permission_id === permissionId);
-      if (assignment) {
-        await onRevoke(assignment.id);
+    setIsSubmitting(true);
+
+    try {
+      // Process removals
+      for (const permissionId of pendingChanges.toRemove) {
+        const assignment = currentAssignments.find((a) => a.permission_id === permissionId);
+        if (assignment) {
+          await onRevoke(assignment.id);
+        }
       }
-    }
 
-    // Process additions
-    for (const permissionId of pendingChanges.toAdd) {
-      await onAssign(officer.id, permissionId);
-    }
+      // Process additions
+      for (const permissionId of pendingChanges.toAdd) {
+        await onAssign(officer.id, permissionId);
+      }
 
-    // Reset and close
-    setPendingChanges({ toAdd: new Set(), toRemove: new Set() });
-    onOpenChange(false);
+      setPendingChanges({ toAdd: new Set(), toRemove: new Set() });
+      onOpenChange(false);
+    } catch {
+      // Mutation hooks already surface the error toast.
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
+    if (isSubmitting) return;
     setPendingChanges({ toAdd: new Set(), toRemove: new Set() });
     onOpenChange(false);
   };
@@ -235,21 +234,25 @@ export function PermissionAssignmentDialog({
     );
   });
 
-  if (!officer) return null;
-
   const totalChanges = pendingChanges.toAdd.size + pendingChanges.toRemove.size;
+  const officerDisplayName = officer
+    ? `${officer.first_name} ${officer.last_name} - ${officer.position}`
+    : 'Loading officer...';
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!isSubmitting) onOpenChange(nextOpen);
+      }}
+    >
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <UserCog className="h-5 w-5" />
             Assign Permissions
           </DialogTitle>
-          <DialogDescription>
-            {officer.first_name} {officer.last_name} - {officer.position}
-          </DialogDescription>
+          <DialogDescription>{officerDisplayName}</DialogDescription>
         </DialogHeader>
 
         {/* Search */}
@@ -258,6 +261,7 @@ export function PermissionAssignmentDialog({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="mb-2"
+          disabled={isSubmitting}
         />
 
         {/* Permission Tree */}
@@ -280,6 +284,7 @@ export function PermissionAssignmentDialog({
                     <button
                       onClick={() => toggleCategory(category.name)}
                       className="flex h-5 w-5 shrink-0 items-center justify-center rounded hover:bg-accent"
+                      disabled={isSubmitting}
                     >
                       {isExpanded ? (
                         <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -292,6 +297,7 @@ export function PermissionAssignmentDialog({
                       indeterminate={categoryState === 'indeterminate'}
                       onCheckedChange={() => handleToggleCategory(category)}
                       aria-label={category.name}
+                      disabled={isSubmitting}
                     />
                     <span className="text-sm font-medium">{category.name}</span>
                   </div>
@@ -309,6 +315,7 @@ export function PermissionAssignmentDialog({
                               checked={isChecked}
                               onCheckedChange={() => handleTogglePermission(permission.id)}
                               aria-label={permission.permission_name}
+                              disabled={isSubmitting}
                             />
                             <div className="flex-1">
                               <label className="text-sm cursor-pointer">
@@ -351,8 +358,8 @@ export function PermissionAssignmentDialog({
             <Button variant="outline" onClick={handleCancel}>
               Cancel
             </Button>
-            <Button onClick={handleAssign} disabled={totalChanges === 0}>
-              Assign
+            <Button onClick={handleAssign} disabled={totalChanges === 0 || isSubmitting}>
+              {isSubmitting ? 'Saving...' : 'Assign'}
             </Button>
           </DialogFooter>
         </div>

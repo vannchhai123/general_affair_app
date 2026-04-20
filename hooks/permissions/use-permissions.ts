@@ -12,9 +12,16 @@ export function usePermissions(category?: string) {
   const queryParams = filters ? new URLSearchParams(filters) : null;
   const queryString = queryParams && queryParams.toString() ? `?${queryParams.toString()}` : '';
 
-  return useQuery({
+  return useQuery<Permission[]>({
     queryKey: queryKeys.permissions.list(filters || {}),
-    queryFn: () => fetchApi(`/permissions${queryString}`, permissionsListResponseSchema),
+    queryFn: async () => {
+      const data = await fetchApi<PermissionsPaginatedResponse, typeof permissionsResponseSchema>(
+        `/permissions${queryString}`,
+        permissionsResponseSchema,
+      );
+
+      return data.content ?? [];
+    },
   }) as {
     data: Permission[] | undefined;
     isLoading: boolean;

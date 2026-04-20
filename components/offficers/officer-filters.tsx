@@ -26,32 +26,32 @@ export function OfficerFilters({
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by name or email..."
+          placeholder="ស្វែងរកតាមឈ្មោះ ឬអ៊ីមែល..."
           className="pl-9"
         />
       </div>
 
       <Select value={department} onValueChange={setDepartment}>
         <SelectTrigger className="w-full sm:w-[180px]">
-          <SelectValue placeholder="Department" />
+          <SelectValue placeholder="នាយកដ្ឋាន" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">All Departments</SelectItem>
-          <SelectItem value="Operations">Operations</SelectItem>
-          <SelectItem value="Security">Security</SelectItem>
-          <SelectItem value="Administration">Administration</SelectItem>
+          <SelectItem value="all">នាយកដ្ឋានទាំងអស់</SelectItem>
+          <SelectItem value="Operations">ប្រតិបត្តិការ</SelectItem>
+          <SelectItem value="Security">សន្តិសុខ</SelectItem>
+          <SelectItem value="Administration">រដ្ឋបាល</SelectItem>
         </SelectContent>
       </Select>
 
       <Select value={status} onValueChange={setStatus}>
         <SelectTrigger className="w-full sm:w-[160px]">
-          <SelectValue placeholder="Status" />
+          <SelectValue placeholder="ស្ថានភាព" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">All Status</SelectItem>
-          <SelectItem value="active">Active</SelectItem>
-          <SelectItem value="on_leave">On Leave</SelectItem>
-          <SelectItem value="inactive">Inactive</SelectItem>
+          <SelectItem value="all">ស្ថានភាពទាំងអស់</SelectItem>
+          <SelectItem value="active">សកម្ម</SelectItem>
+          <SelectItem value="on_leave">ច្បាប់ឈប់សម្រាក</SelectItem>
+          <SelectItem value="inactive">មិនសកម្ម</SelectItem>
         </SelectContent>
       </Select>
     </div>

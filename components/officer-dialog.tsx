@@ -85,24 +85,24 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{officer ? 'Edit Officer' : 'Add New Officer'}</DialogTitle>
+          <DialogTitle>{officer ? 'កែប្រែមន្ត្រី' : 'បន្ថែមមន្ត្រីថ្មី'}</DialogTitle>
           <DialogDescription>
-            {officer ? 'Update officer information' : 'Fill in the details to add a new officer'}
+            {officer ? 'កែប្រែព័ត៌មានមន្ត្រី' : 'បំពេញព័ត៌មានដើម្បីបន្ថែមមន្ត្រីថ្មី'}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="officerCode">Officer Code</Label>
+            <Label htmlFor="officerCode">កូដមន្ត្រី</Label>
             <Input
               id="officerCode"
               value={form.officerCode || ''}
               onChange={(e) => setForm({ ...form, officerCode: e.target.value })}
-              placeholder="e.g. OFF-001"
+              placeholder="ឧ. OFF-001"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="first_name">First Name</Label>
+              <Label htmlFor="first_name">នាមខ្លួន</Label>
               <Input
                 id="first_name"
                 value={form.first_name}
@@ -111,7 +111,7 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="last_name">Last Name</Label>
+              <Label htmlFor="last_name">នាមត្រកូល</Label>
               <Input
                 id="last_name"
                 value={form.last_name}
@@ -121,7 +121,7 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
             </div>
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">អ៊ីមែល</Label>
             <Input
               id="email"
               type="email"
@@ -131,41 +131,41 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="position">Position</Label>
+              <Label htmlFor="position">តួនាទី</Label>
               <Select
                 value={form.position}
                 onValueChange={(v) => setForm({ ...form, position: v })}
               >
                 <SelectTrigger id="position">
-                  <SelectValue placeholder="Select position" />
+                  <SelectValue placeholder="ជ្រើសរើសតួនាទី" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Senior Officer">Senior Officer</SelectItem>
-                  <SelectItem value="Officer">Officer</SelectItem>
-                  <SelectItem value="Junior Officer">Junior Officer</SelectItem>
+                  <SelectItem value="Senior Officer">មន្ត្រីជាន់ខ្ពស់</SelectItem>
+                  <SelectItem value="Officer">មន្ត្រី</SelectItem>
+                  <SelectItem value="Junior Officer">មន្ត្រីជាន់ទាប</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="department">Department</Label>
+              <Label htmlFor="department">នាយកដ្ឋាន</Label>
               <Select
                 value={form.department}
                 onValueChange={(v) => setForm({ ...form, department: v })}
               >
                 <SelectTrigger id="department">
-                  <SelectValue placeholder="Select department" />
+                  <SelectValue placeholder="ជ្រើសរើសនាយកដ្ឋាន" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Operations">Operations</SelectItem>
-                  <SelectItem value="Security">Security</SelectItem>
-                  <SelectItem value="Administration">Administration</SelectItem>
+                  <SelectItem value="Operations">ប្រតិបត្តិការ</SelectItem>
+                  <SelectItem value="Security">សន្តិសុខ</SelectItem>
+                  <SelectItem value="Administration">រដ្ឋបាល</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="phone">Phone</Label>
+              <Label htmlFor="phone">ទូរស័ព្ទ</Label>
               <Input
                 id="phone"
                 value={form.phone}
@@ -173,25 +173,25 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="status">Status</Label>
+              <Label htmlFor="status">ស្ថានភាព</Label>
               <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
                 <SelectTrigger id="status">
-                  <SelectValue placeholder="Select status" />
+                  <SelectValue placeholder="ជ្រើសរើសស្ថានភាព" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="on_leave">On Leave</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="active">សកម្ម</SelectItem>
+                  <SelectItem value="on_leave">ច្បាប់ឈប់សម្រាក</SelectItem>
+                  <SelectItem value="inactive">មិនសកម្ម</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              បោះបង់
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Saving...' : officer ? 'Update' : 'Create'}
+              {loading ? 'កំពុងរក្សាទុក...' : officer ? 'កែប្រែ' : 'បង្កើត'}
             </Button>
           </DialogFooter>
         </form>

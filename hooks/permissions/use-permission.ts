@@ -5,7 +5,7 @@ import { permissionSchema, type Permission } from '@/lib/schemas';
 export function usePermission(id: number) {
   return useQuery<Permission>({
     queryKey: queryKeys.permissions.detail(id),
-    queryFn: () => fetchApi(`/api/permissions/${id}`, permissionSchema),
+    queryFn: () => fetchApi(`/permissions/${id}`, permissionSchema),
     enabled: !!id,
   });
 }

@@ -73,9 +73,60 @@ function getInitials(firstName: string, lastName: string) {
   return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
 }
 
+function formatDateOnly(date: string | null | undefined): string {
+  if (!date) return '--';
+
+  const normalizedDate = date.trim();
+  const parsedDate = new Date(normalizedDate);
+
+  if (!Number.isNaN(parsedDate.getTime())) {
+    return format(parsedDate, 'MMM d, yyyy');
+  }
+
+  return normalizedDate;
+}
+
 function formatTime(time: string | null | undefined): string {
   if (!time) return '--';
-  return time;
+
+  const normalizedTime = time.trim();
+  const parsedDate = new Date(normalizedTime);
+
+  if (!Number.isNaN(parsedDate.getTime())) {
+    return format(parsedDate, 'h:mm a');
+  }
+
+  return normalizedTime;
+}
+
+function calculateTotalHours(
+  checkIn: string | null | undefined,
+  checkOut: string | null | undefined,
+): string {
+  if (!checkIn || !checkOut) return '--';
+
+  const start = new Date(checkIn.trim());
+  const end = new Date(checkOut.trim());
+
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return '--';
+  }
+
+  const diffMs = end.getTime() - start.getTime();
+
+  if (diffMs <= 0) {
+    return '--';
+  }
+
+  const totalMinutes = Math.floor(diffMs / (1000 * 60));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (minutes === 0) {
+    return `${hours}h`;
+  }
+
+  return `${hours}h ${minutes}m`;
 }
 
 function getStatusColor(status: string): string {
@@ -115,7 +166,7 @@ function SummaryCards({
 
   const cards = [
     {
-      label: 'Total Employees',
+      label: 'ចំនួនមន្ត្រីសរុប',
       value: stats.total,
       icon: Users,
       color: 'text-slate-700',
@@ -124,7 +175,7 @@ function SummaryCards({
       trendColor: 'text-emerald-600',
     },
     {
-      label: 'Present Today',
+      label: 'វត្តមានថ្ងៃនេះ',
       value: stats.present,
       icon: UserCheck,
       color: 'text-emerald-700',
@@ -133,7 +184,7 @@ function SummaryCards({
       trendColor: 'text-emerald-600',
     },
     {
-      label: 'Absent Today',
+      label: 'អវត្តមានថ្ងៃនេះ',
       value: stats.absent,
       icon: UserX,
       color: 'text-red-700',
@@ -142,7 +193,7 @@ function SummaryCards({
       trendColor: 'text-red-600',
     },
     {
-      label: 'Late Today',
+      label: 'មកយឺតថ្ងៃនេះ',
       value: stats.late,
       icon: Clock,
       color: 'text-amber-700',
@@ -177,9 +228,7 @@ function SummaryCards({
             <card.icon className={`h-6 w-6 ${card.color}`} />
           </div>
           <p className="mt-2 text-sm text-muted-foreground">{card.label}</p>
-          <p className={`mt-1 text-xs font-medium ${card.trendColor}`}>
-            {card.trend} from yesterday
-          </p>
+          <p className={`mt-1 text-xs font-medium ${card.trendColor}`}>{card.trend} ពីម្សិលមិញ</p>
         </div>
       ))}
     </div>
@@ -212,9 +261,9 @@ function AttendanceModal({
     try {
       await onSubmit(form);
       onOpenChange(false);
-      toast.success('Attendance marked successfully');
+      toast.success('បានកត់ត្រាវត្តមានដោយជោគជ័យ');
     } catch {
-      toast.error('Failed to save attendance');
+      toast.error('មិនអាចរក្សាទុកវត្តមានបានទេ');
     } finally {
       setLoading(false);
     }
@@ -224,18 +273,18 @@ function AttendanceModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Mark Attendance</DialogTitle>
-          <DialogDescription>Record attendance for an employee</DialogDescription>
+          <DialogTitle>កត់ត្រាវត្តមាន</DialogTitle>
+          <DialogDescription>កត់ត្រាវត្តមានសម្រាប់មន្ត្រី</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="employee">Employee</Label>
+            <Label htmlFor="employee">មន្ត្រី</Label>
             <Select
               value={String(form.officerId)}
               onValueChange={(v) => setForm({ ...form, officerId: Number(v) })}
             >
               <SelectTrigger id="employee">
-                <SelectValue placeholder="Select employee" />
+                <SelectValue placeholder="ជ្រើសរើសមន្ត្រី" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="1">John Doe (OFF-001)</SelectItem>
@@ -248,7 +297,7 @@ function AttendanceModal({
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="date">Date</Label>
+            <Label htmlFor="date">កាលបរិច្ឆេទ</Label>
             <Input
               id="date"
               type="date"
@@ -260,7 +309,7 @@ function AttendanceModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="check-in">Check-in Time</Label>
+              <Label htmlFor="check-in">ម៉ោងចូល</Label>
               <Input
                 id="check-in"
                 type="time"
@@ -269,7 +318,7 @@ function AttendanceModal({
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="check-out">Check-out Time</Label>
+              <Label htmlFor="check-out">ម៉ោងចេញ</Label>
               <Input
                 id="check-out"
                 type="time"
@@ -280,37 +329,37 @@ function AttendanceModal({
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="status">Status</Label>
+            <Label htmlFor="status">ស្ថានភាព</Label>
             <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
               <SelectTrigger id="status">
-                <SelectValue placeholder="Select status" />
+                <SelectValue placeholder="ជ្រើសរើសស្ថានភាព" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Present">Present</SelectItem>
-                <SelectItem value="Absent">Absent</SelectItem>
-                <SelectItem value="Late">Late</SelectItem>
-                <SelectItem value="Half-day">Half-day</SelectItem>
+                <SelectItem value="Present">វត្តមាន</SelectItem>
+                <SelectItem value="Absent">អវត្តមាន</SelectItem>
+                <SelectItem value="Late">មកយឺត</SelectItem>
+                <SelectItem value="Half-day">ពាក់កណ្តាលថ្ងៃ</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="notes">Notes (Optional)</Label>
+            <Label htmlFor="notes">កំណត់ចំណាំ (ជម្រើស)</Label>
             <Textarea
               id="notes"
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              placeholder="Add any additional notes..."
+              placeholder="បន្ថែមកំណត់ចំណាំ..."
               rows={3}
             />
           </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              បោះបង់
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Saving...' : 'Save'}
+              {loading ? 'កំពុងរក្សាទុក...' : 'រក្សាទុក'}
             </Button>
           </DialogFooter>
         </form>
@@ -380,11 +429,11 @@ export default function AttendancePage() {
   }
 
   function handleExport() {
-    toast.success('Export started');
+    toast.success('បានចាប់ផ្តើមនាំចេញរបាយការណ៍');
   }
 
   function handleBulkUpload() {
-    toast.info('Bulk upload feature coming soon');
+    toast.info('មុខងារបញ្ចូលជាក្រុមនឹងមកដល់ឆាប់ៗ');
   }
 
   return (
@@ -392,9 +441,9 @@ export default function AttendancePage() {
       {/* Page Title */}
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          Attendance Management
+          ការគ្រប់គ្រងវត្តមាន
         </h1>
-        <p className="mt-1 text-sm text-muted-foreground">Manage and track employee attendance</p>
+        <p className="mt-1 text-sm text-muted-foreground">គ្រប់គ្រង និងតាមដានវត្តមានមន្ត្រី</p>
       </div>
 
       {/* Error Alert */}
@@ -402,10 +451,10 @@ export default function AttendancePage() {
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="flex items-center justify-between">
-            <span>Failed to load attendance data</span>
+            <span>មិនអាចទាញយកទិន្នន័យវត្តមានបានទេ</span>
             <Button variant="outline" size="sm" onClick={() => refetch()} className="ml-auto">
               <RefreshCw className="mr-2 h-3 w-3" />
-              Retry
+              ព្យាយាមម្តងទៀត
             </Button>
           </AlertDescription>
         </Alert>
@@ -435,7 +484,7 @@ export default function AttendancePage() {
                   setSearch(e.target.value);
                   resetPage();
                 }}
-                placeholder="Search employee by name or ID"
+                placeholder="ស្វែងរកមន្ត្រីតាមឈ្មោះ ឬលេខសម្គាល់"
                 className="pl-9"
               />
             </div>
@@ -460,10 +509,10 @@ export default function AttendancePage() {
               }}
             >
               <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="Department" />
+                <SelectValue placeholder="នាយកដ្ឋាន" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Departments</SelectItem>
+                <SelectItem value="all">នាយកដ្ឋានទាំងអស់</SelectItem>
                 <SelectItem value="HR">HR</SelectItem>
                 <SelectItem value="IT">IT</SelectItem>
                 <SelectItem value="Finance">Finance</SelectItem>
@@ -481,14 +530,14 @@ export default function AttendancePage() {
               }}
             >
               <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="Status" />
+                <SelectValue placeholder="ស្ថានភាព" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="Present">Present</SelectItem>
-                <SelectItem value="Absent">Absent</SelectItem>
-                <SelectItem value="Late">Late</SelectItem>
-                <SelectItem value="Half-day">Half-day</SelectItem>
+                <SelectItem value="all">ស្ថានភាពទាំងអស់</SelectItem>
+                <SelectItem value="Present">វត្តមាន</SelectItem>
+                <SelectItem value="Absent">អវត្តមាន</SelectItem>
+                <SelectItem value="Late">មកយឺត</SelectItem>
+                <SelectItem value="Half-day">ពាក់កណ្តាលថ្ងៃ</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -497,15 +546,15 @@ export default function AttendancePage() {
           <div className="flex flex-wrap items-center gap-2 border-t pt-4">
             <Button onClick={() => setModalOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
-              Mark Attendance
+              កត់ត្រាវត្តមាន
             </Button>
             <Button variant="outline" onClick={handleExport}>
               <Download className="mr-2 h-4 w-4" />
-              Export Report
+              នាំចេញរបាយការណ៍
             </Button>
             <Button variant="outline" onClick={handleBulkUpload}>
               <Upload className="mr-2 h-4 w-4" />
-              Bulk Upload
+              បញ្ចូលជាក្រុម
             </Button>
           </div>
         </div>
@@ -515,17 +564,17 @@ export default function AttendancePage() {
       <div className="flex items-center justify-between">
         <Tabs value={viewMode} onValueChange={setViewMode}>
           <TabsList>
-            <TabsTrigger value="daily">Daily</TabsTrigger>
-            <TabsTrigger value="weekly">Weekly</TabsTrigger>
-            <TabsTrigger value="monthly">Monthly</TabsTrigger>
+            <TabsTrigger value="daily">ប្រចាំថ្ងៃ</TabsTrigger>
+            <TabsTrigger value="weekly">ប្រចាំសប្ដាហ៍</TabsTrigger>
+            <TabsTrigger value="monthly">ប្រចាំខែ</TabsTrigger>
           </TabsList>
         </Tabs>
 
         {selectedIds.length > 0 && (
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">{selectedIds.length} selected</span>
+            <span className="text-sm text-muted-foreground">{selectedIds.length} បានជ្រើសរើស</span>
             <Button variant="outline" size="sm">
-              Bulk Action
+              សកម្មភាពជាក្រុម
             </Button>
           </div>
         )}
@@ -553,13 +602,13 @@ export default function AttendancePage() {
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
               <Users className="h-6 w-6 text-muted-foreground" />
             </div>
-            <h3 className="text-sm font-medium">No attendance records found</h3>
+            <h3 className="text-sm font-medium">រកមិនឃើញកំណត់ត្រាវត្តមាន</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              Try adjusting filters or add new attendance
+              សូមកែតម្រូវតម្រង ឬបន្ថែមវត្តមានថ្មី
             </p>
             <Button onClick={() => setModalOpen(true)} className="mt-4">
               <Plus className="mr-2 h-4 w-4" />
-              Mark Attendance
+              កត់ត្រាវត្តមាន
             </Button>
           </div>
         ) : (
@@ -575,13 +624,15 @@ export default function AttendancePage() {
                       onCheckedChange={toggleSelectAll}
                     />
                   </TableHead>
-                  <TableHead>Employee</TableHead>
-                  <TableHead>Employee ID</TableHead>
-                  <TableHead>Department</TableHead>
-                  <TableHead>Check-in</TableHead>
-                  <TableHead>Check-out</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="w-[100px]">Actions</TableHead>
+                  <TableHead>មន្ត្រី</TableHead>
+                  <TableHead>លេខសម្គាល់មន្ត្រី</TableHead>
+                  <TableHead>នាយកដ្ឋាន</TableHead>
+                  <TableHead>កាលបរិច្ឆេទ</TableHead>
+                  <TableHead>ម៉ោងចូល</TableHead>
+                  <TableHead>ម៉ោងចេញ</TableHead>
+                  <TableHead>ម៉ោងសរុប</TableHead>
+                  <TableHead>ស្ថានភាព</TableHead>
+                  <TableHead className="w-[100px]">សកម្មភាព</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -618,8 +669,12 @@ export default function AttendancePage() {
                         {record.officerCode || '—'}
                       </TableCell>
                       <TableCell className="text-sm">{record.department}</TableCell>
+                      <TableCell className="text-sm">{formatDateOnly(record.date)}</TableCell>
                       <TableCell className="text-sm">{formatTime(record.checkIn)}</TableCell>
                       <TableCell className="text-sm">{formatTime(record.checkOut)}</TableCell>
+                      <TableCell className="text-sm font-medium">
+                        {calculateTotalHours(record.checkIn, record.checkOut)}
+                      </TableCell>
                       <TableCell>
                         <Badge variant="secondary" className={getStatusColor(record.status)}>
                           {record.status}
@@ -627,10 +682,10 @@ export default function AttendancePage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
-                          <Button variant="ghost" size="icon" className="h-8 w-8" title="View">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" title="មើល">
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" title="Edit">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" title="កែប្រែ">
                             <Pencil className="h-4 w-4" />
                           </Button>
                         </div>
@@ -645,7 +700,7 @@ export default function AttendancePage() {
             {totalPages > 0 && (
               <div className="flex justify-end items-center gap-2 border-t px-4 py-3">
                 <p className="text-sm text-muted-foreground">
-                  Page {page + 1} of {totalPages}
+                  ទំព័រ {page + 1} នៃ {totalPages}
                 </p>
                 <Button
                   variant="outline"
@@ -654,7 +709,7 @@ export default function AttendancePage() {
                   disabled={page === 0}
                 >
                   <ChevronLeft className="h-4 w-4" />
-                  Previous
+                  មុន
                 </Button>
                 <Button
                   variant="outline"
@@ -662,7 +717,7 @@ export default function AttendancePage() {
                   onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                   disabled={page >= totalPages - 1}
                 >
-                  Next
+                  បន្ទាប់
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>

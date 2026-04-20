@@ -9,7 +9,7 @@ export function useCreateOfficer() {
 
   return useMutation({
     mutationFn: (data: CreateOfficer) =>
-      fetchApi('/api/officer', officerSchema, {
+      fetchApi('/officer', officerSchema, {
         method: 'POST',
         body: JSON.stringify(data),
       }),
@@ -28,7 +28,7 @@ export function useUpdateOfficer() {
 
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: UpdateOfficer }) =>
-      fetchApi(`/api/officer/${id}`, officerSchema, {
+      fetchApi(`/officer/${id}`, officerSchema, {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
@@ -47,7 +47,7 @@ export function useDeleteOfficer() {
 
   return useMutation({
     mutationFn: (id: number) =>
-      fetchApi(`/api/officer/${id}`, successResponseSchema, {
+      fetchApi(`/officer/${id}`, successResponseSchema, {
         method: 'DELETE',
       }),
     onSuccess: () => {

@@ -1,152 +1,298 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Shield, Eye, EyeOff, LogIn } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  AlertCircle,
+  ArrowRight,
+  Building2,
+  Eye,
+  EyeOff,
+  Phone,
+  Shield,
+  Star,
+  UserRound,
+} from 'lucide-react';
+
 import { loginAction } from '@/lib/actions/auth';
 import { setTokens } from '@/lib/client';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+
+const KHMER_ERROR_MESSAGE = 'សូមបំពេញព័ត៌មានឲ្យបានត្រឹមត្រូវ';
 
 export default function LoginPage() {
   const router = useRouter();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [remember, setRemember] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(formData: FormData) {
+  const passwordStrength = useMemo(() => {
+    if (!password) {
+      return { score: 0, label: '' };
+    }
+
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
+    if (/\d/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+
+    const labels = ['', 'ខ្សោយ', 'ល្មម', 'ល្អ', 'ខ្លាំង'];
+    return { score, label: labels[score] };
+  }, [password]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!username.trim() || !password.trim()) {
+      setError(KHMER_ERROR_MESSAGE);
+      return;
+    }
+
     setError('');
     setLoading(true);
 
     try {
+      const formData = new FormData();
+      formData.append('username', username.trim());
+      formData.append('password', password);
+
       const result = await loginAction(formData);
 
       if (result.error) {
-        setError(result.error);
-        setLoading(false);
+        setError(KHMER_ERROR_MESSAGE);
         return;
       }
 
       if (result.success) {
-        // Set client-side tokens
         setTokens(result.accessToken, result.refreshToken);
         router.push('/dashboard');
+        return;
       }
+
+      setError(KHMER_ERROR_MESSAGE);
     } catch {
-      setError('Something went wrong. Please try again.');
+      setError(KHMER_ERROR_MESSAGE);
+    } finally {
       setLoading(false);
     }
-  }
+  };
+
+  const strengthClasses = (index: number) => {
+    const active = passwordStrength.score > index && password.length > 0;
+
+    if (!active) return 'bg-muted';
+    if (passwordStrength.score === 1) return 'bg-amber-500';
+    if (passwordStrength.score === 2 || passwordStrength.score === 3) {
+      return 'bg-primary';
+    }
+    return 'bg-emerald-500';
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="flex w-full max-w-[420px] flex-col items-center gap-8">
-        <div className="flex flex-col items-center gap-3">
-          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <Shield className="h-7 w-7" />
-          </div>
-          <div className="text-center">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground text-balance">
-              Officer Management System
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">Sign in to access the admin panel</p>
-          </div>
-        </div>
+    <main className="min-h-screen bg-slate-50 px-4 py-6 md:px-6">
+      <div className="mx-auto grid min-h-[calc(100vh-3rem)] max-w-6xl overflow-hidden rounded-3xl border bg-white shadow-2xl md:grid-cols-2">
+        <section className="flex items-center justify-center px-6 py-10 md:px-10 lg:px-14">
+          <div className="w-full max-w-[380px]">
+            <div className="mb-10 flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg">
+                <Shield className="h-5 w-5" />
+              </div>
 
-        <Card className="w-full">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg">Sign In</CardTitle>
-            <CardDescription>Enter your credentials to continue</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form action={handleSubmit} className="flex flex-col gap-4">
-              {error && (
-                <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-                  {error}
-                </div>
-              )}
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
+                  GAMS
+                </p>
+                <h1 className="mt-1 text-sm font-medium text-foreground">
+                  ប្រព័ន្ធគ្រប់គ្រងកិច្ចការទូទៅ
+                </h1>
+              </div>
+            </div>
 
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="username">Username</Label>
+            <div className="mb-8">
+              <h2 className="text-3xl font-semibold tracking-tight text-foreground">ចូលគណនី</h2>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                សូមបញ្ចូលព័ត៌មានគណនីរបស់អ្នក ដើម្បីចូលប្រើប្រព័ន្ធ GAMS។
+              </p>
+            </div>
+
+            {error ? (
+              <div className="mb-5 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                <span>{error}</span>
+              </div>
+            ) : null}
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="username">
+                  ឈ្មោះអ្នកប្រើប្រាស់ <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="username"
-                  name="username"
                   type="text"
-                  placeholder="Enter username"
-                  required
+                  placeholder="សូមបញ្ចូលឈ្មោះអ្នកប្រើប្រាស់"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="h-11 rounded-xl"
                   autoComplete="username"
                   disabled={loading}
                 />
               </div>
 
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="password">Password</Label>
+              <div className="space-y-2">
+                <Label htmlFor="password">
+                  ពាក្យសម្ងាត់ <span className="text-red-500">*</span>
+                </Label>
+
                 <div className="relative">
                   <Input
                     id="password"
-                    name="password"
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter password"
-                    required
+                    placeholder="សូមបញ្ចូលពាក្យសម្ងាត់"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="h-11 rounded-xl pr-11"
                     autoComplete="current-password"
-                    className="pr-10"
                     disabled={loading}
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    aria-label={showPassword ? 'លាក់ពាក្យសម្ងាត់' : 'បង្ហាញពាក្យសម្ងាត់'}
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-foreground"
+                    disabled={loading}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
-              </div>
 
-              <Button type="submit" disabled={loading} className="mt-2 w-full">
-                {loading ? (
-                  <span className="flex items-center gap-2">
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-                    Signing in...
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2">
-                    <LogIn className="h-4 w-4" />
-                    Sign In
-                  </span>
-                )}
-              </Button>
-
-              <div className="mt-2 rounded-lg bg-muted px-4 py-3">
-                <p className="text-xs font-medium text-muted-foreground">Demo Credentials</p>
-                <div className="mt-1.5 flex flex-col gap-1 text-xs text-muted-foreground">
-                  <span>
-                    Admin:{' '}
-                    <code className="rounded bg-background px-1 py-0.5 font-mono text-foreground">
-                      admin
-                    </code>{' '}
-                    /{' '}
-                    <code className="rounded bg-background px-1 py-0.5 font-mono text-foreground">
-                      admin123
-                    </code>
-                  </span>
-                  <span>
-                    Manager:{' '}
-                    <code className="rounded bg-background px-1 py-0.5 font-mono text-foreground">
-                      manager1
-                    </code>{' '}
-                    /{' '}
-                    <code className="rounded bg-background px-1 py-0.5 font-mono text-foreground">
-                      manager123
-                    </code>
-                  </span>
+                <div className="mt-2 flex gap-1">
+                  {[0, 1, 2, 3].map((index) => (
+                    <div
+                      key={index}
+                      className={`h-1.5 flex-1 rounded-full transition-colors ${strengthClasses(
+                        index,
+                      )}`}
+                    />
+                  ))}
                 </div>
+
+                <p className="min-h-[1rem] text-xs text-muted-foreground">
+                  {passwordStrength.label}
+                </p>
               </div>
+
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="remember"
+                    checked={remember}
+                    onCheckedChange={(checked) => setRemember(Boolean(checked))}
+                    disabled={loading}
+                  />
+                  <Label htmlFor="remember" className="cursor-pointer font-normal">
+                    ចងចាំខ្ញុំ
+                  </Label>
+                </div>
+
+                <Link
+                  href="/forgot-password"
+                  className="text-sm font-medium text-primary transition hover:underline"
+                >
+                  ភ្លេចពាក្យសម្ងាត់?
+                </Link>
+              </div>
+
+              <Button
+                type="submit"
+                className="h-11 w-full rounded-xl text-sm font-semibold shadow-lg"
+                disabled={loading}
+              >
+                {loading ? 'កំពុងដំណើរការ...' : 'ចូលប្រើ'}
+                {!loading ? <ArrowRight className="ml-2 h-4 w-4" /> : null}
+              </Button>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
+
+        <section className="relative hidden overflow-hidden bg-gradient-to-br from-emerald-900 via-emerald-700 to-green-500 p-8 text-white md:flex md:flex-col md:justify-between lg:p-10">
+          <div className="absolute -right-16 -top-16 h-72 w-72 rounded-full border border-white/10" />
+          <div className="absolute right-8 top-8 h-44 w-44 rounded-full border border-white/10" />
+          <div className="absolute -bottom-28 -left-20 h-[26rem] w-[26rem] rounded-full border border-white/10" />
+
+          <div className="relative z-10 flex items-center gap-2 text-white/70">
+            <Star className="h-4 w-4" />
+            <span className="text-[11px] font-semibold uppercase tracking-[0.16em]">
+              Secure Portal
+            </span>
+          </div>
+
+          <div className="relative z-10 my-10">
+            <Card className="mx-auto w-full max-w-xs rounded-3xl border-0 bg-white/95 text-slate-900 shadow-2xl">
+              <CardContent className="p-4">
+                <div className="mb-4 flex items-center gap-3 border-b pb-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-base font-semibold text-emerald-700">
+                    ស
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold">សុខ ដាណេត</p>
+                    <p className="text-xs text-muted-foreground">អ្នកគ្រប់គ្រងទូទៅ</p>
+                  </div>
+                </div>
+
+                <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  កំពុងសកម្ម
+                </div>
+
+                <div className="space-y-3 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4" />
+                    <span>នាយកដ្ឋានរដ្ឋបាល</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4" />
+                    <span>+855 23 000 000</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <UserRound className="h-4 w-4" />
+                    <span>ID: GAM-2024-0042</span>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex items-center justify-end">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+                    <Shield className="h-5 w-5" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="relative z-10 max-w-sm">
+            <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/60">
+              General Affairs Management System
+            </p>
+            <h3 className="text-2xl font-semibold leading-9">
+              ប្រព័ន្ធគ្រប់គ្រងរដ្ឋបាល និងការប្រើប្រាស់ក្នុងអង្គភាព
+            </h3>
+            <p className="mt-3 text-sm leading-7 text-white/75">
+              គ្រប់គ្រងព័ត៌មានមន្ត្រី សិទ្ធិ និងប្រតិបត្តិការប្រចាំថ្ងៃ ចំណុចតែមួយ។
+            </p>
+          </div>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

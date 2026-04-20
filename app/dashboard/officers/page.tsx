@@ -55,28 +55,28 @@ function SummaryCards({
 }) {
   const cards = [
     {
-      label: 'Total',
+      label: 'សរុប',
       value: stats?.total ?? 0,
       icon: Users,
       color: 'text-slate-700',
       bg: 'bg-slate-50',
     },
     {
-      label: 'Active',
+      label: 'សកម្ម',
       value: stats?.active ?? 0,
       icon: UserCheck,
       color: 'text-emerald-700',
       bg: 'bg-emerald-50',
     },
     {
-      label: 'On Leave',
+      label: 'ច្បាប់ឈប់សម្រាក',
       value: stats?.onLeave ?? 0,
       icon: Clock,
       color: 'text-amber-700',
       bg: 'bg-amber-50',
     },
     {
-      label: 'Inactive',
+      label: 'មិនសកម្ម',
       value: stats?.inactive ?? 0,
       icon: UserMinus,
       color: 'text-red-700',
@@ -190,7 +190,7 @@ export default function OfficersPage() {
   }
 
   if (isError) {
-    return <div className="text-red-500">Failed to load officers: {error?.message}</div>;
+    return <div className="text-red-500">មិនអាចទាញយកទិន្នន័យមន្ត្រីបានទេ: {error?.message}</div>;
   }
 
   const isSummaryLoading = statsLoading || !stats;
@@ -200,15 +200,13 @@ export default function OfficersPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Officers</h1>
-          <p className="text-sm text-muted-foreground">
-            Manage your organization&apos;s officers and roles.
-          </p>
+          <h1 className="text-2xl font-semibold tracking-tight">មន្ត្រី</h1>
+          <p className="text-sm text-muted-foreground">គ្រប់គ្រងមន្ត្រី និងតួនាទីក្នុងអង្គភាព។</p>
         </div>
 
         <Button onClick={handleAdd}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Officer
+          បន្ថែមមន្ត្រី
         </Button>
       </div>
 
@@ -218,7 +216,7 @@ export default function OfficersPage() {
       <div className="rounded-lg border bg-card p-4">
         <div className="mb-3 flex items-center gap-2">
           <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Filters</span>
+          <span className="text-sm font-medium">តម្រង</span>
         </div>
 
         <OfficerFilters
@@ -255,7 +253,7 @@ export default function OfficersPage() {
       {total > 0 && (
         <div className="flex items-center justify-end gap-2">
           <p className="text-sm text-muted-foreground">
-            Page {page} of {Math.ceil(total / PAGE_SIZE)}
+            ទំព័រ {page} នៃ {Math.ceil(total / PAGE_SIZE)}
           </p>
 
           <Button
@@ -265,7 +263,7 @@ export default function OfficersPage() {
             disabled={page === 1}
           >
             <ChevronLeft className="h-4 w-4" />
-            Previous
+            មុន
           </Button>
 
           <Button
@@ -274,7 +272,7 @@ export default function OfficersPage() {
             onClick={() => setPage((p) => Math.min(Math.ceil(total / PAGE_SIZE), p + 1))}
             disabled={page >= Math.ceil(total / PAGE_SIZE)}
           >
-            Next
+            បន្ទាប់
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
@@ -295,19 +293,19 @@ export default function OfficersPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Officer</AlertDialogTitle>
+            <AlertDialogTitle>លុបមន្ត្រី</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete{' '}
+              តើអ្នកពិតជាចង់លុប{' '}
               <strong>
                 {deleteOfficerData?.first_name} {deleteOfficerData?.last_name}
               </strong>
-              ?
+              មែនទេ?
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
+            <AlertDialogCancel>បោះបង់</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>លុប</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
