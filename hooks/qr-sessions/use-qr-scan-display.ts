@@ -259,7 +259,6 @@ export function useQrScanDisplay(sessionId: string): UseQrScanDisplayResult {
       scheduleNextRefresh(FALLBACK_EXPIRES_IN, fetchQrToken);
     }
   }, [clearRefreshTimers, resetToInactive, scheduleNextRefresh, sessionId]);
-
   useEffect(() => {
     isMountedRef.current = true;
     void fetchQrToken();
