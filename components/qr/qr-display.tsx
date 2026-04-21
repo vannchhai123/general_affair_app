@@ -1,7 +1,6 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { Timer } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Dynamically import QRCode to avoid SSR issues
@@ -10,15 +9,24 @@ const QRCode = dynamic(() => import('qrcode.react').then((mod) => mod.QRCodeCanv
 });
 
 interface QRDisplayProps {
+  errorMessage?: string;
+  lastUpdatedAt: number;
+  qrAvailable: boolean;
+  qrToken: string;
   sessionId: string;
-  countdown: number;
   isRefreshing: boolean;
   isLoading: boolean;
 }
 
-export function QRDisplay({ sessionId, countdown, isRefreshing, isLoading }: QRDisplayProps) {
-  const isExpired = countdown <= 0;
-
+export function QRDisplay({
+  errorMessage,
+  lastUpdatedAt,
+  qrAvailable,
+  qrToken,
+  sessionId,
+  isRefreshing,
+  isLoading,
+}: QRDisplayProps) {
   if (isLoading) {
     return (
       <div className="rounded-lg border bg-card p-8">
@@ -51,32 +59,34 @@ export function QRDisplay({ sessionId, countdown, isRefreshing, isLoading }: QRD
             <div className="absolute bottom-2 right-2 w-6 h-6 border-b-4 border-r-4 border-black rounded-br-md" />
           </div>
           <div
+            key={lastUpdatedAt}
             className={`transition-all duration-500 ${
               isRefreshing ? 'scale-95 opacity-40' : 'scale-100 opacity-100'
             }`}
           >
-            <QRCode value={`attendance://${sessionId}`} size={240} level="H" includeMargin />
+            {qrAvailable ? (
+              <QRCode value={qrToken} size={240} level="H" includeMargin />
+            ) : (
+              <div className="flex h-[240px] w-[240px] items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-100 px-6 text-center text-slate-600">
+                <div>
+                  <p className="text-base font-semibold">QR unavailable</p>
+                  <p className="mt-2 text-sm">
+                    {errorMessage || 'Waiting for a valid session QR.'}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
-
-          {/* Expired Overlay */}
-          {isExpired && (
-            <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-white/80 backdrop-blur-sm">
-              <p className="text-sm font-semibold text-red-500">QR Expired</p>
-            </div>
-          )}
         </div>
 
-        {/* Countdown & Session Info */}
+        {/* Session Info */}
         <div className="flex flex-col items-center gap-2 text-center">
-          <div className="flex items-center gap-2">
-            <Timer className="h-5 w-5 text-muted-foreground" />
-            <p className="text-lg font-semibold">Expires in {countdown}s</p>
-          </div>
           <p className="text-xs text-muted-foreground">
             Session ID: <span className="font-mono">{sessionId || '---'}</span>
           </p>
           <p className="text-sm text-muted-foreground">
-            Employees scan this QR code to mark attendance
+            Employees scan this QR code to mark attendance. It refreshes automatically in the
+            background.
           </p>
         </div>
       </div>

@@ -41,6 +41,7 @@ const mainNav = [
   { title: 'Officers', href: '/dashboard/officers', icon: Users },
   { title: 'Attendance', href: '/dashboard/attendance', icon: ClipboardCheck },
   { title: 'QR Attendance', href: '/dashboard/qr-attendance', icon: QrCode },
+  { title: 'QR Scan Display', href: '/dashboard/qr-scan', icon: QrCode },
   { title: 'Invitations', href: '/dashboard/invitations', icon: Mail },
 ];
 
