@@ -164,6 +164,7 @@ export default function OfficersPage() {
       id: officer.id,
       first_name: officer.first_name,
       last_name: officer.last_name,
+      sex: officer.sex || 'male',
       email: officer.email || '',
       position: officer.position,
       department: officer.department,

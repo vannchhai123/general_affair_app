@@ -23,6 +23,7 @@ import {
 export interface OfficerFormData {
   first_name: string;
   last_name: string;
+  sex: 'male' | 'female';
   email: string;
   position: string;
   department: string;
@@ -41,6 +42,7 @@ interface OfficerDialogProps {
 const emptyForm: OfficerFormData = {
   first_name: '',
   last_name: '',
+  sex: 'male',
   email: '',
   position: '',
   department: '',
@@ -58,6 +60,7 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
       setForm({
         first_name: officer.first_name || '',
         last_name: officer.last_name || '',
+        sex: officer.sex || 'male',
         email: officer.email || '',
         position: officer.position || '',
         department: officer.department || '',
@@ -128,6 +131,21 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
             />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="sex">ភេទ</Label>
+            <Select
+              value={form.sex}
+              onValueChange={(v) => setForm({ ...form, sex: v as OfficerFormData['sex'] })}
+            >
+              <SelectTrigger id="sex">
+                <SelectValue placeholder="ជ្រើសរើសភេទ" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="male">ប្រុស</SelectItem>
+                <SelectItem value="female">ស្រី</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">

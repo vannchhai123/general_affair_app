@@ -7,6 +7,7 @@ export interface Officer {
 
   first_name: string;
   last_name: string;
+  sex?: 'male' | 'female';
   email: string;
   phone: string;
   position: string;

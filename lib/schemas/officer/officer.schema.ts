@@ -6,6 +6,7 @@ export const officerSchema = z.object({
   officerCode: z.string(),
   first_name: z.string(),
   last_name: z.string(),
+  sex: z.enum(['male', 'female']).optional(),
   email: z.string(),
   position: z.string(),
   department: z.string(),
@@ -19,6 +20,7 @@ export const officersResponseSchema = z.array(officerSchema);
 export const createOfficerSchema = z.object({
   first_name: z.string().min(1, 'First name is required'),
   last_name: z.string().min(1, 'Last name is required'),
+  sex: z.enum(['male', 'female']).optional(),
   email: z.string().email('Invalid email'),
   position: z.string().optional(),
   department: z.string().optional(),
