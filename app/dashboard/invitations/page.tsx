@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { isAfter, isBefore, startOfDay } from 'date-fns';
 import { Plus } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
 import type { DateRange } from 'react-day-picker';
 import {
   AlertDialog,
@@ -43,27 +42,18 @@ import {
   useUpdateInvitation,
 } from '@/hooks/invitations/use-invitation-mutations';
 import { useInvitations } from '@/hooks/invitations/use-invitations';
-import { officersResponseSchema, type Invitation, type Officer } from '@/lib/schemas';
+import { useOfficers } from '@/hooks/officers/use-officers';
+import type { Invitation, Officer } from '@/lib/schemas';
 import type { InvitationFormValues } from '@/lib/schemas/invitation/invitation';
 
 type SortKey = 'id' | 'subject' | 'organization' | 'date' | 'status';
 
-async function fetchOfficers() {
-  const response = await fetch('/api/officers', { cache: 'no-store' });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch officers');
-  }
-
-  return officersResponseSchema.parse(await response.json());
-}
-
 export default function InvitationsPage() {
   const { data: invitationsData, isLoading } = useInvitations();
   const invitations: Invitation[] = invitationsData ?? [];
-  const { data: officers = [] } = useQuery<Officer[]>({
-    queryKey: ['officers', 'invitation-selector'],
-    queryFn: fetchOfficers,
+  const { officers = [] } = useOfficers({
+    page: 1,
+    pageSize: 1000,
   });
 
   const createInvitation = useCreateInvitation();

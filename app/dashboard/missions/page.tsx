@@ -1,36 +1,13 @@
 'use client';
 
-import useSWR from 'swr';
 import { format } from 'date-fns';
 import { Check, X, MapPin, Calendar } from 'lucide-react';
-import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
-
-interface Mission {
-  id: number;
-  officer_id: number;
-  first_name: string;
-  last_name: string;
-  department: string;
-  start_date: string;
-  end_date: string;
-  purpose: string;
-  location: string;
-  status: string;
-  approver_name: string | null;
-}
+import { useMissions } from '@/hooks/missions/use-missions';
+import { useUpdateMission } from '@/hooks/missions/use-mission-mutations';
+import type { Mission } from '@/lib/schemas';
 
 function statusBadge(status: string) {
   switch (status) {
@@ -48,20 +25,14 @@ function statusBadge(status: string) {
 }
 
 export default function MissionsPage() {
-  const { data: missions, mutate } = useSWR<Mission[]>('/api/missions', fetcher);
+  const { data: missions = [] } = useMissions();
+  const updateMission = useUpdateMission();
 
   async function updateStatus(id: number, status: string) {
-    const res = await fetch(`/api/missions/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
+    await updateMission.mutateAsync({
+      id,
+      data: { status },
     });
-    if (!res.ok) {
-      toast.error('Update failed');
-      return;
-    }
-    toast.success(`Mission ${status.toLowerCase()}`);
-    mutate();
   }
 
   return (
@@ -72,7 +43,7 @@ export default function MissionsPage() {
       </div>
 
       <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-        {missions?.map((mission) => (
+        {missions.map((mission: Mission) => (
           <Card key={mission.id}>
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
@@ -126,7 +97,7 @@ export default function MissionsPage() {
             </CardContent>
           </Card>
         ))}
-        {missions?.length === 0 && (
+        {missions.length === 0 && (
           <div className="col-span-full text-center text-muted-foreground py-12">
             No missions found
           </div>

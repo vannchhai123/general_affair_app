@@ -1,9 +1,7 @@
 'use client';
 
-import useSWR from 'swr';
 import { format } from 'date-fns';
 import { Check, X, Calendar, Clock } from 'lucide-react';
-import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,23 +13,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
-
-interface LeaveRequest {
-  id: number;
-  officer_id: number;
-  first_name: string;
-  last_name: string;
-  department: string;
-  start_date: string;
-  end_date: string;
-  leave_type: string;
-  total_days: number;
-  reason: string;
-  status: string;
-  approver_name: string | null;
-}
+import { useLeaveRequests } from '@/hooks/leave-requests/use-leave-requests';
+import { useUpdateLeaveRequest } from '@/hooks/leave-requests/use-leave-request-mutations';
+import type { LeaveRequest } from '@/lib/schemas';
 
 function statusBadge(status: string) {
   switch (status) {
@@ -72,20 +56,14 @@ function typeBadge(type: string) {
 }
 
 export default function LeaveRequestsPage() {
-  const { data: leaves, mutate } = useSWR<LeaveRequest[]>('/api/leave-requests', fetcher);
+  const { data: leaves = [] } = useLeaveRequests();
+  const updateLeaveRequest = useUpdateLeaveRequest();
 
   async function updateStatus(id: number, status: string) {
-    const res = await fetch(`/api/leave-requests/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
+    await updateLeaveRequest.mutateAsync({
+      id,
+      data: { status },
     });
-    if (!res.ok) {
-      toast.error('Update failed');
-      return;
-    }
-    toast.success(`Leave request ${status.toLowerCase()}`);
-    mutate();
   }
 
   return (
@@ -98,7 +76,7 @@ export default function LeaveRequestsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">All Leave Requests</CardTitle>
-          <CardDescription>{leaves ? `${leaves.length} requests` : 'Loading...'}</CardDescription>
+          <CardDescription>{`${leaves.length} requests`}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="rounded-lg border">
@@ -115,7 +93,7 @@ export default function LeaveRequestsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {leaves?.map((leave) => (
+                {leaves.map((leave: LeaveRequest) => (
                   <TableRow key={leave.id}>
                     <TableCell>
                       <div>
@@ -175,7 +153,7 @@ export default function LeaveRequestsPage() {
                     </TableCell>
                   </TableRow>
                 ))}
-                {leaves?.length === 0 && (
+                {leaves.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center text-muted-foreground py-12">
                       No leave requests found

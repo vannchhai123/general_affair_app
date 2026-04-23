@@ -1,6 +1,5 @@
 'use client';
 
-import useSWR from 'swr';
 import {
   Users,
   ClipboardCheck,
@@ -22,8 +21,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+import { useDashboard } from '@/hooks/dashboard/use-dashboard';
 
 function StatCard({
   title,
@@ -83,9 +81,7 @@ function statusBadge(status: string) {
 }
 
 export default function DashboardPage() {
-  const { data, isLoading } = useSWR('/api/dashboard', fetcher, {
-    refreshInterval: 30000,
-  });
+  const { data, isLoading } = useDashboard();
 
   if (isLoading || !data) {
     return (
@@ -155,26 +151,26 @@ export default function DashboardPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data.recentAttendance?.map(
+                {data.recent_attendance?.map(
                   (record: {
                     id: number;
-                    first_name: string;
-                    last_name: string;
+                    firstName: string;
+                    lastName: string;
                     department: string;
-                    total_work_minutes: number;
+                    totalWorkMin: number | null;
                     status: string;
                   }) => (
                     <TableRow key={record.id}>
                       <TableCell className="font-medium">
-                        {record.first_name} {record.last_name}
+                        {record.firstName} {record.lastName}
                       </TableCell>
                       <TableCell>{record.department}</TableCell>
-                      <TableCell>{record.total_work_minutes}</TableCell>
+                      <TableCell>{record.totalWorkMin ?? 0}</TableCell>
                       <TableCell>{statusBadge(record.status)}</TableCell>
                     </TableRow>
                   ),
                 )}
-                {(!data.recentAttendance || data.recentAttendance.length === 0) && (
+                {(!data.recent_attendance || data.recent_attendance.length === 0) && (
                   <TableRow>
                     <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
                       No attendance records found
@@ -208,7 +204,7 @@ export default function DashboardPage() {
                     <p className="text-xs text-muted-foreground">Requires approval</p>
                   </div>
                 </div>
-                <span className="text-2xl font-bold">{data.leaves?.pending ?? 0}</span>
+                <span className="text-2xl font-bold">{data.leave_requests?.pending ?? 0}</span>
               </div>
               <div className="flex items-center justify-between rounded-lg border p-3">
                 <div className="flex items-center gap-3">

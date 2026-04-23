@@ -1,14 +1,15 @@
 'use client';
 
+import { apiFetch } from '@/lib/client';
 import { invitationsResponseSchema, invitationSchema, type Invitation } from '@/lib/schemas';
 import type { InvitationFormValues } from '@/lib/schemas/invitation/invitation';
 
 async function request<T>(
-  input: RequestInfo,
+  input: string,
   init: RequestInit,
   parser: { parse: (data: unknown) => T },
 ) {
-  const response = await fetch(input, {
+  const response = await apiFetch(input, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
@@ -31,18 +32,14 @@ async function request<T>(
 
 export const invitationApi = {
   list: async () =>
-    request('/api/invitations', { method: 'GET', cache: 'no-store' }, invitationsResponseSchema),
+    request('/invitations', { method: 'GET', cache: 'no-store' }, invitationsResponseSchema),
   create: async (data: InvitationFormValues) =>
-    request('/api/invitations', { method: 'POST', body: JSON.stringify(data) }, invitationSchema),
+    request('/invitations', { method: 'POST', body: JSON.stringify(data) }, invitationSchema),
   update: async (id: number, data: Partial<InvitationFormValues>) =>
-    request(
-      `/api/invitations/${id}`,
-      { method: 'PUT', body: JSON.stringify(data) },
-      invitationSchema,
-    ),
+    request(`/invitations/${id}`, { method: 'PUT', body: JSON.stringify(data) }, invitationSchema),
   delete: async (id: number) => {
     await request(
-      `/api/invitations/${id}`,
+      `/invitations/${id}`,
       { method: 'DELETE' },
       {
         parse: (data: unknown) => {

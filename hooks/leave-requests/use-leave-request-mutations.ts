@@ -8,7 +8,7 @@ export function useCreateLeaveRequest() {
 
   return useMutation({
     mutationFn: (data: Partial<LeaveRequest>) =>
-      fetchApi('/api/leave-requests', leaveRequestSchema, {
+      fetchApi('/leave-requests', leaveRequestSchema, {
         method: 'POST',
         body: JSON.stringify(data),
       }),
@@ -27,7 +27,7 @@ export function useUpdateLeaveRequest() {
 
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<LeaveRequest> }) =>
-      fetchApi(`/api/leave-requests/${id}`, leaveRequestSchema, {
+      fetchApi(`/leave-requests/${id}`, leaveRequestSchema, {
         method: 'PUT',
         body: JSON.stringify(data),
       }),

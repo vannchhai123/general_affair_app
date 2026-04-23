@@ -1,9 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import useSWR from 'swr';
 import { Plus, Pencil, Trash2, Clock } from 'lucide-react';
-import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,21 +26,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
-
-interface Shift {
-  id: number;
-  name: string;
-  start_time: string;
-  end_time: string;
-  is_active: boolean;
-}
+import { useShifts } from '@/hooks/shifts/use-shifts';
+import { useCreateShift, useDeleteShift, useUpdateShift } from '@/hooks/shifts/use-shift-mutations';
+import type { Shift } from '@/lib/schemas';
 
 const emptyForm = { name: '', start_time: '', end_time: '', is_active: true };
 
 export default function ShiftsPage() {
-  const { data: shifts, mutate } = useSWR<Shift[]>('/api/shifts', fetcher);
+  const { data: shifts = [] } = useShifts();
+  const createShift = useCreateShift();
+  const updateShift = useUpdateShift();
+  const deleteShift = useDeleteShift();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editItem, setEditItem] = useState<Shift | null>(null);
   const [form, setForm] = useState(emptyForm);
@@ -70,19 +64,14 @@ export default function ShiftsPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const url = editItem ? `/api/shifts/${editItem.id}` : '/api/shifts';
-      const method = editItem ? 'PUT' : 'POST';
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-      if (!res.ok) throw new Error();
-      toast.success(editItem ? 'Shift updated' : 'Shift created');
+      if (editItem) {
+        await updateShift.mutateAsync({ id: editItem.id, data: form });
+      } else {
+        await createShift.mutateAsync(form);
+      }
       setDialogOpen(false);
-      mutate();
     } catch {
-      toast.error('Operation failed');
+      // handled by mutation toast
     } finally {
       setLoading(false);
     }
@@ -90,14 +79,8 @@ export default function ShiftsPage() {
 
   async function handleDelete() {
     if (!deleteId) return;
-    const res = await fetch(`/api/shifts/${deleteId}`, { method: 'DELETE' });
-    if (!res.ok) {
-      toast.error('Delete failed');
-      return;
-    }
-    toast.success('Shift deleted');
+    await deleteShift.mutateAsync(deleteId);
     setDeleteId(null);
-    mutate();
   }
 
   return (
@@ -114,7 +97,7 @@ export default function ShiftsPage() {
       </div>
 
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {shifts?.map((shift) => (
+        {shifts.map((shift: Shift) => (
           <Card key={shift.id}>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
@@ -157,7 +140,7 @@ export default function ShiftsPage() {
             </CardContent>
           </Card>
         ))}
-        {shifts?.length === 0 && (
+        {shifts.length === 0 && (
           <div className="col-span-full text-center text-muted-foreground py-12">
             No shifts configured
           </div>

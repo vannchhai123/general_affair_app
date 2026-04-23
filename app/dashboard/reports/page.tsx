@@ -1,6 +1,5 @@
 'use client';
 
-import useSWR from 'swr';
 import { format } from 'date-fns';
 import {
   BarChart,
@@ -27,8 +26,7 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+import { useReports } from '@/hooks/reports/use-reports';
 
 const CHART_COLORS = [
   'oklch(0.45 0.18 250)',
@@ -56,7 +54,7 @@ function actionBadge(action: string) {
 }
 
 export default function ReportsPage() {
-  const { data, isLoading } = useSWR('/api/reports', fetcher);
+  const { data, isLoading } = useReports();
 
   if (isLoading) {
     return (
@@ -79,23 +77,22 @@ export default function ReportsPage() {
   }
 
   const attendanceChartData =
-    data?.attendanceSummary?.map(
-      (dept: { department: string; approved: number; pending: number; absent: number }) => ({
+    data?.attendance_by_department?.map(
+      (dept: { department: string; total: number; avg_work_minutes: number }) => ({
         department: dept.department,
-        Approved: Number(dept.approved),
-        Pending: Number(dept.pending),
-        Absent: Number(dept.absent),
+        Total: Number(dept.total),
+        'Avg Work': Number(dept.avg_work_minutes),
       }),
     ) || [];
 
   const missionPieData =
-    data?.missionSummary?.map((m: { status: string; count: number }) => ({
+    data?.mission_summary?.map((m: { status: string; total: number }) => ({
       name: m.status,
-      value: Number(m.count),
+      value: Number(m.total),
     })) || [];
 
   const leaveChartData =
-    data?.leaveSummary?.map(
+    data?.leave_summary?.map(
       (l: { leave_type: string; total: number; approved: number; pending: number }) => ({
         type: l.leave_type,
         Total: Number(l.total),
@@ -144,9 +141,8 @@ export default function ReportsPage() {
                       }}
                     />
                     <Legend wrapperStyle={{ fontSize: '12px' }} />
-                    <Bar dataKey="Approved" fill="oklch(0.60 0.15 170)" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="Pending" fill="oklch(0.65 0.20 45)" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="Absent" fill="oklch(0.577 0.245 27.325)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Total" fill="oklch(0.60 0.15 170)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Avg Work" fill="oklch(0.45 0.18 250)" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -246,11 +242,10 @@ export default function ReportsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {data?.invitationStats?.map(
+                    {data?.invitation_response_rates?.map(
                       (
                         inv: {
                           title: string;
-                          total_assigned: number;
                           accepted: number;
                           pending: number;
                           declined: number;
@@ -259,7 +254,7 @@ export default function ReportsPage() {
                       ) => (
                         <TableRow key={i}>
                           <TableCell className="font-medium">{inv.title}</TableCell>
-                          <TableCell>{inv.total_assigned}</TableCell>
+                          <TableCell>{inv.accepted + inv.pending + inv.declined}</TableCell>
                           <TableCell>
                             <span className="text-emerald-600 font-medium">{inv.accepted}</span>
                           </TableCell>
@@ -298,7 +293,7 @@ export default function ReportsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {data?.auditLog?.map(
+                    {data?.audit_log?.map(
                       (log: {
                         id: number;
                         timestamp: string;
@@ -322,7 +317,7 @@ export default function ReportsPage() {
                         </TableRow>
                       ),
                     )}
-                    {(!data?.auditLog || data.auditLog.length === 0) && (
+                    {(!data?.audit_log || data.audit_log.length === 0) && (
                       <TableRow>
                         <TableCell colSpan={5} className="text-center text-muted-foreground py-12">
                           No audit logs found

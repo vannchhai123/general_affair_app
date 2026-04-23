@@ -8,7 +8,7 @@ export function useCreateMission() {
 
   return useMutation({
     mutationFn: (data: Partial<Mission>) =>
-      fetchApi('/api/missions', missionSchema, {
+      fetchApi('/missions', missionSchema, {
         method: 'POST',
         body: JSON.stringify(data),
       }),
@@ -27,7 +27,7 @@ export function useUpdateMission() {
 
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<Mission> }) =>
-      fetchApi(`/api/missions/${id}`, missionSchema, {
+      fetchApi(`/missions/${id}`, missionSchema, {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
@@ -46,7 +46,7 @@ export function useDeleteMission() {
 
   return useMutation({
     mutationFn: (id: number) =>
-      fetchApi(`/api/missions/${id}`, successResponseSchema, {
+      fetchApi(`/missions/${id}`, successResponseSchema, {
         method: 'DELETE',
       }),
     onSuccess: () => {
