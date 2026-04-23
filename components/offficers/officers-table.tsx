@@ -1,4 +1,4 @@
-import { MoreHorizontal, Pencil, Trash2, Eye, Phone } from 'lucide-react';
+import { MoreHorizontal, Pencil, Trash2, Eye, Phone, Upload } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { StatusBadge } from './status-badge';
@@ -15,6 +15,7 @@ interface OfficersTableProps {
   officers?: Officer[];
   onEdit?: (officer: Officer) => void;
   onDelete?: (officer: Officer) => void;
+  onUploadImage?: (officer: Officer) => void;
   isLoading?: boolean;
   totalOfficer?: number;
 }
@@ -55,6 +56,7 @@ export function OfficersTable({
   officers,
   onEdit,
   onDelete,
+  onUploadImage,
   isLoading,
   totalOfficer,
 }: OfficersTableProps) {
@@ -119,6 +121,10 @@ export function OfficersTable({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="center">
+                      <DropdownMenuItem onClick={() => onUploadImage?.(o)}>
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload Image
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => onEdit?.(o)}>
                         <Pencil className="mr-2 h-4 w-4" />
                         កែប្រែ

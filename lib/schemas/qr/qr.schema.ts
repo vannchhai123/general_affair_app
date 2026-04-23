@@ -1,19 +1,27 @@
 import { z } from 'zod';
 
 export const qrSessionSchema = z.object({
-  id: z.string(),
+  id: z.string().nullable(),
   status: z.string(),
-  qr_token: z.string().optional(),
-  qrToken: z.string().optional(),
-  created_at: z.string().optional(),
-  createdAt: z.string().optional(),
-  expires_at: z.string().optional(),
-  expiresAt: z.string().optional(),
-  qr_code_url: z.string().optional(),
-  qrCodeUrl: z.string().optional(),
+  qr_token: z.string().nullable().optional(),
+  qrToken: z.string().nullable().optional(),
+  created_at: z.string().nullable().optional(),
+  createdAt: z.string().nullable().optional(),
+  expires_at: z.string().nullable().optional(),
+  expiresAt: z.string().nullable().optional(),
+  qr_code_url: z.string().nullable().optional(),
+  qrCodeUrl: z.string().nullable().optional(),
   location: z.string().optional().nullable(),
-  created_by: z.number().optional(),
-  createdBy: z.number().optional(),
+  created_by: z.number().nullable().optional(),
+  createdBy: z.number().nullable().optional(),
+  scan_count: z.number().optional(),
+  session_date: z.string().nullable().optional(),
+  shift_type: z.string().nullable().optional(),
+  starts_at: z.string().nullable().optional(),
+  ends_at: z.string().nullable().optional(),
+  system_generated: z.boolean().nullable().optional(),
+  message: z.string().nullable().optional(),
+  active: z.boolean().optional(),
 });
 
 export const createQrSessionSchema = z.object({
@@ -34,13 +42,18 @@ export const updateQrSessionResponseSchema = z.object({
   updated_at: z.string(),
 });
 
+export const qrTodaySessionsSchema = z.array(qrSessionSchema);
+
 export const qrSessionCheckInSchema = z.object({
   id: z.number(),
-  employee_name: z.string(),
-  employee_code: z.string(),
+  officer_name: z.string().optional(),
+  officer_code: z.string().optional(),
+  employee_name: z.string().optional(),
+  employee_code: z.string().optional(),
   department: z.string(),
   status: z.string(),
   scanned_at: z.string(),
+  message: z.string().nullable().optional(),
 });
 
 export const createQrSessionCheckInSchema = z.object({
@@ -51,12 +64,14 @@ export const createQrSessionCheckInSchema = z.object({
 
 export const createQrSessionCheckInResponseSchema = z.object({
   id: z.number(),
-  employee_name: z.string(),
-  employee_code: z.string(),
+  officer_name: z.string().optional(),
+  officer_code: z.string().optional(),
+  employee_name: z.string().optional(),
+  employee_code: z.string().optional(),
   department: z.string(),
   status: z.string(),
   scanned_at: z.string(),
-  message: z.string(),
+  message: z.string().nullable().optional(),
 });
 
 export type QrSession = z.infer<typeof qrSessionSchema>;

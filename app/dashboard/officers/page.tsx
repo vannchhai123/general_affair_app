@@ -13,11 +13,13 @@ import {
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 import { useOfficers } from '@/hooks/officers/use-officers';
 import {
   useCreateOfficer,
   useUpdateOfficer,
   useDeleteOfficer,
+  useUploadOfficerImage,
 } from '@/hooks/officers/use-officer-mutations';
 
 import { useOfficerStats } from '@/hooks/officers/use-officer-stats';
@@ -40,6 +42,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { Officer } from '@/lib/schemas';
 
 const PAGE_SIZE = 5;
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 function SummaryCards({
   stats,
@@ -144,6 +148,7 @@ export default function OfficersPage() {
   const createOfficer = useCreateOfficer();
   const updateOfficer = useUpdateOfficer();
   const deleteOfficer = useDeleteOfficer();
+  const uploadOfficerImage = useUploadOfficerImage();
 
   function resetPage() {
     setPage(1);
@@ -187,6 +192,36 @@ export default function OfficersPage() {
       await createOfficer.mutateAsync(data);
     }
     mutate();
+  }
+
+  function handleUploadImage(officer: Officer) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/jpeg,image/png,image/webp';
+
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+
+      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+        toast.error('Please select a JPG, PNG, or WEBP image');
+        return;
+      }
+
+      if (file.size > MAX_IMAGE_SIZE_BYTES) {
+        toast.error('Image must be 5MB or smaller');
+        return;
+      }
+
+      try {
+        await uploadOfficerImage.mutateAsync({ id: officer.id, file });
+        mutate();
+      } catch {
+        // Handled by mutation toast
+      }
+    };
+
+    input.click();
   }
 
   if (isError) {
@@ -244,6 +279,7 @@ export default function OfficersPage() {
           officers={officers}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onUploadImage={handleUploadImage}
           isLoading={isLoading}
           totalOfficer={total}
         />

@@ -12,6 +12,7 @@ export const attendanceSessionSchema = z.object({
 export const attendanceSchema = z.object({
   id: z.number(),
   officerId: z.number(),
+  imageUrl: z.string().nullable().optional(),
   date: z.string(),
   checkIn: z.string().nullable(),
   checkOut: z.string().nullable(),

@@ -1,7 +1,6 @@
 'use client';
 
 import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { QrScanKiosk } from '@/components/qr/qr-scan-kiosk';
 import { useQrScanDisplay } from '@/hooks/qr-sessions/use-qr-scan-display';
 
@@ -22,11 +21,9 @@ function AttendanceDisplayFallback() {
 }
 
 function AttendanceDisplayContent() {
-  const searchParams = useSearchParams();
-  const sessionId = searchParams.get('sessionId')?.trim() || '';
-  const qrScanDisplay = useQrScanDisplay(sessionId);
+  const qrScanDisplay = useQrScanDisplay();
 
-  return <QrScanKiosk sessionId={sessionId} {...qrScanDisplay} />;
+  return <QrScanKiosk {...qrScanDisplay} />;
 }
 
 export default function AttendanceDisplayPage() {

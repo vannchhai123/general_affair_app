@@ -15,6 +15,7 @@ import {
   Shield,
   ChevronDown,
   QrCode,
+  User,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -34,32 +35,32 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const mainNav = [
-  { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { title: 'Officers', href: '/dashboard/officers', icon: Users },
-  { title: 'Attendance', href: '/dashboard/attendance', icon: ClipboardCheck },
-  { title: 'QR Attendance', href: '/dashboard/qr-attendance', icon: QrCode },
-  { title: 'QR Scan Display', href: '/dashboard/qr-scan', icon: QrCode },
-  { title: 'Invitations', href: '/dashboard/invitations', icon: Mail },
+  { title: 'ផ្ទាំងគ្រប់គ្រង', href: '/dashboard', icon: LayoutDashboard },
+  { title: 'មន្ត្រី', href: '/dashboard/officers', icon: Users },
+  { title: 'វត្តមាន', href: '/dashboard/attendance', icon: ClipboardCheck },
+  { title: 'វត្តមាន QR', href: '/dashboard/qr-attendance', icon: QrCode },
+  { title: 'លិខិតអញ្ជើញ', href: '/dashboard/invitations', icon: Mail },
 ];
 
 const managementNav = [
-  { title: 'Missions', href: '/dashboard/missions', icon: Target },
-  { title: 'Leave Requests', href: '/dashboard/leave-requests', icon: CalendarOff },
-  { title: 'Shifts', href: '/dashboard/shifts', icon: Clock },
+  { title: 'បេសកកម្ម', href: '/dashboard/missions', icon: Target },
+  { title: 'សំណើសុំឈប់សម្រាក', href: '/dashboard/leave-requests', icon: CalendarOff },
+  { title: 'វេនការងារ', href: '/dashboard/shifts', icon: Clock },
 ];
 
 const systemNav = [
-  { title: 'Reports', href: '/dashboard/reports', icon: FileBarChart },
-  { title: 'Permissions', href: '/dashboard/permissions', icon: Shield },
+  { title: 'របាយការណ៍', href: '/dashboard/reports', icon: FileBarChart },
+  { title: 'សិទ្ធិប្រើប្រាស់', href: '/dashboard/permissions', icon: Shield },
 ];
 
 interface AppSidebarProps {
   user: {
     full_name: string;
     role_name: string;
+    avatar_url?: string;
   };
 }
 
@@ -97,7 +98,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
                     OMS Admin
                   </span>
                   <span className="text-xs font-medium text-gray-600 transition-colors group-hover:text-gray-500">
-                    Management Panel
+                    ផ្ទាំងគ្រប់គ្រង
                   </span>
                 </div>
               </Link>
@@ -108,7 +109,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
       <SidebarContent className="bg-white">
         <SidebarGroup>
           <SidebarGroupLabel className="text-gray-400 font-bold uppercase tracking-wide text-xs">
-            Main
+            មេ
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -132,7 +133,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
         </SidebarGroup>
         <SidebarGroup>
           <SidebarGroupLabel className="text-gray-400 font-bold uppercase tracking-wide text-xs">
-            Management
+            ការគ្រប់គ្រង
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -156,7 +157,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
         </SidebarGroup>
         <SidebarGroup>
           <SidebarGroupLabel className="text-gray-400 font-bold uppercase tracking-wide text-xs">
-            System
+            ប្រព័ន្ធ
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -186,6 +187,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton size="lg" className="hover:bg-gray-100">
                   <Avatar className="h-8 w-8 ring-2 ring-blue-100">
+                    <AvatarImage src={user.avatar_url} alt={user.full_name} />
                     <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs font-semibold shadow-sm">
                       {initials}
                     </AvatarFallback>
@@ -198,12 +200,18 @@ export function AppSidebar({ user }: AppSidebarProps) {
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" align="start" className="w-56">
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/profile">
+                    <User className="mr-2 h-4 w-4" />
+                    គណនីរបស់ខ្ញុំ
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={handleLogout}
                   className="text-destructive focus:text-destructive"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
-                  Sign Out
+                  ចាកចេញ
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

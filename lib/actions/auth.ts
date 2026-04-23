@@ -38,6 +38,7 @@ export async function loginAction(formData: FormData) {
       full_name: data.user?.fullName || username,
       role_id: data.user?.roleId || 0,
       role_name: data.user?.role || 'user',
+      avatar_url: data.user?.avatarUrl || data.user?.imageUrl || '',
     });
 
     // Return tokens to client

@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { queryKeys, fetchApi, ApiError } from '@/lib/api/fetcher';
+import { apiFetch } from '@/lib/client';
 import { officerSchema, successResponseSchema } from '@/lib/schemas';
 import { type CreateOfficer, type UpdateOfficer } from '@/lib/schemas';
 
@@ -53,6 +54,43 @@ export function useDeleteOfficer() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.officers.all });
       toast.success('Officer deleted successfully');
+    },
+    onError: (error: ApiError) => {
+      toast.error(error.message);
+    },
+  });
+}
+
+export function useUploadOfficerImage() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, file }: { id: number; file: File }) => {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await apiFetch(`/officer/${id}/upload-image`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new ApiError(
+          (errorData as { error?: string; message?: string }).error ||
+            (errorData as { error?: string; message?: string }).message ||
+            `API request failed: ${response.statusText}`,
+          response.status,
+          response.statusText,
+          errorData,
+        );
+      }
+
+      return response.json().catch(() => ({}));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.officers.all });
+      toast.success('Officer image uploaded successfully');
     },
     onError: (error: ApiError) => {
       toast.error(error.message);

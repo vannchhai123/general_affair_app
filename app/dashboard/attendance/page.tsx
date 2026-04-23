@@ -54,7 +54,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAttendance } from '@/hooks/attendance/use-attendance';
 import type { Attendance } from '@/lib/schemas';
 
@@ -119,6 +119,21 @@ function calculateTotalHours(
   }
 
   const totalMinutes = Math.floor(diffMs / (1000 * 60));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (minutes === 0) {
+    return `${hours}h`;
+  }
+
+  return `${hours}h ${minutes}m`;
+}
+
+function formatMinutes(totalMinutes: number | null | undefined): string {
+  if (typeof totalMinutes !== 'number' || Number.isNaN(totalMinutes) || totalMinutes < 0) {
+    return '--';
+  }
+
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
 
@@ -370,6 +385,139 @@ function AttendanceModal({
 
 // ─── Main Page Component ───────────────────────────────
 
+function AttendanceDetailsDialog({
+  open,
+  onOpenChange,
+  attendance,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  attendance: Attendance | null;
+}) {
+  if (!attendance) return null;
+
+  const sessions = attendance.sessions ?? [];
+  const officerPhoto = attendance.imageUrl?.trim() || '';
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[860px]">
+        <DialogHeader>
+          <DialogTitle>ព័ត៌មានលម្អិតវត្តមាន</DialogTitle>
+          <DialogDescription>{formatDateOnly(attendance.date)}</DialogDescription>
+        </DialogHeader>
+
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[220px_minmax(0,1fr)]">
+          <div className="overflow-hidden rounded-lg border bg-muted/20">
+            <div className="aspect-[4/5] w-full">
+              {officerPhoto ? (
+                <img
+                  src={officerPhoto}
+                  alt={`${attendance.firstName} ${attendance.lastName}`}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-200 to-slate-300">
+                  <span className="text-3xl font-semibold text-slate-700">
+                    {getInitials(attendance.firstName, attendance.lastName)}
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="border-t bg-background/95 px-3 py-2">
+              <p className="text-sm font-semibold">
+                {attendance.firstName} {attendance.lastName}
+              </p>
+              <p className="text-xs text-muted-foreground">{attendance.officerCode || '--'}</p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-muted/20 px-3 py-2">
+              <div>
+                <p className="text-xs text-muted-foreground">នាយកដ្ឋាន</p>
+                <p className="text-sm font-medium">{attendance.department || '--'}</p>
+              </div>
+              <Badge variant="secondary" className={getStatusColor(attendance.status)}>
+                {attendance.status}
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-md border bg-background p-3">
+                <p className="text-xs text-muted-foreground">ម៉ោងចូល</p>
+                <p className="mt-1 text-sm font-semibold">{formatTime(attendance.checkIn)}</p>
+              </div>
+              <div className="rounded-md border bg-background p-3">
+                <p className="text-xs text-muted-foreground">ម៉ោងចេញ</p>
+                <p className="mt-1 text-sm font-semibold">{formatTime(attendance.checkOut)}</p>
+              </div>
+              <div className="rounded-md border bg-background p-3">
+                <p className="text-xs text-muted-foreground">ម៉ោងធ្វើការសរុប</p>
+                <p className="mt-1 text-sm font-semibold">
+                  {formatMinutes(attendance.totalWorkMin)}
+                </p>
+              </div>
+              <div className="rounded-md border bg-background p-3">
+                <p className="text-xs text-muted-foreground">ម៉ោងយឺត</p>
+                <p className="mt-1 text-sm font-semibold">
+                  {formatMinutes(attendance.totalLateMin)}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-lg border">
+          <div className="flex items-center justify-between border-b bg-muted/20 px-4 py-3">
+            <p className="text-sm font-semibold">វេនការងារ</p>
+            <p className="text-xs text-muted-foreground">{sessions.length} វេន</p>
+          </div>
+
+          {sessions.length === 0 ? (
+            <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+              មិនមានព័ត៌មានលម្អិតវេន
+            </div>
+          ) : (
+            <div className="divide-y">
+              <div className="hidden grid-cols-[1.3fr_1fr_1fr_auto] gap-2 px-4 py-2 text-xs font-medium text-muted-foreground sm:grid">
+                <p>ឈ្មោះវេន</p>
+                <p>ម៉ោងចូល</p>
+                <p>ម៉ោងចេញ</p>
+                <p className="text-right">ស្ថានភាព</p>
+              </div>
+              {sessions.map((session) => (
+                <div
+                  key={`${attendance.id}-${session.id}`}
+                  className="grid grid-cols-1 gap-2 px-4 py-3 sm:grid-cols-[1.3fr_1fr_1fr_auto] sm:items-center"
+                >
+                  <div>
+                    <p className="text-xs text-muted-foreground sm:hidden">ឈ្មោះវេន</p>
+                    <p className="text-sm font-medium">{session.shiftName}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground sm:hidden">ម៉ោងចូល</p>
+                    <p className="text-sm">{formatTime(session.checkIn)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground sm:hidden">ម៉ោងចេញ</p>
+                    <p className="text-sm">{formatTime(session.checkOut)}</p>
+                  </div>
+                  <div className="sm:justify-self-end sm:text-right">
+                    <Badge variant="secondary" className={getStatusColor(session.status)}>
+                      {session.status}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function AttendancePage() {
   // State
   const [search, setSearch] = useState('');
@@ -380,6 +528,8 @@ export default function AttendancePage() {
   const [page, setPage] = useState(0); // API uses 0-indexed page
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [selectedAttendance, setSelectedAttendance] = useState<Attendance | null>(null);
 
   // Fetch data from API
   const { data: attendanceData, isLoading, error, refetch } = useAttendance({ page, size: 10 });
@@ -404,6 +554,11 @@ export default function AttendancePage() {
   }, [records, search, department, status]);
 
   const totalPages = attendanceData?.totalPages || 0;
+
+  function openDetails(record: Attendance) {
+    setSelectedAttendance(record);
+    setDetailOpen(true);
+  }
 
   // Handlers
   function resetPage() {
@@ -439,7 +594,7 @@ export default function AttendancePage() {
   return (
     <div className="flex flex-col gap-6">
       {/* Page Title */}
-      <div>
+      <div className="sticky top-0 z-20 border-b bg-background/95 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">
           ការគ្រប់គ្រងវត្តមាន
         </h1>
@@ -654,6 +809,10 @@ export default function AttendancePage() {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="h-9 w-9">
+                            <AvatarImage
+                              src={record.imageUrl || undefined}
+                              alt={`${record.firstName} ${record.lastName}`}
+                            />
                             <AvatarFallback className="bg-primary/10 text-xs font-medium text-primary">
                               {getInitials(record.firstName, record.lastName)}
                             </AvatarFallback>
@@ -682,10 +841,23 @@ export default function AttendancePage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
-                          <Button variant="ghost" size="icon" className="h-8 w-8" title="មើល">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            title="View Details / Khmer"
+                            aria-label="View Details / Khmer"
+                            onClick={() => openDetails(record)}
+                          >
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" title="កែប្រែ">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            title="Edit / Khmer"
+                            aria-label="Edit / Khmer"
+                          >
                             <Pencil className="h-4 w-4" />
                           </Button>
                         </div>
@@ -731,6 +903,12 @@ export default function AttendancePage() {
         open={modalOpen}
         onOpenChange={setModalOpen}
         onSubmit={handleSubmitAttendance}
+      />
+
+      <AttendanceDetailsDialog
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        attendance={selectedAttendance}
       />
     </div>
   );

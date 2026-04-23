@@ -1,6 +1,6 @@
 'use client';
 
-import { Wifi, WifiOff, Pause, Square } from 'lucide-react';
+import { Wifi, WifiOff, AlertTriangle, Square } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { SessionStatus } from '@/app/dashboard/qr-attendance/page';
 
@@ -10,10 +10,10 @@ interface SessionStatusBadgeProps {
 
 export function SessionStatusBadge({ status }: SessionStatusBadgeProps) {
   const config = {
-    idle: { label: 'Not Started', color: 'bg-slate-100 text-slate-700', icon: WifiOff },
+    idle: { label: 'Inactive', color: 'bg-slate-100 text-slate-700', icon: WifiOff },
     active: { label: 'Active', color: 'bg-emerald-100 text-emerald-700', icon: Wifi },
-    paused: { label: 'Paused', color: 'bg-amber-100 text-amber-700', icon: Pause },
-    stopped: { label: 'Expired', color: 'bg-red-100 text-red-700', icon: Square },
+    expired: { label: 'Expired', color: 'bg-red-100 text-red-700', icon: Square },
+    error: { label: 'Error', color: 'bg-amber-100 text-amber-700', icon: AlertTriangle },
   };
 
   const { label, color, icon: Icon } = config[status];

@@ -1,25 +1,24 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { QrCode, Shield, UserCheck, UserX, Clock, Play, Copy, ExternalLink } from 'lucide-react';
+import { QrCode, Shield, UserCheck, UserX, Clock, Copy, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { QRDisplay } from '@/components/qr/qr-display';
 import { SessionControls } from '@/components/qr/session-controls';
 import { CheckInList } from '@/components/qr/checkin-list';
 import { SummaryCard } from '@/components/qr/summary-card';
-import {
-  useCreateQrSession,
-  useUpdateQrSession,
-} from '@/hooks/qr-sessions/use-qr-session-mutations';
-import { useQrSession } from '@/hooks/qr-sessions/use-qr-session';
+import { useUpdateQrSession } from '@/hooks/qr-sessions/use-qr-session-mutations';
+import { useCurrentQrSession } from '@/hooks/qr-sessions/use-qr-session';
 import { useQrSessionCheckIns } from '@/hooks/qr-sessions/use-qr-checkins';
 import { useQrScanDisplay } from '@/hooks/qr-sessions/use-qr-scan-display';
+import { format } from 'date-fns';
 
 // ─── Types ─────────────────────────────────────────────
-export type SessionStatus = 'idle' | 'active' | 'paused' | 'stopped';
+export type SessionStatus = 'idle' | 'active' | 'expired' | 'error';
 
 export interface CheckInRecord {
   id: number;
@@ -29,109 +28,46 @@ export interface CheckInRecord {
   status: 'checked-in' | 'checked-out' | 'late';
 }
 
-const QR_REFRESH_INTERVAL = 3600;
-
 export default function QRAttendancePage() {
-  // Session state
-  const [sessionStatus, setSessionStatus] = useState<SessionStatus>('idle');
-  const [sessionId, setSessionId] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [origin, setOrigin] = useState('');
 
-  // Check-ins state - now fetched from API
-  const { data: checkInsData = [], isLoading: checkInsLoading } = useQrSessionCheckIns(sessionId);
+  const {
+    data: currentSession,
+    isLoading: currentSessionLoading,
+    isError: currentSessionError,
+    error: currentSessionErrorData,
+    refetch: refetchCurrentSession,
+  } = useCurrentQrSession();
+  const qrScanDisplay = useQrScanDisplay();
+  const sessionId = currentSession?.id || qrScanDisplay.sessionId;
 
-  // API hooks
-  const createQrSession = useCreateQrSession();
+  const {
+    data: checkInsData = [],
+    isLoading: checkInsLoading,
+    isError: checkInsError,
+    error: checkInsErrorData,
+    refetch: refetchCheckIns,
+  } = useQrSessionCheckIns(sessionId);
+
   const updateQrSession = useUpdateQrSession();
-  const { data: qrSessionData } = useQrSession(sessionId || '');
-  const qrScanDisplay = useQrScanDisplay(sessionId);
-
-  // Map API status to local status
-  const mapApiStatus = (apiStatus?: string): SessionStatus => {
-    switch (apiStatus) {
-      case 'active':
-        return 'active';
-      case 'paused':
-        return 'paused';
-      case 'stopped':
-        return 'stopped';
-      default:
-        return 'idle';
-    }
-  };
-
-  // Update local status when API data changes
-  useEffect(() => {
-    if (qrSessionData?.status) {
-      setSessionStatus(mapApiStatus(qrSessionData.status));
-    }
-  }, [qrSessionData?.status]);
 
   useEffect(() => {
     setOrigin(window.location.origin);
   }, []);
-
-  // Start session - call API to create QR session
-  const startSession = async () => {
-    try {
-      const response = await createQrSession.mutateAsync({
-        createdBy: 1, // TODO: Get from auth context
-        durationSeconds: QR_REFRESH_INTERVAL,
-        location: 'Main Office',
-      });
-
-      setSessionId(response.id);
-      setSessionStatus('active');
-      toast.success('Session started');
-    } catch (error) {
-      toast.error('Failed to start session');
-    }
-  };
-
-  // Pause session - call API to update status
-  const pauseSession = async () => {
-    if (!sessionId) return;
-
-    try {
-      await updateQrSession.mutateAsync({
-        id: sessionId,
-        data: { action: 'pause' },
-      });
-      setSessionStatus('paused');
-      toast.info('Session paused');
-    } catch (error) {
-      toast.error('Failed to pause session');
-    }
-  };
-
-  const stopSession = async () => {
-    if (!sessionId) return;
-
-    try {
-      await updateQrSession.mutateAsync({
-        id: sessionId,
-        data: { action: 'stop' },
-      });
-      setSessionStatus('stopped');
-      toast.warning('Session stopped');
-    } catch (error) {
-      toast.error('Failed to stop session');
-    }
-  };
 
   const regenerateQR = async () => {
     if (!sessionId) return;
 
     setIsRefreshing(true);
     try {
-      const response = await updateQrSession.mutateAsync({
+      await updateQrSession.mutateAsync({
         id: sessionId,
         data: { action: 'regenerate' },
       });
 
-      setSessionId(response.id);
       qrScanDisplay.refetchQr();
+      void refetchCurrentSession();
       setIsRefreshing(false);
       toast.success('QR code regenerated');
     } catch (error) {
@@ -143,8 +79,8 @@ export default function QRAttendancePage() {
   const checkIns: CheckInRecord[] = useMemo(() => {
     return checkInsData.map((checkIn: any) => ({
       id: checkIn.id,
-      employeeName: checkIn.employee_name,
-      employeeCode: checkIn.employee_code,
+      employeeName: checkIn.officer_name ?? checkIn.employee_name ?? 'Unknown Officer',
+      employeeCode: checkIn.officer_code ?? checkIn.employee_code ?? '--',
       time: new Date(checkIn.scanned_at).toLocaleTimeString(),
       status: checkIn.status as 'checked-in' | 'checked-out' | 'late',
     }));
@@ -159,10 +95,29 @@ export default function QRAttendancePage() {
     };
   }, [checkIns]);
 
+  const sessionStatus: SessionStatus = useMemo(() => {
+    if (currentSessionError) return 'error';
+    if (currentSession?.status === 'active') return 'active';
+    if (currentSession?.status === 'expired') return 'expired';
+    return 'idle';
+  }, [currentSession?.status, currentSessionError]);
+
+  const timeRange = useMemo(() => {
+    if (!currentSession?.starts_at || !currentSession?.ends_at) return '';
+
+    return `${format(new Date(currentSession.starts_at), 'h:mm a')} - ${format(
+      new Date(currentSession.ends_at),
+      'h:mm a',
+    )}`;
+  }, [currentSession?.ends_at, currentSession?.starts_at]);
+
+  const sessionMessage =
+    currentSession?.message || qrScanDisplay.sessionName || 'No active QR session';
+
   const displayUrl = useMemo(() => {
-    if (!sessionId || !origin) return '';
-    return `${origin}/attendance/display?sessionId=${encodeURIComponent(sessionId)}`;
-  }, [origin, sessionId]);
+    if (!origin) return '';
+    return `${origin}/attendance/display`;
+  }, [origin]);
 
   const copyDisplayUrl = useCallback(async () => {
     if (!displayUrl) return;
@@ -212,11 +167,31 @@ export default function QRAttendancePage() {
       {/* Session Controls */}
       <SessionControls
         sessionStatus={sessionStatus}
-        onStartSession={startSession}
-        onPauseSession={pauseSession}
-        onStopSession={stopSession}
+        message={sessionMessage}
+        timeRange={timeRange}
         onRegenerateQR={regenerateQR}
+        disableRegenerate={!sessionId || sessionStatus !== 'active' || updateQrSession.isPending}
       />
+
+      {currentSessionError && (
+        <Alert variant="destructive">
+          <AlertDescription className="flex items-center justify-between gap-3">
+            <span>
+              {currentSessionErrorData instanceof Error
+                ? currentSessionErrorData.message
+                : 'Unable to load current QR session.'}
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7"
+              onClick={() => void refetchCurrentSession()}
+            >
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {sessionStatus === 'idle' ? (
         /* Empty State */
@@ -226,12 +201,8 @@ export default function QRAttendancePage() {
           </div>
           <h3 className="text-lg font-medium">No active QR session</h3>
           <p className="mt-2 text-sm text-muted-foreground">
-            Start a session to generate a QR code for attendance
+            QR availability is managed automatically by the backend schedule.
           </p>
-          <Button onClick={startSession} className="mt-6" disabled={createQrSession.isPending}>
-            <Play className="mr-2 h-4 w-4" />
-            {createQrSession.isPending ? 'Starting...' : 'Start Session'}
-          </Button>
         </div>
       ) : (
         <>
@@ -245,17 +216,40 @@ export default function QRAttendancePage() {
                 qrAvailable={qrScanDisplay.qrAvailable}
                 qrToken={qrScanDisplay.qrToken}
                 sessionId={sessionId}
+                sessionMessage={sessionMessage}
+                timeRange={timeRange}
                 isRefreshing={isRefreshing}
                 isLoading={
-                  createQrSession.isPending ||
+                  currentSessionLoading ||
                   updateQrSession.isPending ||
-                  (Boolean(sessionId) && qrScanDisplay.sessionStatus === 'loading')
+                  qrScanDisplay.sessionStatus === 'loading'
                 }
               />
             </div>
 
             {/* Live Check-ins Section */}
             <div className="lg:col-span-1">
+              {checkInsError && (
+                <Alert variant="destructive" className="mb-3">
+                  <AlertDescription className="flex items-center justify-between gap-3">
+                    <span>
+                      {checkInsErrorData instanceof Error
+                        ? checkInsErrorData.message
+                        : 'Unable to load live check-ins.'}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7"
+                      onClick={() => {
+                        void refetchCheckIns();
+                      }}
+                    >
+                      Retry
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              )}
               <CheckInList checkIns={checkIns} isLoading={checkInsLoading} />
             </div>
           </div>
@@ -284,7 +278,7 @@ export default function QRAttendancePage() {
 
             <div className="mt-4 rounded-md bg-muted/60 px-4 py-3">
               <p className="break-all font-mono text-sm text-foreground">
-                {displayUrl || 'Start a session to generate the public display URL.'}
+                {displayUrl || 'Unable to build the public display URL.'}
               </p>
             </div>
           </div>

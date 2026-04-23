@@ -18,8 +18,12 @@ type UseQrScanDisplayResult = {
   qrAvailable: boolean;
   qrToken: string;
   refetchQr: () => void;
+  sessionId: string;
   sessionName: string;
   sessionStatus: QrScanSessionStatus;
+  shiftType: string;
+  startsAt: string;
+  endsAt: string;
   statusDisplay: StatusDisplay;
 };
 
@@ -27,32 +31,11 @@ const FALLBACK_EXPIRES_IN = 3600;
 const MIN_REFRESH_SECONDS = 1;
 const MAX_REFRESH_SECONDS = 86400;
 const HARD_RELOAD_MINUTES = 45;
-const ACTIVE_WINDOW_START_HOUR = 6;
-const ACTIVE_WINDOW_END_HOUR = 21;
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL as string;
 
 function clampRefreshSeconds(value?: number) {
   if (!value || Number.isNaN(value)) return FALLBACK_EXPIRES_IN;
   return Math.min(MAX_REFRESH_SECONDS, Math.max(MIN_REFRESH_SECONDS, Math.floor(value)));
-}
-
-function isWithinActiveWindow(now = new Date()) {
-  const hour = now.getHours();
-  return hour >= ACTIVE_WINDOW_START_HOUR && hour < ACTIVE_WINDOW_END_HOUR;
-}
-
-function getSecondsUntilNextActiveWindow(now = new Date()) {
-  const next = new Date(now);
-
-  if (now.getHours() < ACTIVE_WINDOW_START_HOUR) {
-    next.setHours(ACTIVE_WINDOW_START_HOUR, 0, 0, 0);
-  } else {
-    next.setDate(next.getDate() + 1);
-    next.setHours(ACTIVE_WINDOW_START_HOUR, 0, 0, 0);
-  }
-
-  const secondsRemaining = Math.ceil((next.getTime() - now.getTime()) / 1000);
-  return clampRefreshSeconds(secondsRemaining);
 }
 
 function deriveRefreshSeconds(data: QrScanResponse) {
@@ -77,68 +60,50 @@ function deriveToken(data: QrScanResponse) {
   return data.token?.trim() || data.qr_token?.trim() || '';
 }
 
-function deriveSessionName(data: QrScanResponse, sessionId: string) {
-  return data.sessionName || data.location || (sessionId ? `Session ID: ${sessionId}` : '');
+function deriveSessionId(data?: QrScanResponse) {
+  return data?.session_id?.trim() || '';
 }
 
-function deriveIsActive(data: QrScanResponse, token: string) {
-  if (typeof data.active === 'boolean') {
-    return data.active;
-  }
-
-  if (data.status) {
-    return data.status.toLowerCase() === 'active';
-  }
-
-  return Boolean(token);
+function deriveSessionName(data?: QrScanResponse) {
+  return data?.message?.trim() || data?.sessionName?.trim() || data?.location?.trim() || '';
 }
 
-async function fetchPublicQrResponse(sessionId: string): Promise<QrScanResponse> {
-  const endpoints = [`/session/${encodeURIComponent(sessionId)}/qr`];
+async function fetchPublicQrResponse(): Promise<QrScanResponse> {
+  const response = await fetch(`${API_BASE_URL}/session/current/qr`, {
+    method: 'GET',
+    cache: 'no-store',
+    headers: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      Pragma: 'no-cache',
+      Expires: '0',
+    },
+  });
 
-  let lastError: ApiError | null = null;
-
-  for (const endpoint of endpoints) {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'GET',
-      cache: 'no-store',
-      headers: {
-        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-        Pragma: 'no-cache',
-        Expires: '0',
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      lastError = new ApiError(
-        (errorData as { error?: string; message?: string }).error ||
-          (errorData as { error?: string; message?: string }).message ||
-          `API request failed: ${response.statusText}`,
-        response.status,
-        response.statusText,
-        errorData,
-      );
-
-      throw lastError;
-    }
-
-    const data = await response.json();
-    const parsed = qrScanResponseSchema.safeParse(data);
-
-    if (!parsed.success) {
-      throw new ApiError(
-        `Validation failed: ${parsed.error.errors.map((issue) => issue.message).join(', ')}`,
-        500,
-        'Validation Error',
-        { zodErrors: parsed.error.errors },
-      );
-    }
-
-    return parsed.data;
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new ApiError(
+      (errorData as { error?: string; message?: string }).error ||
+        (errorData as { error?: string; message?: string }).message ||
+        `API request failed: ${response.statusText}`,
+      response.status,
+      response.statusText,
+      errorData,
+    );
   }
 
-  throw lastError || new ApiError('Unable to load QR', 500, 'Internal Error');
+  const data = await response.json();
+  const parsed = qrScanResponseSchema.safeParse(data);
+
+  if (!parsed.success) {
+    throw new ApiError(
+      `Validation failed: ${parsed.error.errors.map((issue) => issue.message).join(', ')}`,
+      500,
+      'Validation Error',
+      { zodErrors: parsed.error.errors },
+    );
+  }
+
+  return parsed.data;
 }
 
 function getStatusDisplay(status: QrScanSessionStatus): StatusDisplay {
@@ -148,11 +113,15 @@ function getStatusDisplay(status: QrScanSessionStatus): StatusDisplay {
   return { label: 'LOADING', color: 'bg-slate-500' };
 }
 
-export function useQrScanDisplay(sessionId: string): UseQrScanDisplayResult {
+export function useQrScanDisplay(_sessionId?: string): UseQrScanDisplayResult {
   const [qrToken, setQrToken] = useState('');
   const [countdown, setCountdown] = useState(FALLBACK_EXPIRES_IN);
   const [sessionStatus, setSessionStatus] = useState<QrScanSessionStatus>('loading');
   const [sessionName, setSessionName] = useState('');
+  const [sessionId, setSessionId] = useState('');
+  const [shiftType, setShiftType] = useState('');
+  const [startsAt, setStartsAt] = useState('');
+  const [endsAt, setEndsAt] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [lastUpdatedAt, setLastUpdatedAt] = useState(Date.now());
 
@@ -195,46 +164,40 @@ export function useQrScanDisplay(sessionId: string): UseQrScanDisplayResult {
     [clearRefreshTimers],
   );
 
-  const resetToInactive = useCallback((nextSessionName = '') => {
+  const resetToInactive = useCallback((data?: QrScanResponse) => {
     setSessionStatus('inactive');
     setQrToken('');
-    setSessionName(nextSessionName);
+    setSessionId(deriveSessionId(data));
+    setSessionName(deriveSessionName(data));
+    setShiftType(data?.shift_type?.trim() || '');
+    setStartsAt(data?.starts_at?.trim() || '');
+    setEndsAt(data?.ends_at?.trim() || '');
     setLastUpdatedAt(Date.now());
   }, []);
 
   const fetchQrToken = useCallback(async () => {
     try {
       setErrorMessage('');
-
-      if (!sessionId) {
-        resetToInactive('');
-        clearRefreshTimers();
-        return;
-      }
-
-      if (!isWithinActiveWindow()) {
-        setErrorMessage('');
-        resetToInactive('QR display runs daily from 6:00 AM to 9:00 PM');
-        scheduleNextRefresh(getSecondsUntilNextActiveWindow(), fetchQrToken);
-        return;
-      }
-
-      const data = await fetchPublicQrResponse(sessionId);
+      const data = await fetchPublicQrResponse();
 
       if (!isMountedRef.current) return;
 
       const nextRefreshIn = deriveRefreshSeconds(data);
       const token = deriveToken(data);
-      const isActive = deriveIsActive(data, token);
+      const isActive = data.status?.toLowerCase() === 'active' && Boolean(token);
 
       if (!token || !isActive) {
-        resetToInactive(deriveSessionName(data, sessionId));
+        resetToInactive(data);
         scheduleNextRefresh(nextRefreshIn, fetchQrToken);
         return;
       }
 
       setQrToken(token);
-      setSessionName(deriveSessionName(data, sessionId) || 'Attendance Session');
+      setSessionId(deriveSessionId(data));
+      setSessionName(deriveSessionName(data) || 'Attendance Session');
+      setShiftType(data.shift_type?.trim() || '');
+      setStartsAt(data.starts_at?.trim() || '');
+      setEndsAt(data.ends_at?.trim() || '');
       setSessionStatus('active');
       setLastUpdatedAt(Date.now());
       scheduleNextRefresh(nextRefreshIn, fetchQrToken);
@@ -242,7 +205,7 @@ export function useQrScanDisplay(sessionId: string): UseQrScanDisplayResult {
       if (!isMountedRef.current) return;
 
       if (error instanceof ApiError && (error.status === 404 || error.status === 410)) {
-        resetToInactive('');
+        resetToInactive();
         clearRefreshTimers();
         return;
       }
@@ -255,10 +218,14 @@ export function useQrScanDisplay(sessionId: string): UseQrScanDisplayResult {
           ? 'QR display endpoint requires authorization'
           : 'Unable to load QR',
       );
+      setSessionId('');
+      setShiftType('');
+      setStartsAt('');
+      setEndsAt('');
       setLastUpdatedAt(Date.now());
       scheduleNextRefresh(FALLBACK_EXPIRES_IN, fetchQrToken);
     }
-  }, [clearRefreshTimers, resetToInactive, scheduleNextRefresh, sessionId]);
+  }, [clearRefreshTimers, resetToInactive, scheduleNextRefresh]);
   useEffect(() => {
     isMountedRef.current = true;
     void fetchQrToken();
@@ -292,8 +259,12 @@ export function useQrScanDisplay(sessionId: string): UseQrScanDisplayResult {
     refetchQr: () => {
       void fetchQrToken();
     },
+    sessionId,
     sessionName,
     sessionStatus,
+    shiftType,
+    startsAt,
+    endsAt,
     statusDisplay,
   };
 }

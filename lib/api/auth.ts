@@ -7,6 +7,7 @@ export interface SessionUser {
   full_name: string;
   role_id: number;
   role_name: string;
+  avatar_url?: string;
 }
 
 export async function getSession(): Promise<SessionUser | null> {

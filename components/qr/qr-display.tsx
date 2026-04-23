@@ -14,6 +14,8 @@ interface QRDisplayProps {
   qrAvailable: boolean;
   qrToken: string;
   sessionId: string;
+  sessionMessage?: string;
+  timeRange?: string;
   isRefreshing: boolean;
   isLoading: boolean;
 }
@@ -24,6 +26,8 @@ export function QRDisplay({
   qrAvailable,
   qrToken,
   sessionId,
+  sessionMessage,
+  timeRange,
   isRefreshing,
   isLoading,
 }: QRDisplayProps) {
@@ -84,6 +88,10 @@ export function QRDisplay({
           <p className="text-xs text-muted-foreground">
             Session ID: <span className="font-mono">{sessionId || '---'}</span>
           </p>
+          {(sessionMessage || timeRange) && (
+            <p className="text-sm font-medium text-foreground">{sessionMessage}</p>
+          )}
+          {timeRange && <p className="text-xs text-muted-foreground">{timeRange}</p>}
           <p className="text-sm text-muted-foreground">
             Employees scan this QR code to mark attendance. It refreshes automatically in the
             background.

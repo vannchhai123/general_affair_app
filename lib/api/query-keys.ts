@@ -35,6 +35,8 @@ export const queryKeys = {
   qrSessions: {
     all: ['qrSessions'] as const,
     lists: () => [...queryKeys.qrSessions.all, 'list'] as const,
+    current: () => [...queryKeys.qrSessions.all, 'current'] as const,
+    today: () => [...queryKeys.qrSessions.all, 'today'] as const,
     detail: (id: string) => [...queryKeys.qrSessions.all, 'detail', id] as const,
     checkins: (sessionId: string) => [...queryKeys.qrSessions.all, 'checkins', sessionId] as const,
   },

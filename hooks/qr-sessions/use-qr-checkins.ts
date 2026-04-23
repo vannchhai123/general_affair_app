@@ -15,6 +15,8 @@ export function useQrSessionCheckIns(sessionId: string) {
     queryKey: queryKeys.qrSessions.checkins(sessionId),
     queryFn: () => fetchApi(`/qr-sessions/${sessionId}/checkins`, z.array(qrSessionCheckInSchema)),
     enabled: !!sessionId,
+    refetchInterval: sessionId ? 5000 : false,
+    refetchIntervalInBackground: true,
   });
 }
 

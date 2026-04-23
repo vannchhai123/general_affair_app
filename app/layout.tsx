@@ -1,11 +1,14 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import localFont from 'next/font/local';
 import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 import QueryProvider from '@/providers/query-provider';
 
-const _geist = Geist({ subsets: ['latin'] });
-const _geistMono = Geist_Mono({ subsets: ['latin'] });
+const khmerFont = localFont({
+  src: '../public/fonts/KhmerOSSiemreap.ttf',
+  variable: '--font-khmer',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'Officer Management System - Admin',
@@ -36,8 +39,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className="font-sans antialiased">
+    <html lang="km">
+      <body className={`${khmerFont.variable} font-sans antialiased`}>
         <QueryProvider>{children}</QueryProvider>
         <Analytics />
       </body>

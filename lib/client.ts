@@ -10,11 +10,15 @@ type FetchOptions = RequestInit & {
 
 export async function apiFetch(endpoint: string, options: FetchOptions = {}): Promise<Response> {
   const accessToken = Cookies.get('accessToken');
+  const isFormDataBody = options.body instanceof FormData;
 
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
   };
+
+  if (!isFormDataBody && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   if (accessToken) {
     headers['Authorization'] = `Bearer ${accessToken}`;
