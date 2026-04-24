@@ -9,12 +9,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-const KHMER_ERROR_MESSAGE = 'សូមបំពេញព័ត៌មានឲ្យបានត្រឹមត្រូវ';
-const KHMER_SUCCESS_MESSAGE =
-  'សំណើស្ដារពាក្យសម្ងាត់ត្រូវបានផ្ញើរួចរាល់។ សូមពិនិត្យព័ត៌មានទំនាក់ទំនងរបស់អ្នក។';
+const DEFAULT_ERROR_MESSAGE = 'អ៊ីមែលត្រូវតែបំពេញ';
+const DEFAULT_SUCCESS_MESSAGE =
+  'ប្រសិនបើមានគណនីដែលប្រើអ៊ីមែលនេះ សេចក្តីណែនាំសម្រាប់កំណត់ពាក្យសម្ងាត់ឡើងវិញត្រូវបានផ្ញើរួចហើយ។';
 
 export default function ForgotPasswordPage() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,9 +22,11 @@ export default function ForgotPasswordPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!username.trim()) {
+    const trimmedEmail = email.trim();
+
+    if (!trimmedEmail) {
       setSuccess('');
-      setError(KHMER_ERROR_MESSAGE);
+      setError(DEFAULT_ERROR_MESSAGE);
       return;
     }
 
@@ -33,9 +35,26 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 900));
-      setUsername('');
-      setSuccess(KHMER_SUCCESS_MESSAGE);
+      const response = await fetch('/api/auth/forgot-password/verify-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: trimmedEmail }),
+      });
+
+      const data = (await response.json().catch(() => ({}))) as {
+        message?: string;
+        error?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to verify email');
+      }
+
+      setEmail('');
+      setSuccess(data.message || DEFAULT_SUCCESS_MESSAGE);
+    } catch (error) {
+      setSuccess('');
+      setError(error instanceof Error ? error.message : 'Failed to verify email');
     } finally {
       setLoading(false);
     }
@@ -66,7 +85,7 @@ export default function ForgotPasswordPage() {
                 ភ្លេចពាក្យសម្ងាត់
               </h2>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                សូមបញ្ចូលឈ្មោះអ្នកប្រើប្រាស់របស់អ្នក ដើម្បីស្នើស្ដារការចូលប្រើគណនីឡើងវិញ។
+                សូមបញ្ចូលអ៊ីមែលរបស់អ្នក ដើម្បីស្នើសុំសេចក្តីណែនាំសម្រាប់កំណត់ពាក្យសម្ងាត់ឡើងវិញ។
               </p>
             </div>
 
@@ -86,19 +105,19 @@ export default function ForgotPasswordPage() {
               <CardContent className="p-5">
                 <form onSubmit={handleSubmit} className="space-y-5" noValidate>
                   <div className="space-y-2">
-                    <Label htmlFor="username">
-                      ឈ្មោះអ្នកប្រើប្រាស់ <span className="text-red-500">*</span>
+                    <Label htmlFor="email">
+                      អ៊ីមែល <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
                       <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                       <Input
-                        id="username"
-                        type="text"
-                        placeholder="សូមបញ្ចូលឈ្មោះអ្នកប្រើប្រាស់"
-                        value={username}
-                        onChange={(event) => setUsername(event.target.value)}
+                        id="email"
+                        type="email"
+                        placeholder="សូមបញ្ចូលអ៊ីមែល"
+                        value={email}
+                        onChange={(event) => setEmail(event.target.value)}
                         className="h-11 rounded-xl pl-10"
-                        autoComplete="username"
+                        autoComplete="email"
                         disabled={loading}
                       />
                     </div>
@@ -109,7 +128,7 @@ export default function ForgotPasswordPage() {
                     className="h-11 w-full rounded-xl text-sm font-semibold shadow-lg"
                     disabled={loading}
                   >
-                    {loading ? 'កំពុងដំណើរការ...' : 'ផ្ញើសំណើស្ដារ'}
+                    {loading ? 'កំពុងដំណើរការ...' : 'ផ្ញើសំណើកំណត់ពាក្យសម្ងាត់ឡើងវិញ'}
                     {!loading ? <Send className="ml-2 h-4 w-4" /> : null}
                   </Button>
 
@@ -134,28 +153,25 @@ export default function ForgotPasswordPage() {
           <div className="relative z-10 flex items-center gap-2 text-white/70">
             <Sparkles className="h-4 w-4" />
             <span className="text-[11px] font-semibold uppercase tracking-[0.16em]">
-              Account Recovery
+              ការស្ដារគណនី
             </span>
           </div>
 
           <div className="relative z-10 my-10">
             <Card className="mx-auto w-full max-w-xs rounded-3xl border-0 bg-white/95 text-slate-900 shadow-2xl">
               <CardContent className="p-6">
-                <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
-                  <Shield className="h-6 w-6" />
-                </div>
-
                 <h3 className="text-lg font-semibold text-foreground">ការស្ដារគណនីដោយសុវត្ថិភាព</h3>
                 <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                  បំពេញឈ្មោះអ្នកប្រើប្រាស់របស់អ្នក ហើយប្រព័ន្ធនឹងរៀបចំជំហានបន្ទាប់សម្រាប់
-                  ការស្ដារពាក្យសម្ងាត់។
+                  បញ្ចូលអ៊ីមែលរបស់អ្នក
+                  ហើយប្រព័ន្ធនឹងផ្ញើសេចក្តីណែនាំបន្ទាប់សម្រាប់កំណត់ពាក្យសម្ងាត់ឡើងវិញ
+                  ប្រសិនបើមានគណនីនោះ។
                 </p>
 
                 <div className="mt-6 space-y-3 text-sm text-muted-foreground">
+                  <div className="rounded-2xl bg-slate-100 px-4 py-3">1. ផ្ទៀងផ្ទាត់អ៊ីមែល</div>
                   <div className="rounded-2xl bg-slate-100 px-4 py-3">
-                    1. ផ្ទៀងផ្ទាត់ឈ្មោះអ្នកប្រើប្រាស់
+                    2. ទទួលសេចក្តីណែនាំស្ដារគណនី
                   </div>
-                  <div className="rounded-2xl bg-slate-100 px-4 py-3">2. ទទួលការណែនាំស្ដារគណនី</div>
                   <div className="rounded-2xl bg-slate-100 px-4 py-3">3. កំណត់ពាក្យសម្ងាត់ថ្មី</div>
                 </div>
               </CardContent>
@@ -164,13 +180,12 @@ export default function ForgotPasswordPage() {
 
           <div className="relative z-10 max-w-sm">
             <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/60">
-              General Affairs Management System
+              ប្រព័ន្ធគ្រប់គ្រងកិច្ចការទូទៅ
             </p>
-            <h3 className="text-2xl font-semibold leading-9">
-              សេវាស្ដារគណនីសម្រាប់អ្នកប្រើប្រាស់ក្នុងអង្គភាព
-            </h3>
+            <h3 className="text-2xl font-semibold leading-9">សេវាកំណត់ពាក្យសម្ងាត់ឡើងវិញ</h3>
             <p className="mt-3 text-sm leading-7 text-white/75">
-              ជួយឲ្យអ្នកអាចត្រឡប់ចូលប្រើប្រព័ន្ធបានវិញដោយមានដំណើរការច្បាស់លាស់ និងសុវត្ថិភាព។
+              ដំណើរការស្ដារគណនីឥឡូវនេះប្រើ endpoint ផ្ទៀងផ្ទាត់អ៊ីមែល
+              មុនពេលផ្ញើសេចក្តីណែនាំទៅអ្នកប្រើប្រាស់។
             </p>
           </div>
         </section>
