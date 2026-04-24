@@ -64,7 +64,7 @@ export default function ProfilePage() {
 
     const trimmedName = fullName.trim();
     if (!trimmedName) {
-      toast.error('Full name is required');
+      toast.error('ឈ្មោះពេញត្រូវតែបំពេញ');
       return;
     }
 
@@ -83,7 +83,7 @@ export default function ProfilePage() {
       const data = (await response.json()) as ProfileSession;
       setProfile(data);
       setFullName(data.full_name);
-      toast.success('Profile updated successfully');
+      toast.success('បានធ្វើបច្ចុប្បន្នភាពព័ត៌មានគណនីដោយជោគជ័យ');
       router.refresh();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to update profile');
@@ -113,7 +113,7 @@ export default function ProfilePage() {
 
       const data = (await response.json()) as { avatar_url: string };
       setProfile((prev) => (prev ? { ...prev, avatar_url: data.avatar_url } : prev));
-      toast.success('Profile image updated successfully');
+      toast.success('បានធ្វើបច្ចុប្បន្នភាពរូបភាពគណនីដោយជោគជ័យ');
       router.refresh();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to upload image');
@@ -127,22 +127,22 @@ export default function ProfilePage() {
 
   async function handleChangePassword() {
     if (!currentPassword || !newPassword || !confirmPassword) {
-      toast.error('Please fill in all password fields');
+      toast.error('សូមបំពេញពាក្យសម្ងាត់គ្រប់ប្រអប់');
       return;
     }
 
     if (newPassword.length < 8 || newPassword.length > 100) {
-      toast.error('New password must be between 8 and 100 characters');
+      toast.error('ពាក្យសម្ងាត់ថ្មីត្រូវមានចន្លោះពី 8 ដល់ 100 តួអក្សរ');
       return;
     }
 
     if (!PASSWORD_PATTERN.test(newPassword)) {
-      toast.error('New password must include uppercase, lowercase, number, and special character');
+      toast.error('ពាក្យសម្ងាត់ថ្មីត្រូវមានអក្សរធំ អក្សរតូច លេខ និងសញ្ញាពិសេស');
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      toast.error('New password and confirmation do not match');
+      toast.error('ពាក្យសម្ងាត់ថ្មី និងការបញ្ជាក់មិនដូចគ្នា');
       return;
     }
 
@@ -173,7 +173,7 @@ export default function ProfilePage() {
       setShowCurrentPassword(false);
       setShowNewPassword(false);
       setShowConfirmPassword(false);
-      toast.success(data.message || 'Password changed successfully');
+      toast.success(data.message || 'បានប្តូរពាក្យសម្ងាត់ដោយជោគជ័យ');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to change password');
     } finally {
@@ -190,7 +190,7 @@ export default function ProfilePage() {
   }
 
   if (!profile) {
-    return <div className="text-sm text-destructive">Unable to load profile information.</div>;
+    return <div className="text-sm text-destructive">មិនអាចផ្ទុកព័ត៌មានគណនីបានទេ។</div>;
   }
 
   const initials = profile.full_name
@@ -207,9 +207,9 @@ export default function ProfilePage() {
           <div className="absolute inset-y-0 right-0 hidden w-1/3 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.7),transparent_65%)] md:block" />
           <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight">My Profile</h1>
+              <h1 className="text-2xl font-semibold tracking-tight">គណនីរបស់ខ្ញុំ</h1>
               <p className="mt-1 text-sm text-slate-600">
-                Manage the admin account details, avatar, and password from one place.
+                គ្រប់គ្រងព័ត៌មានគណនី រូបភាព និងពាក្យសម្ងាត់របស់អ្នកគ្រប់គ្រងនៅកន្លែងតែមួយ។
               </p>
             </div>
             <Badge
@@ -225,9 +225,9 @@ export default function ProfilePage() {
       <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
         <Card className="h-fit border-slate-200 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-base">Profile Image</CardTitle>
+            <CardTitle className="text-base">រូបភាពគណនី</CardTitle>
             <CardDescription>
-              Upload a new image for the sidebar and account display.
+              បង្ហោះរូបភាពថ្មីសម្រាប់បង្ហាញនៅ Sidebar និងគណនីរបស់អ្នក។
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -265,22 +265,24 @@ export default function ProfilePage() {
               ) : (
                 <Camera className="mr-2 h-4 w-4" />
               )}
-              Change image
+              ប្តូររូបភាព
             </Button>
-            <p className="text-center text-xs text-muted-foreground">Supported: JPG, PNG, WEBP</p>
+            <p className="text-center text-xs text-muted-foreground">គាំទ្រ៖ JPG, PNG, WEBP</p>
           </CardContent>
         </Card>
 
         <div className="space-y-6">
           <Card className="border-slate-200 shadow-sm">
             <CardHeader className="pb-4">
-              <CardTitle className="text-base">Personal Information</CardTitle>
-              <CardDescription>Update the account details for this admin user.</CardDescription>
+              <CardTitle className="text-base">ព័ត៌មានផ្ទាល់ខ្លួន</CardTitle>
+              <CardDescription>
+                ធ្វើបច្ចុប្បន្នភាពព័ត៌មានគណនីសម្រាប់អ្នកគ្រប់គ្រងនេះ។
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="rounded-lg border bg-slate-50 p-3">
-                  <p className="text-xs text-muted-foreground">Account ID</p>
+                  <p className="text-xs text-muted-foreground">លេខសម្គាល់គណនី</p>
                   <p className="mt-1 text-sm font-medium">#{profile.id}</p>
                 </div>
                 <div className="rounded-lg border bg-slate-50 p-3">
@@ -288,19 +290,19 @@ export default function ProfilePage() {
                   <p className="mt-1 truncate text-sm font-medium">{profile.username}</p>
                 </div>
                 <div className="rounded-lg border bg-slate-50 p-3">
-                  <p className="text-xs text-muted-foreground">Role</p>
+                  <p className="text-xs text-muted-foreground">តួនាទី</p>
                   <p className="mt-1 truncate text-sm font-medium">{profile.role_name}</p>
                 </div>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2 sm:col-span-2">
-                  <Label htmlFor="full_name">Full name</Label>
+                  <Label htmlFor="full_name">ឈ្មោះពេញ</Label>
                   <Input
                     id="full_name"
                     value={fullName}
                     onChange={(event) => setFullName(event.target.value)}
-                    placeholder="Enter full name"
+                    placeholder="សូមបញ្ចូលឈ្មោះពេញ"
                   />
                 </div>
                 <div className="space-y-2">
@@ -308,7 +310,7 @@ export default function ProfilePage() {
                   <Input id="username" value={profile.username} disabled />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="role">Role</Label>
+                  <Label htmlFor="role">តួនាទី</Label>
                   <Input id="role" value={profile.role_name} disabled />
                 </div>
               </div>
@@ -325,7 +327,7 @@ export default function ProfilePage() {
                   ) : (
                     <Save className="mr-2 h-4 w-4" />
                   )}
-                  Save profile
+                  រក្សាទុកព័ត៌មាន
                 </Button>
               </div>
             </CardContent>
@@ -333,19 +335,21 @@ export default function ProfilePage() {
 
           <Card className="border-slate-200 shadow-sm">
             <CardHeader className="pb-4">
-              <CardTitle className="text-base">Change Password</CardTitle>
-              <CardDescription>Allow the admin to update the account password.</CardDescription>
+              <CardTitle className="text-base">ប្តូរពាក្យសម្ងាត់</CardTitle>
+              <CardDescription>
+                ធ្វើបច្ចុប្បន្នភាពពាក្យសម្ងាត់គណនីរបស់អ្នកគ្រប់គ្រង។
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="current_password">Current password</Label>
+                <Label htmlFor="current_password">ពាក្យសម្ងាត់បច្ចុប្បន្ន</Label>
                 <div className="relative">
                   <Input
                     id="current_password"
                     type={showCurrentPassword ? 'text' : 'password'}
                     value={currentPassword}
                     onChange={(event) => setCurrentPassword(event.target.value)}
-                    placeholder="Enter current password"
+                    placeholder="សូមបញ្ចូលពាក្យសម្ងាត់បច្ចុប្បន្ន"
                     autoComplete="current-password"
                     className="pr-10"
                   />
@@ -368,14 +372,14 @@ export default function ProfilePage() {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="new_password">New password</Label>
+                  <Label htmlFor="new_password">ពាក្យសម្ងាត់ថ្មី</Label>
                   <div className="relative">
                     <Input
                       id="new_password"
                       type={showNewPassword ? 'text' : 'password'}
                       value={newPassword}
                       onChange={(event) => setNewPassword(event.target.value)}
-                      placeholder="Enter new password"
+                      placeholder="សូមបញ្ចូលពាក្យសម្ងាត់ថ្មី"
                       autoComplete="new-password"
                       className="pr-10"
                     />
@@ -395,14 +399,14 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="confirm_password">Confirm new password</Label>
+                  <Label htmlFor="confirm_password">បញ្ជាក់ពាក្យសម្ងាត់ថ្មី</Label>
                   <div className="relative">
                     <Input
                       id="confirm_password"
                       type={showConfirmPassword ? 'text' : 'password'}
                       value={confirmPassword}
                       onChange={(event) => setConfirmPassword(event.target.value)}
-                      placeholder="Confirm new password"
+                      placeholder="សូមបញ្ជាក់ពាក្យសម្ងាត់ថ្មី"
                       autoComplete="new-password"
                       className="pr-10"
                     />
@@ -427,7 +431,7 @@ export default function ProfilePage() {
               </div>
 
               <div className="rounded-lg border bg-slate-50 px-4 py-3 text-sm text-muted-foreground">
-                Use 8-100 characters with uppercase, lowercase, number, and special character.
+                ប្រើ 8-100 តួអក្សរ និងត្រូវមានអក្សរធំ អក្សរតូច លេខ និងសញ្ញាពិសេស។
               </div>
 
               <div className="flex justify-end border-t pt-4">
@@ -442,7 +446,7 @@ export default function ProfilePage() {
                   ) : (
                     <LockKeyhole className="mr-2 h-4 w-4" />
                   )}
-                  Change password
+                  ប្តូរពាក្យសម្ងាត់
                 </Button>
               </div>
             </CardContent>
