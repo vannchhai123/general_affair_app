@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { queryKeys, fetchApi } from '@/lib/api/fetcher';
-import { shiftsResponseSchema, type Shift } from '@/lib/schemas';
+import { queryKeys, fetchApi, type ApiError } from '@/lib/api/fetcher';
+import { shiftsResponseSchema, type ShiftsResponse } from '@/lib/schemas';
 
 export function useShifts() {
-  return useQuery({
+  return useQuery<ShiftsResponse, ApiError>({
     queryKey: queryKeys.shifts.lists(),
     queryFn: () => fetchApi('/shifts', shiftsResponseSchema),
   });

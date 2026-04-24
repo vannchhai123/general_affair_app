@@ -6,11 +6,11 @@ import {
   officerPermissionsResponseSchema,
   backendOfficerPermissionSchema,
   backendOfficerPermissionsPaginatedResponseSchema,
-  type OfficerPermission,
+  type OfficerPermissionsResponse,
 } from '@/lib/schemas';
 
 export function useOfficerPermissions() {
-  return useQuery({
+  return useQuery<OfficerPermissionsResponse, ApiError>({
     queryKey: queryKeys.officerPermissions.lists(),
     queryFn: async () => {
       const response = await apiFetch('/officer-permissions');
@@ -49,11 +49,5 @@ export function useOfficerPermissions() {
         })),
       );
     },
-  }) as {
-    data: OfficerPermission[] | undefined;
-    isLoading: boolean;
-    isError: boolean;
-    error: Error | null;
-    refetch: () => void;
-  };
+  });
 }

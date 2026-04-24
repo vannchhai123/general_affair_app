@@ -1,10 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { queryKeys, fetchApi } from '@/lib/api/fetcher';
-import { officerSchema } from '@/lib/schemas';
-import { type Officer } from '@/lib/schemas';
+import { queryKeys, fetchApi, type ApiError } from '@/lib/api/fetcher';
+import { officerSchema, type Officer } from '@/lib/schemas';
 
 export function useOfficer(id: number) {
-  return useQuery({
+  return useQuery<Officer, ApiError>({
     queryKey: queryKeys.officers.detail(id),
     queryFn: () => fetchApi(`/officer/${id}`, officerSchema),
     enabled: !!id,

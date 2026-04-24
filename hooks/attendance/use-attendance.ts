@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { queryKeys, fetchApi } from '@/lib/api/fetcher';
+import { queryKeys, fetchApi, type ApiError } from '@/lib/api/fetcher';
 import { attendanceResponseSchema, type AttendanceResponse } from '@/lib/schemas';
 
 export function useAttendance(params?: { page?: number; size?: number }) {
@@ -12,14 +12,8 @@ export function useAttendance(params?: { page?: number; size?: number }) {
   if (params?.page !== undefined) filters.page = String(params.page);
   if (params?.size !== undefined) filters.size = String(params.size);
 
-  return useQuery({
+  return useQuery<AttendanceResponse, ApiError>({
     queryKey: queryKeys.attendance.list(filters),
     queryFn: () => fetchApi(`/attendance${queryString}`, attendanceResponseSchema),
-  }) as {
-    data: AttendanceResponse | undefined;
-    isLoading: boolean;
-    isError: boolean;
-    error: Error | null;
-    refetch: () => void;
-  };
+  });
 }
