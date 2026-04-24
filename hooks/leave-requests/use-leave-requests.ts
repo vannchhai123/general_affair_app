@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { queryKeys, fetchApi } from '@/lib/api/fetcher';
-import { leaveRequestsResponseSchema, type LeaveRequest } from '@/lib/schemas';
+import { queryKeys, fetchApi, type ApiError } from '@/lib/api/fetcher';
+import { leaveRequestsResponseSchema, type LeaveRequestsResponse } from '@/lib/schemas';
 
 export function useLeaveRequests() {
-  return useQuery({
+  return useQuery<LeaveRequestsResponse, ApiError>({
     queryKey: queryKeys.leaveRequests.lists(),
     queryFn: () => fetchApi('/leave-requests', leaveRequestsResponseSchema),
   });
