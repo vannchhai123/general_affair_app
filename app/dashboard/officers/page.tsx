@@ -178,7 +178,6 @@ export default function OfficersPage() {
   function handleDelete(officer: Officer) {
     setDeleteOfficerData(officer);
   }
-
   async function confirmDelete() {
     if (!deleteOfficerData) return;
     await deleteOfficer.mutateAsync(deleteOfficerData.id);
