@@ -117,15 +117,15 @@ export function OfficerDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-[760px]">
-        <DialogHeader>
+      <DialogContent className="flex h-[92dvh] flex-col overflow-hidden sm:max-w-[760px]">
+        <DialogHeader className="shrink-0">
           <DialogTitle>ព័ត៌មានលម្អិតមន្ត្រី</DialogTitle>
           <DialogDescription>
             ពិនិត្យព័ត៌មានផ្ទាល់ខ្លួន តួនាទី និងរូបភាពប្រវត្តិរូប។
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-5">
+        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto pr-1">
           <div className="overflow-hidden rounded-lg border bg-slate-50">
             <div className="bg-gradient-to-r from-emerald-50 via-cyan-50 to-sky-50 p-4">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center">

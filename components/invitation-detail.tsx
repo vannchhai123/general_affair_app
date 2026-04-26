@@ -59,8 +59,8 @@ export function InvitationDetail({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full gap-0 sm:max-w-xl">
-        <SheetHeader className="border-b pb-5">
+      <SheetContent className="h-dvh w-full gap-0 overflow-hidden sm:max-w-xl">
+        <SheetHeader className="shrink-0 border-b pb-5">
           <div className="flex items-start justify-between gap-4 pr-10">
             <div>
               <SheetTitle className="text-xl">{invitation.subject}</SheetTitle>
@@ -72,7 +72,7 @@ export function InvitationDetail({
           </div>
         </SheetHeader>
 
-        <div className="flex-1 space-y-6 overflow-y-auto px-4 py-5">
+        <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-4 py-5">
           <div className="grid gap-3 sm:grid-cols-2">
             <DetailItem icon={Building2} label="Organization" value={invitation.organization} />
             <DetailItem
@@ -131,7 +131,7 @@ export function InvitationDetail({
           </div>
         </div>
 
-        <SheetFooter className="border-t bg-background/95 px-4 py-4">
+        <SheetFooter className="shrink-0 border-t bg-background/95 px-4 py-4">
           <div className="flex w-full flex-col gap-2 sm:flex-row">
             <Button variant="outline" className="flex-1" onClick={() => onChangeStatus(invitation)}>
               Update Status

@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import {
   Drawer,
   DrawerContent,
-  DrawerDescription,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
@@ -16,7 +15,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -30,13 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -130,8 +122,8 @@ export function ShiftFormSheet({
   }
 
   const content = (
-    <div className="flex h-full flex-col">
-      <div className="flex-1 space-y-5 overflow-y-auto px-4 pb-4">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 pb-4">
         <Form {...form}>
           <form
             id="shift-editor-form"
@@ -148,7 +140,7 @@ export function ShiftFormSheet({
                     <FormControl>
                       <Input {...field} disabled={readOnly} placeholder="វេនជំនួយពេលព្រឹក" />
                     </FormControl>
-                    <FormDescription>ត្រូវបំពេញ ហើយអាចវាយបានអតិបរមា 50 តួអក្សរ។</FormDescription>
+                    {/* <FormDescription>ត្រូវបំពេញ ហើយអាចវាយបានអតិបរមា 50 តួអក្សរ។</FormDescription> */}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -168,7 +160,7 @@ export function ShiftFormSheet({
                         placeholder="SHIFT-AM"
                       />
                     </FormControl>
-                    <FormDescription>ត្រូវតែមានតែមួយក្នុងបញ្ជីបច្ចុប្បន្ន។</FormDescription>
+                    {/* <FormDescription>ត្រូវតែមានតែមួយក្នុងបញ្ជីបច្ចុប្បន្ន។</FormDescription> */}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -212,9 +204,9 @@ export function ShiftFormSheet({
                   <div className="flex items-center justify-between gap-4">
                     <div>
                       <FormLabel>ឆ្លងកាត់អធ្រាត្រ</FormLabel>
-                      <FormDescription>
+                      {/* <FormDescription>
                         បើកជម្រើសនេះ ប្រសិនបើវេនបញ្ចប់នៅថ្ងៃបន្ទាប់។
-                      </FormDescription>
+                      </FormDescription> */}
                     </div>
                     <FormControl>
                       <Switch
@@ -239,7 +231,7 @@ export function ShiftFormSheet({
                     <FormControl>
                       <Input {...field} disabled={readOnly} min={0} type="number" />
                     </FormControl>
-                    <FormDescription>ចំនួននាទីអនុញ្ញាត មុននឹងកំណត់ថាមកយឺត។</FormDescription>
+                    {/* <FormDescription>ចំនួននាទីអនុញ្ញាត មុននឹងកំណត់ថាមកយឺត។</FormDescription> */}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -324,9 +316,6 @@ export function ShiftFormSheet({
                       value={typeof field.value === 'string' ? field.value : ''}
                     />
                   </FormControl>
-                  <FormDescription>
-                    ស្រេចចិត្ត។ ទុកទទេ ប្រសិនបើវេននេះមិនកំណត់ថ្ងៃបញ្ចប់។
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -347,7 +336,6 @@ export function ShiftFormSheet({
                       placeholder="កំណត់សម្គាល់ខ្លីសម្រាប់ផ្នែកធនធានមនុស្ស ការចូលវត្តមាន ឬអ្នកគ្រប់គ្រងផ្នែក។"
                     />
                   </FormControl>
-                  <FormDescription>ស្រេចចិត្ត ហើយអាចវាយបានអតិបរមា 300 តួអក្សរ។</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -420,15 +408,15 @@ export function ShiftFormSheet({
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent className="max-h-[96vh]">
-          <DrawerHeader>
+        <DrawerContent className="h-[96dvh] max-h-[96dvh] overflow-hidden">
+          <DrawerHeader className="shrink-0">
             <DrawerTitle>{shift ? 'កែសម្រួលវេន' : 'បង្កើតវេនថ្មី'}</DrawerTitle>
-            <DrawerDescription>
+            {/* <DrawerDescription>
               កំណត់ម៉ោងវត្តមាន ពេលអនុគ្រោះ និងកាលបរិច្ឆេទមានប្រសិទ្ធភាព។
-            </DrawerDescription>
+            </DrawerDescription> */}
           </DrawerHeader>
           {content}
-          <DrawerFooter />
+          <DrawerFooter className="shrink-0" />
         </DrawerContent>
       </Drawer>
     );
@@ -436,12 +424,12 @@ export function ShiftFormSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-2xl">
-        <SheetHeader>
+      <SheetContent className="h-dvh w-full overflow-hidden sm:max-w-2xl">
+        <SheetHeader className="shrink-0">
           <SheetTitle>{shift ? 'កែសម្រួលវេន' : 'បង្កើតវេនថ្មី'}</SheetTitle>
-          <SheetDescription>
+          {/* <SheetDescription>
             កំណត់ម៉ោងវត្តមាន ពេលអនុគ្រោះ និងកាលបរិច្ឆេទមានប្រសិទ្ធភាព។
-          </SheetDescription>
+          </SheetDescription> */}
         </SheetHeader>
         {content}
       </SheetContent>

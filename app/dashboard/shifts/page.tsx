@@ -5,7 +5,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import {
-  CalendarRange,
   Clock3,
   Eye,
   Filter,
@@ -129,7 +128,7 @@ export default function ShiftsPage() {
     },
   });
 
-  const canManage = (sessionData?.session?.role_name ?? '').toUpperCase().includes('ADMIN');
+  const canManage = sessionData?.session !== null;
 
   const listQuery = useShiftList({
     search,
@@ -289,74 +288,6 @@ export default function ShiftsPage() {
 
   return (
     <div className="space-y-6">
-      <Card className="overflow-hidden border-0 bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.24),_transparent_35%),linear-gradient(135deg,#0f172a_0%,#111827_45%,#0b3b2e_100%)] text-white shadow-xl">
-        <CardContent className="p-0">
-          <div className="grid gap-6 px-6 py-6 lg:grid-cols-[1.45fr_0.9fr] lg:px-8">
-            <div className="space-y-5">
-              <Badge className="w-fit border-0 bg-white/12 px-3 py-1 text-white hover:bg-white/12">
-                ការគ្រប់គ្រងវេន • ការរៀបចំវត្តមានបែប Dynamic
-              </Badge>
-
-              <div className="space-y-3">
-                <h1 className="max-w-3xl text-3xl font-semibold tracking-tight sm:text-4xl">
-                  គ្រប់គ្រងវេនការងារបែបទំនើប សម្រាប់លំហូរវត្តមានដែលច្បាស់ និងងាយប្រើ
-                </h1>
-                <p className="max-w-2xl text-sm leading-6 text-white/75">
-                  បង្កើតវេនបែប dynamic, ពិនិត្យច្បាប់វត្តមានជាមុន,
-                  និងគ្រប់គ្រងការចាត់តាំងតាមនាយកដ្ឋាន តួនាទី និងបុគ្គលិក ពីផ្ទាំងតែមួយ។
-                </p>
-              </div>
-
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  onClick={openCreate}
-                  disabled={!canManage}
-                  className="bg-white text-slate-950 hover:bg-white/90"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  បង្កើតវេនថ្មី
-                </Button>
-                <Button
-                  variant="outline"
-                  disabled={listQuery.isLoading}
-                  onClick={() => listQuery.refetch()}
-                  className="border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white"
-                >
-                  <Workflow className="mr-2 h-4 w-4" />
-                  ផ្ទុកផ្ទាំងឡើងវិញ
-                </Button>
-                {!canManage ? (
-                  <Badge className="border-0 bg-amber-400/20 px-3 py-1 text-amber-100">
-                    មើលបានតែប៉ុណ្ណោះ
-                  </Badge>
-                ) : null}
-              </div>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-              <HeroStat
-                icon={Sparkles}
-                label="វេនសកម្ម"
-                value={summary.active}
-                helper="អាចប្រើសម្រាប់វត្តមាន"
-              />
-              <HeroStat
-                icon={TimerReset}
-                label="ពេលអនុគ្រោះមធ្យម"
-                value={summary.averageGrace}
-                helper="កម្រិតយឺតមធ្យម"
-              />
-              <HeroStat
-                icon={CalendarRange}
-                label="បញ្ហាប៉ះទង្គិច"
-                value={globalConflicts.length}
-                helper="ត្រូវការពិនិត្យ"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <SummaryCard
           title="វេនសរុប"
@@ -395,22 +326,6 @@ export default function ShiftsPage() {
               <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div className="space-y-1">
                   <CardTitle className="text-lg">ផ្ទាំងគ្រប់គ្រងវេន</CardTitle>
-                  <CardDescription>
-                    មើលបញ្ជីវេន គ្រប់គ្រងការចាត់តាំង និងប្ដូរទៅកាន់ទិដ្ឋភាពប្រតិទិន
-                    ដោយមិនចាកចេញពីទំព័រ។
-                  </CardDescription>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="outline" className="bg-background">
-                    {summary.total} total
-                  </Badge>
-                  <Badge variant="outline" className="bg-background">
-                    {summary.active} សកម្ម
-                  </Badge>
-                  <Badge variant="outline" className="bg-background">
-                    {globalConflicts.length} បញ្ហាទំនាស់
-                  </Badge>
                 </div>
               </div>
 
@@ -727,97 +642,7 @@ export default function ShiftsPage() {
           </Card>
         </div>
 
-        <div className="grid gap-5 xl:grid-cols-[1.05fr_1.45fr]">
-          <Card className="overflow-hidden border-slate-200 shadow-sm">
-            <CardHeader className="border-b bg-slate-50/80">
-              <CardTitle className="text-base">សកម្មភាពរហ័ស</CardTitle>
-              <CardDescription>
-                ចូលដំណើរការមុខងារសំខាន់ៗបានលឿន និងច្បាស់សម្រាប់ការគ្រប់គ្រងវេន។
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 p-5">
-              <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-                <button
-                  type="button"
-                  onClick={openCreate}
-                  disabled={!canManage}
-                  className="rounded-3xl bg-[linear-gradient(135deg,#0f172a_0%,#111827_45%,#0b3b2e_100%)] p-4 text-left text-white shadow-sm transition hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="rounded-2xl bg-white/12 p-2">
-                      <Plus className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="font-medium">បង្កើតវេនថ្មី</p>
-                      <p className="text-sm text-white/70">កំណត់ម៉ោង និងច្បាប់វត្តមានថ្មី</p>
-                    </div>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('assignments')}
-                  className="rounded-3xl border bg-white p-4 text-left transition hover:border-slate-300 hover:shadow-sm"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="rounded-2xl bg-cyan-50 p-2 text-cyan-700">
-                      <Workflow className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-slate-900">ផ្ទាំងចាត់តាំង</p>
-                      <p className="text-sm text-muted-foreground">
-                        គ្រប់គ្រងវេនតាមផ្នែក តួនាទី និងបុគ្គលិក
-                      </p>
-                    </div>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('calendar')}
-                  className="rounded-3xl border bg-white p-4 text-left transition hover:border-slate-300 hover:shadow-sm"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="rounded-2xl bg-emerald-50 p-2 text-emerald-700">
-                      <CalendarRange className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-slate-900">ទិដ្ឋភាពប្រតិទិន</p>
-                      <p className="text-sm text-muted-foreground">
-                        មើលការរៀបចំវេនជារូបភាពតាមសប្ដាហ៍ និងខែ
-                      </p>
-                    </div>
-                  </div>
-                </button>
-              </div>
-
-              <div className="grid gap-3 rounded-3xl border bg-slate-50/80 p-4 sm:grid-cols-2">
-                <div className="rounded-2xl bg-white p-4">
-                  <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
-                    ស្ថានភាពគណនី
-                  </p>
-                  <p className="mt-2 text-sm font-medium text-slate-900">
-                    {canManage ? 'អាចកែប្រែ និងគ្រប់គ្រងបាន' : 'មើលបានតែប៉ុណ្ណោះ'}
-                  </p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {canManage
-                      ? 'អ្នកអាចបង្កើត កែប្រែ បិទបើកស្ថានភាព និងចាត់តាំងវេនបាន។'
-                      : 'សម្រាប់ការកែប្រែ សូមចូលដោយគណនីដែលមានសិទ្ធិ ADMIN។'}
-                  </p>
-                </div>
-                <div className="rounded-2xl bg-white p-4">
-                  <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
-                    ការណែនាំរហ័ស
-                  </p>
-                  <p className="mt-2 text-sm font-medium text-slate-900">លំហូរការងារដែលណែនាំ</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    បង្កើតវេនថ្មី មើលច្បាប់ជាមុន ហើយបន្តទៅផ្ទាំងចាត់តាំង ដើម្បីអនុវត្តជាក់ស្តែង។
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
+        <div className="space-y-5">
           <Card className="overflow-hidden border-slate-200 shadow-sm">
             <CardHeader className="border-b bg-slate-50/80">
               <CardTitle className="text-base">មើលច្បាប់ជាមុន</CardTitle>
@@ -991,29 +816,6 @@ function SummaryCard({
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-function HeroStat({
-  icon: Icon,
-  label,
-  value,
-  helper,
-}: {
-  icon: typeof Sparkles;
-  label: string;
-  value: string | number;
-  helper: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
-      <div className="flex items-center gap-2 text-white/70">
-        <Icon className="h-4 w-4" />
-        <p className="text-xs uppercase tracking-[0.18em]">{label}</p>
-      </div>
-      <p className="mt-3 text-3xl font-semibold">{value}</p>
-      <p className="mt-1 text-sm text-white/65">{helper}</p>
-    </div>
   );
 }
 

@@ -73,9 +73,9 @@ export function QRDisplay({
             ) : (
               <div className="flex h-[240px] w-[240px] items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-100 px-6 text-center text-slate-600">
                 <div>
-                  <p className="text-base font-semibold">QR unavailable</p>
+                  <p className="text-base font-semibold">មិនមាន QR</p>
                   <p className="mt-2 text-sm">
-                    {errorMessage || 'Waiting for a valid session QR.'}
+                    {errorMessage || 'កំពុងរង់ចាំ QR សម័យដែលមានសុពលភាព។'}
                   </p>
                 </div>
               </div>
@@ -86,15 +86,14 @@ export function QRDisplay({
         {/* Session Info */}
         <div className="flex flex-col items-center gap-2 text-center">
           <p className="text-xs text-muted-foreground">
-            Session ID: <span className="font-mono">{sessionId || '---'}</span>
+            លេខសម្គាល់សម័យ: <span className="font-mono">{sessionId || '---'}</span>
           </p>
           {(sessionMessage || timeRange) && (
             <p className="text-sm font-medium text-foreground">{sessionMessage}</p>
           )}
           {timeRange && <p className="text-xs text-muted-foreground">{timeRange}</p>}
           <p className="text-sm text-muted-foreground">
-            Employees scan this QR code to mark attendance. It refreshes automatically in the
-            background.
+            មន្ត្រីស្កេន QR នេះដើម្បីកត់ត្រាវត្តមាន។ ប្រព័ន្ធនឹងធ្វើបច្ចុប្បន្នភាពដោយស្វ័យប្រវត្តិ។
           </p>
         </div>
       </div>

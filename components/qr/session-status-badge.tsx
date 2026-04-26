@@ -10,10 +10,10 @@ interface SessionStatusBadgeProps {
 
 export function SessionStatusBadge({ status }: SessionStatusBadgeProps) {
   const config = {
-    idle: { label: 'Inactive', color: 'bg-slate-100 text-slate-700', icon: WifiOff },
-    active: { label: 'Active', color: 'bg-emerald-100 text-emerald-700', icon: Wifi },
-    expired: { label: 'Expired', color: 'bg-red-100 text-red-700', icon: Square },
-    error: { label: 'Error', color: 'bg-amber-100 text-amber-700', icon: AlertTriangle },
+    idle: { label: 'មិនសកម្ម', color: 'bg-slate-100 text-slate-700', icon: WifiOff },
+    active: { label: 'សកម្ម', color: 'bg-emerald-100 text-emerald-700', icon: Wifi },
+    expired: { label: 'ផុតកំណត់', color: 'bg-red-100 text-red-700', icon: Square },
+    error: { label: 'មានបញ្ហា', color: 'bg-amber-100 text-amber-700', icon: AlertTriangle },
   };
 
   const { label, color, icon: Icon } = config[status];

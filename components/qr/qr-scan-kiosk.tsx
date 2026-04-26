@@ -30,12 +30,12 @@ export function QrScanKiosk({
   statusDisplay,
 }: QrScanKioskProps) {
   const helperText = !sessionId
-    ? 'No active session'
+    ? 'មិនមានសម័យសកម្ម'
     : sessionStatus === 'error'
-      ? errorMessage || 'Unable to load QR'
+      ? errorMessage || 'មិនអាចផ្ទុក QR បានទេ'
       : sessionStatus === 'inactive'
-        ? 'Session inactive'
-        : 'Scan to check in';
+        ? 'សម័យមិនសកម្ម'
+        : 'ស្កេនដើម្បីឆែកចូល';
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
@@ -44,7 +44,7 @@ export function QrScanKiosk({
         <div className="relative w-full max-w-4xl rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur md:p-12">
           <div className="mb-8 flex flex-col items-center gap-4 text-center">
             <p className="text-xs font-semibold tracking-[0.4em] text-white/45 uppercase">
-              General Affair System
+              ប្រព័ន្ធកិច្ចការទូទៅ
             </p>
             <div className="flex items-center gap-3">
               <div className={`h-3.5 w-3.5 rounded-full ${statusDisplay.color}`} />
@@ -55,11 +55,11 @@ export function QrScanKiosk({
 
             <div>
               <h1 className="text-3xl font-bold tracking-tight md:text-5xl">
-                QR Attendance Display
+                ផ្ទាំងបង្ហាញវត្តមាន QR
               </h1>
               <p className="mt-2 text-sm text-white/70 md:text-base">
                 {sessionName ||
-                  (sessionId ? `Session ID: ${sessionId}` : 'No active session selected')}
+                  (sessionId ? `លេខសម្គាល់សម័យ: ${sessionId}` : 'មិនបានជ្រើសសម័យសកម្ម')}
               </p>
             </div>
           </div>
@@ -83,8 +83,8 @@ export function QrScanKiosk({
                     <p className="text-lg font-semibold">{helperText}</p>
                     <p className="mt-2 text-sm">
                       {sessionStatus === 'error'
-                        ? 'Please keep this screen open while it retries automatically.'
-                        : 'This display will update automatically when a valid session is available.'}
+                        ? 'សូមទុកអេក្រង់នេះបើក ខណៈប្រព័ន្ធព្យាយាមឡើងវិញដោយស្វ័យប្រវត្តិ។'
+                        : 'ផ្ទាំងបង្ហាញនេះនឹងធ្វើបច្ចុប្បន្នភាពដោយស្វ័យប្រវត្តិ នៅពេលមានសម័យដែលមានសុពលភាព។'}
                     </p>
                   </div>
                 </div>
@@ -94,7 +94,7 @@ export function QrScanKiosk({
             <div className="space-y-2 text-center">
               <p className="text-2xl font-semibold text-white/95 md:text-3xl">{helperText}</p>
               <p className="text-sm text-white/60 md:text-base">
-                This screen refreshes automatically and is optimized for kiosk display.
+                អេក្រង់នេះធ្វើបច្ចុប្បន្នភាពដោយស្វ័យប្រវត្តិ និងត្រូវបានរៀបចំសម្រាប់ការបង្ហាញ Kiosk។
               </p>
             </div>
           </div>

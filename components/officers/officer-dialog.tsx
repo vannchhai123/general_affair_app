@@ -86,125 +86,127 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[92dvh] flex-col overflow-hidden sm:max-w-[500px]">
+        <DialogHeader className="shrink-0">
           <DialogTitle>{officer ? 'កែប្រែមន្ត្រី' : 'បន្ថែមមន្ត្រីថ្មី'}</DialogTitle>
           <DialogDescription>
             {officer ? 'កែប្រែព័ត៌មានមន្ត្រី' : 'បំពេញព័ត៌មានដើម្បីបន្ថែមមន្ត្រីថ្មី'}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="officerCode">កូដមន្ត្រី</Label>
-            <Input
-              id="officerCode"
-              value={form.officerCode || ''}
-              onChange={(e) => setForm({ ...form, officerCode: e.target.value })}
-              placeholder="ឧ. OFF-001"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="first_name">នាមខ្លួន</Label>
+              <Label htmlFor="officerCode">កូដមន្ត្រី</Label>
               <Input
-                id="first_name"
-                value={form.first_name}
-                onChange={(e) => setForm({ ...form, first_name: e.target.value })}
-                required
+                id="officerCode"
+                value={form.officerCode || ''}
+                onChange={(e) => setForm({ ...form, officerCode: e.target.value })}
+                placeholder="ឧ. OFF-001"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="first_name">នាមខ្លួន</Label>
+                <Input
+                  id="first_name"
+                  value={form.first_name}
+                  onChange={(e) => setForm({ ...form, first_name: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="last_name">នាមត្រកូល</Label>
+                <Input
+                  id="last_name"
+                  value={form.last_name}
+                  onChange={(e) => setForm({ ...form, last_name: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="email">អ៊ីមែល</Label>
+              <Input
+                id="email"
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="last_name">នាមត្រកូល</Label>
-              <Input
-                id="last_name"
-                value={form.last_name}
-                onChange={(e) => setForm({ ...form, last_name: e.target.value })}
-                required
-              />
-            </div>
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="email">អ៊ីមែល</Label>
-            <Input
-              id="email"
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="sex">ភេទ</Label>
-            <Select
-              value={form.sex}
-              onValueChange={(v) => setForm({ ...form, sex: v as OfficerFormData['sex'] })}
-            >
-              <SelectTrigger id="sex">
-                <SelectValue placeholder="ជ្រើសរើសភេទ" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="male">ប្រុស</SelectItem>
-                <SelectItem value="female">ស្រី</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="position">តួនាទី</Label>
+              <Label htmlFor="sex">ភេទ</Label>
               <Select
-                value={form.position}
-                onValueChange={(v) => setForm({ ...form, position: v })}
+                value={form.sex}
+                onValueChange={(v) => setForm({ ...form, sex: v as OfficerFormData['sex'] })}
               >
-                <SelectTrigger id="position">
-                  <SelectValue placeholder="ជ្រើសរើសតួនាទី" />
+                <SelectTrigger id="sex">
+                  <SelectValue placeholder="ជ្រើសរើសភេទ" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Senior Officer">មន្ត្រីជាន់ខ្ពស់</SelectItem>
-                  <SelectItem value="Officer">មន្ត្រី</SelectItem>
-                  <SelectItem value="Junior Officer">មន្ត្រីជាន់ទាប</SelectItem>
+                  <SelectItem value="male">ប្រុស</SelectItem>
+                  <SelectItem value="female">ស្រី</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="department">នាយកដ្ឋាន</Label>
-              <Select
-                value={form.department}
-                onValueChange={(v) => setForm({ ...form, department: v })}
-              >
-                <SelectTrigger id="department">
-                  <SelectValue placeholder="ជ្រើសរើសនាយកដ្ឋាន" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Operations">ប្រតិបត្តិការ</SelectItem>
-                  <SelectItem value="Security">សន្តិសុខ</SelectItem>
-                  <SelectItem value="Administration">រដ្ឋបាល</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="position">តួនាទី</Label>
+                <Select
+                  value={form.position}
+                  onValueChange={(v) => setForm({ ...form, position: v })}
+                >
+                  <SelectTrigger id="position">
+                    <SelectValue placeholder="ជ្រើសរើសតួនាទី" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Senior Officer">មន្ត្រីជាន់ខ្ពស់</SelectItem>
+                    <SelectItem value="Officer">មន្ត្រី</SelectItem>
+                    <SelectItem value="Junior Officer">មន្ត្រីជាន់ទាប</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="department">នាយកដ្ឋាន</Label>
+                <Select
+                  value={form.department}
+                  onValueChange={(v) => setForm({ ...form, department: v })}
+                >
+                  <SelectTrigger id="department">
+                    <SelectValue placeholder="ជ្រើសរើសនាយកដ្ឋាន" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Operations">ប្រតិបត្តិការ</SelectItem>
+                    <SelectItem value="Security">សន្តិសុខ</SelectItem>
+                    <SelectItem value="Administration">រដ្ឋបាល</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="phone">ទូរស័ព្ទ</Label>
+                <Input
+                  id="phone"
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="status">ស្ថានភាព</Label>
+                <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
+                  <SelectTrigger id="status">
+                    <SelectValue placeholder="ជ្រើសរើសស្ថានភាព" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">សកម្ម</SelectItem>
+                    <SelectItem value="on_leave">ច្បាប់ឈប់សម្រាក</SelectItem>
+                    <SelectItem value="inactive">មិនសកម្ម</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="phone">ទូរស័ព្ទ</Label>
-              <Input
-                id="phone"
-                value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="status">ស្ថានភាព</Label>
-              <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
-                <SelectTrigger id="status">
-                  <SelectValue placeholder="ជ្រើសរើសស្ថានភាព" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">សកម្ម</SelectItem>
-                  <SelectItem value="on_leave">ច្បាប់ឈប់សម្រាក</SelectItem>
-                  <SelectItem value="inactive">មិនសកម្ម</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
+          <DialogFooter className="shrink-0">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               បោះបង់
             </Button>

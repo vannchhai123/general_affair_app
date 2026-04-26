@@ -2,7 +2,6 @@
 
 import { RefreshCw, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { format } from 'date-fns';
 import type { SessionStatus } from '@/app/dashboard/qr-attendance/page';
 import { SessionStatusBadge } from './session-status-badge';
 
@@ -29,7 +28,12 @@ export function SessionControls({
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-medium">
-                {format(new Date(), 'EEEE, MMMM d, yyyy')}
+                {new Date().toLocaleDateString('km-KH', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
               </span>
             </div>
             <SessionStatusBadge status={sessionStatus} />
@@ -37,7 +41,7 @@ export function SessionControls({
           <div className="space-y-1">
             <p className="text-sm font-medium text-foreground">{message}</p>
             <p className="text-sm text-muted-foreground">
-              {timeRange || 'QR session availability is managed automatically by the backend.'}
+              {timeRange || 'ភាពអាចប្រើបានរបស់សម័យ QR ត្រូវបានគ្រប់គ្រងដោយ backend។'}
             </p>
           </div>
         </div>
@@ -50,7 +54,7 @@ export function SessionControls({
             className="flex-1 sm:flex-none"
           >
             <RefreshCw className="mr-2 h-4 w-4" />
-            Refresh QR
+            ធ្វើបច្ចុប្បន្នភាព QR
           </Button>
         </div>
       </div>

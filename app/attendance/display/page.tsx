@@ -15,7 +15,7 @@ function AttendanceDisplayFallback() {
       sessionId=""
       sessionName=""
       sessionStatus="loading"
-      statusDisplay={{ label: 'LOADING', color: 'bg-slate-500' }}
+      statusDisplay={{ label: 'កំពុងផ្ទុក', color: 'bg-slate-500' }}
     />
   );
 }

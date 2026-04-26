@@ -335,10 +335,7 @@ export default function ProfilePage() {
 
           <Card className="border-slate-200 shadow-sm">
             <CardHeader className="pb-4">
-              <CardTitle className="text-base">ប្តូរពាក្យសម្ងាត់</CardTitle>
-              <CardDescription>
-                ធ្វើបច្ចុប្បន្នភាពពាក្យសម្ងាត់គណនីរបស់អ្នកគ្រប់គ្រង។
-              </CardDescription>
+              <CardTitle className="text-base">ប្តូរពាក្យសម្ងាត់</CardTitle>``
             </CardHeader>
             <CardContent className="space-y-5">
               <div className="space-y-2">
@@ -428,10 +425,6 @@ export default function ProfilePage() {
                     </button>
                   </div>
                 </div>
-              </div>
-
-              <div className="rounded-lg border bg-slate-50 px-4 py-3 text-sm text-muted-foreground">
-                ប្រើ 8-100 តួអក្សរ និងត្រូវមានអក្សរធំ អក្សរតូច លេខ និងសញ្ញាពិសេស។
               </div>
 
               <div className="flex justify-end border-t pt-4">

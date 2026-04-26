@@ -35,12 +35,8 @@ function safeLocalStorage() {
 }
 
 function shouldUseMockFallback(error: unknown) {
-  if (process.env.NEXT_PUBLIC_SHIFT_MOCK_ONLY === 'true') {
-    return true;
-  }
-
-  const status = (error as { status?: number })?.status;
-  return status === 404 || status === 500 || error instanceof TypeError;
+  void error;
+  return process.env.NEXT_PUBLIC_SHIFT_MOCK_ONLY === 'true';
 }
 
 const seedShifts: Shift[] = [
@@ -351,7 +347,7 @@ async function httpListShifts(params: ListShiftParams = {}) {
   query.set('page', String(params.page ?? 0));
   query.set('size', String(params.size ?? 10));
 
-  const response = await apiFetch(`/api/v1/shifts?${query.toString()}`);
+  const response = await apiFetch(`/shifts?${query.toString()}`);
   if (!response.ok) {
     const data = await parseJson(response, {});
     throw Object.assign(new Error('Failed to fetch shifts'), { status: response.status, data });
@@ -361,7 +357,7 @@ async function httpListShifts(params: ListShiftParams = {}) {
 }
 
 async function httpGetShift(id: number) {
-  const response = await apiFetch(`/api/v1/shifts/${id}`);
+  const response = await apiFetch(`/shifts/${id}`);
   if (!response.ok) {
     const data = await parseJson(response, {});
     throw Object.assign(new Error('Failed to fetch shift'), { status: response.status, data });
@@ -372,7 +368,7 @@ async function httpGetShift(id: number) {
 
 async function httpCreateShift(input: ShiftFormInput) {
   const payload = shiftRequestSchema.parse(input);
-  const response = await apiFetch('/api/v1/shifts', {
+  const response = await apiFetch('/shifts', {
     method: 'POST',
     body: JSON.stringify(payload),
   });
@@ -385,7 +381,7 @@ async function httpCreateShift(input: ShiftFormInput) {
 
 async function httpUpdateShift(id: number, input: ShiftFormInput) {
   const payload = shiftRequestSchema.parse(input);
-  const response = await apiFetch(`/api/v1/shifts/${id}`, {
+  const response = await apiFetch(`/shifts/${id}`, {
     method: 'PUT',
     body: JSON.stringify(payload),
   });
@@ -398,7 +394,7 @@ async function httpUpdateShift(id: number, input: ShiftFormInput) {
 
 async function httpUpdateShiftStatus(id: number, status: Shift['status']) {
   const payload = shiftStatusPatchSchema.parse({ status });
-  const response = await apiFetch(`/api/v1/shifts/${id}/status`, {
+  const response = await apiFetch(`/shifts/${id}/status`, {
     method: 'PATCH',
     body: JSON.stringify(payload),
   });
@@ -417,7 +413,7 @@ async function httpUpdateShiftStatus(id: number, status: Shift['status']) {
 }
 
 async function httpDeleteShift(id: number) {
-  const response = await apiFetch(`/api/v1/shifts/${id}`, { method: 'DELETE' });
+  const response = await apiFetch(`/shifts/${id}`, { method: 'DELETE' });
   if (!response.ok) {
     const data = await parseJson(response, {});
     throw Object.assign(new Error('Failed to delete shift'), { status: response.status, data });
@@ -427,7 +423,7 @@ async function httpDeleteShift(id: number) {
 async function httpListAssignments(scope: ShiftAssignmentScope, id?: number) {
   const query = new URLSearchParams({ scope });
   if (id) query.set('id', String(id));
-  const response = await apiFetch(`/api/v1/shift-assignments?${query.toString()}`);
+  const response = await apiFetch(`/shift-assignments?${query.toString()}`);
   if (!response.ok) {
     const data = await parseJson(response, {});
     throw Object.assign(new Error('Failed to fetch shift assignments'), {
@@ -439,7 +435,7 @@ async function httpListAssignments(scope: ShiftAssignmentScope, id?: number) {
 }
 
 async function httpSaveTemplate(template: WeeklyTemplate) {
-  const response = await apiFetch('/api/v1/shift-assignments', {
+  const response = await apiFetch('/shift-assignments', {
     method: 'POST',
     body: JSON.stringify(template),
   });

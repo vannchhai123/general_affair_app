@@ -257,13 +257,14 @@ function ChartLegendContent({
         className,
       )}
     >
-      {payload.map((item) => {
+      {payload.map((item, index) => {
         const key = `${nameKey || item.dataKey || 'value'}`;
         const itemConfig = getPayloadConfigFromPayload(config, item, key);
+        const legendKey = `${item.dataKey || item.value || item.type || 'legend'}-${index}`;
 
         return (
           <div
-            key={item.value}
+            key={legendKey}
             className={
               '[&>svg]:text-muted-foreground flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3'
             }

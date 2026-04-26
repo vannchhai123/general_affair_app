@@ -201,9 +201,6 @@ export function ShiftAssignmentPlanner({
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-sm font-medium">អនុវត្តគំរូជាក្រុមទៅផ្នែក</p>
-              <p className="text-sm text-muted-foreground">
-                ជ្រើសរើសផ្នែកដែលត្រូវប្រើគំរូប្រចាំសប្ដាហ៍នេះដដែល។
-              </p>
             </div>
             <Button
               onClick={applyToDepartments}

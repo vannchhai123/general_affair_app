@@ -107,10 +107,10 @@ async function fetchPublicQrResponse(): Promise<QrScanResponse> {
 }
 
 function getStatusDisplay(status: QrScanSessionStatus): StatusDisplay {
-  if (status === 'active') return { label: 'ACTIVE', color: 'bg-emerald-500' };
-  if (status === 'inactive') return { label: 'INACTIVE', color: 'bg-rose-500' };
-  if (status === 'error') return { label: 'ERROR', color: 'bg-amber-500' };
-  return { label: 'LOADING', color: 'bg-slate-500' };
+  if (status === 'active') return { label: 'សកម្ម', color: 'bg-emerald-500' };
+  if (status === 'inactive') return { label: 'មិនសកម្ម', color: 'bg-rose-500' };
+  if (status === 'error') return { label: 'មានបញ្ហា', color: 'bg-amber-500' };
+  return { label: 'កំពុងផ្ទុក', color: 'bg-slate-500' };
 }
 
 export function useQrScanDisplay(_sessionId?: string): UseQrScanDisplayResult {
@@ -194,7 +194,7 @@ export function useQrScanDisplay(_sessionId?: string): UseQrScanDisplayResult {
 
       setQrToken(token);
       setSessionId(deriveSessionId(data));
-      setSessionName(deriveSessionName(data) || 'Attendance Session');
+      setSessionName(deriveSessionName(data) || 'សម័យវត្តមាន');
       setShiftType(data.shift_type?.trim() || '');
       setStartsAt(data.starts_at?.trim() || '');
       setEndsAt(data.ends_at?.trim() || '');
@@ -215,8 +215,8 @@ export function useQrScanDisplay(_sessionId?: string): UseQrScanDisplayResult {
       setQrToken('');
       setErrorMessage(
         error instanceof ApiError && (error.status === 401 || error.status === 403)
-          ? 'QR display endpoint requires authorization'
-          : 'Unable to load QR',
+          ? 'ចំណុចផ្ទាំងបង្ហាញ QR ត្រូវការសិទ្ធិចូលប្រើ'
+          : 'មិនអាចផ្ទុក QR បានទេ',
       );
       setSessionId('');
       setShiftType('');

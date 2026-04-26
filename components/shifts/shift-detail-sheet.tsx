@@ -10,7 +10,6 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Sheet,
   SheetContent,
@@ -41,7 +40,7 @@ export function ShiftDetailSheet({ open, onOpenChange, shift, audit }: ShiftDeta
   if (!shift) return null;
 
   const content = (
-    <ScrollArea className="h-full px-4 pb-6">
+    <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6">
       <div className="space-y-5">
         <div className="rounded-3xl border bg-slate-950 p-5 text-white">
           <div className="flex items-start justify-between gap-3">
@@ -126,14 +125,14 @@ export function ShiftDetailSheet({ open, onOpenChange, shift, audit }: ShiftDeta
           </div>
         </div>
       </div>
-    </ScrollArea>
+    </div>
   );
 
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent className="max-h-[96vh]">
-          <DrawerHeader>
+        <DrawerContent className="h-[96dvh] max-h-[96dvh] overflow-hidden">
+          <DrawerHeader className="shrink-0">
             <DrawerTitle>{shift.name}</DrawerTitle>
             <DrawerDescription>ព័ត៌មានវេន ការកំណត់ប្រគល់ និងច្បាប់វត្តមាន</DrawerDescription>
           </DrawerHeader>
@@ -145,8 +144,8 @@ export function ShiftDetailSheet({ open, onOpenChange, shift, audit }: ShiftDeta
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-xl">
-        <SheetHeader>
+      <SheetContent className="h-dvh w-full overflow-hidden sm:max-w-xl">
+        <SheetHeader className="shrink-0">
           <SheetTitle>{shift.name}</SheetTitle>
           <SheetDescription>ព័ត៌មានវេន ការកំណត់ប្រគល់ និងច្បាប់វត្តមាន</SheetDescription>
         </SheetHeader>

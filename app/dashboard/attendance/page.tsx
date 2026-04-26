@@ -726,90 +726,91 @@ function AttendanceModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[92dvh] flex-col overflow-hidden sm:max-w-[500px]">
+        <DialogHeader className="shrink-0">
           <DialogTitle>កត់ត្រាវត្តមាន</DialogTitle>
           <DialogDescription>កត់ត្រាវត្តមានសម្រាប់មន្ត្រី</DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="employee">មន្ត្រី</Label>
-            <Select
-              value={String(form.officerId)}
-              onValueChange={(v) => setForm({ ...form, officerId: Number(v) })}
-            >
-              <SelectTrigger id="employee">
-                <SelectValue placeholder="ជ្រើសរើសមន្ត្រី" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">John Doe (OFF-001)</SelectItem>
-                <SelectItem value="2">Jane Smith (OFF-002)</SelectItem>
-                <SelectItem value="3">Mike Johnson (OFF-003)</SelectItem>
-                <SelectItem value="4">Sarah Williams (OFF-004)</SelectItem>
-                <SelectItem value="5">David Brown (OFF-005)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="date">កាលបរិច្ឆេទ</Label>
-            <Input
-              id="date"
-              type="date"
-              value={form.date}
-              onChange={(e) => setForm({ ...form, date: e.target.value })}
-              required
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="check-in">ម៉ោងចូល</Label>
+              <Label htmlFor="employee">មន្ត្រី</Label>
+              <Select
+                value={String(form.officerId)}
+                onValueChange={(v) => setForm({ ...form, officerId: Number(v) })}
+              >
+                <SelectTrigger id="employee">
+                  <SelectValue placeholder="ជ្រើសរើសមន្ត្រី" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">John Doe (OFF-001)</SelectItem>
+                  <SelectItem value="2">Jane Smith (OFF-002)</SelectItem>
+                  <SelectItem value="3">Mike Johnson (OFF-003)</SelectItem>
+                  <SelectItem value="4">Sarah Williams (OFF-004)</SelectItem>
+                  <SelectItem value="5">David Brown (OFF-005)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="date">កាលបរិច្ឆេទ</Label>
               <Input
-                id="check-in"
-                type="time"
-                value={form.checkIn}
-                onChange={(e) => setForm({ ...form, checkIn: e.target.value })}
+                id="date"
+                type="date"
+                value={form.date}
+                onChange={(e) => setForm({ ...form, date: e.target.value })}
+                required
               />
             </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="check-in">ម៉ោងចូល</Label>
+                <Input
+                  id="check-in"
+                  type="time"
+                  value={form.checkIn}
+                  onChange={(e) => setForm({ ...form, checkIn: e.target.value })}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="check-out">ម៉ោងចេញ</Label>
+                <Input
+                  id="check-out"
+                  type="time"
+                  value={form.checkOut}
+                  onChange={(e) => setForm({ ...form, checkOut: e.target.value })}
+                />
+              </div>
+            </div>
+
             <div className="flex flex-col gap-2">
-              <Label htmlFor="check-out">ម៉ោងចេញ</Label>
-              <Input
-                id="check-out"
-                type="time"
-                value={form.checkOut}
-                onChange={(e) => setForm({ ...form, checkOut: e.target.value })}
+              <Label htmlFor="status">ស្ថានភាព</Label>
+              <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
+                <SelectTrigger id="status">
+                  <SelectValue placeholder="ជ្រើសរើសស្ថានភាព" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Present">វត្តមាន</SelectItem>
+                  <SelectItem value="Absent">អវត្តមាន</SelectItem>
+                  <SelectItem value="Late">មកយឺត</SelectItem>
+                  <SelectItem value="Half-day">ពាក់កណ្តាលថ្ងៃ</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="notes">កំណត់ចំណាំ (ជម្រើស)</Label>
+              <Textarea
+                id="notes"
+                value={form.notes}
+                onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                placeholder="បន្ថែមកំណត់ចំណាំ..."
+                rows={3}
               />
             </div>
           </div>
-
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="status">ស្ថានភាព</Label>
-            <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
-              <SelectTrigger id="status">
-                <SelectValue placeholder="ជ្រើសរើសស្ថានភាព" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Present">វត្តមាន</SelectItem>
-                <SelectItem value="Absent">អវត្តមាន</SelectItem>
-                <SelectItem value="Late">មកយឺត</SelectItem>
-                <SelectItem value="Half-day">ពាក់កណ្តាលថ្ងៃ</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="notes">កំណត់ចំណាំ (ជម្រើស)</Label>
-            <Textarea
-              id="notes"
-              value={form.notes}
-              onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              placeholder="បន្ថែមកំណត់ចំណាំ..."
-              rows={3}
-            />
-          </div>
-
-          <DialogFooter>
+          <DialogFooter className="shrink-0">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               បោះបង់
             </Button>
@@ -841,117 +842,119 @@ function AttendanceDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[860px]">
-        <DialogHeader>
+      <DialogContent className="flex h-[92dvh] flex-col overflow-hidden sm:max-w-[860px]">
+        <DialogHeader className="shrink-0">
           <DialogTitle>ព័ត៌មានលម្អិតវត្តមាន</DialogTitle>
           <DialogDescription>{formatDateOnly(attendance.date)}</DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[220px_minmax(0,1fr)]">
-          <div className="overflow-hidden rounded-lg border bg-muted/20">
-            <div className="aspect-[4/5] w-full">
-              {officerPhoto ? (
-                <img
-                  src={officerPhoto}
-                  alt={`${attendance.firstName} ${attendance.lastName}`}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-200 to-slate-300">
-                  <span className="text-3xl font-semibold text-slate-700">
-                    {getInitials(attendance.firstName, attendance.lastName)}
-                  </span>
-                </div>
-              )}
-            </div>
-            <div className="border-t bg-background/95 px-3 py-2">
-              <p className="text-sm font-semibold">
-                {attendance.firstName} {attendance.lastName}
-              </p>
-              <p className="text-xs text-muted-foreground">{attendance.officerCode || '--'}</p>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-muted/20 px-3 py-2">
-              <div>
-                <p className="text-xs text-muted-foreground">នាយកដ្ឋាន</p>
-                <p className="text-sm font-medium">{attendance.department || '--'}</p>
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[220px_minmax(0,1fr)]">
+            <div className="overflow-hidden rounded-lg border bg-muted/20">
+              <div className="aspect-[4/5] w-full">
+                {officerPhoto ? (
+                  <img
+                    src={officerPhoto}
+                    alt={`${attendance.firstName} ${attendance.lastName}`}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-200 to-slate-300">
+                    <span className="text-3xl font-semibold text-slate-700">
+                      {getInitials(attendance.firstName, attendance.lastName)}
+                    </span>
+                  </div>
+                )}
               </div>
-              <Badge variant="secondary" className={getStatusColor(attendance.status)}>
-                {attendance.status}
-              </Badge>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-md border bg-background p-3">
-                <p className="text-xs text-muted-foreground">ម៉ោងចូល</p>
-                <p className="mt-1 text-sm font-semibold">{formatTime(attendance.checkIn)}</p>
-              </div>
-              <div className="rounded-md border bg-background p-3">
-                <p className="text-xs text-muted-foreground">ម៉ោងចេញ</p>
-                <p className="mt-1 text-sm font-semibold">{formatTime(attendance.checkOut)}</p>
-              </div>
-              <div className="rounded-md border bg-background p-3">
-                <p className="text-xs text-muted-foreground">ម៉ោងធ្វើការសរុប</p>
-                <p className="mt-1 text-sm font-semibold">
-                  {formatMinutes(attendance.totalWorkMin)}
+              <div className="border-t bg-background/95 px-3 py-2">
+                <p className="text-sm font-semibold">
+                  {attendance.firstName} {attendance.lastName}
                 </p>
-              </div>
-              <div className="rounded-md border bg-background p-3">
-                <p className="text-xs text-muted-foreground">ម៉ោងយឺត</p>
-                <p className="mt-1 text-sm font-semibold">
-                  {formatMinutes(attendance.totalLateMin)}
-                </p>
+                <p className="text-xs text-muted-foreground">{attendance.officerCode || '--'}</p>
               </div>
             </div>
-          </div>
-        </div>
 
-        <div className="rounded-lg border">
-          <div className="flex items-center justify-between border-b bg-muted/20 px-4 py-3">
-            <p className="text-sm font-semibold">វេនការងារ</p>
-            <p className="text-xs text-muted-foreground">{sessions.length} វេន</p>
-          </div>
-
-          {sessions.length === 0 ? (
-            <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-              មិនមានព័ត៌មានលម្អិតវេន
-            </div>
-          ) : (
-            <div className="divide-y">
-              <div className="hidden grid-cols-[1.3fr_1fr_1fr_auto] gap-2 px-4 py-2 text-xs font-medium text-muted-foreground sm:grid">
-                <p>ឈ្មោះវេន</p>
-                <p>ម៉ោងចូល</p>
-                <p>ម៉ោងចេញ</p>
-                <p className="text-right">ស្ថានភាព</p>
-              </div>
-              {sessions.map((session) => (
-                <div
-                  key={`${attendance.id}-${session.id}`}
-                  className="grid grid-cols-1 gap-2 px-4 py-3 sm:grid-cols-[1.3fr_1fr_1fr_auto] sm:items-center"
-                >
-                  <div>
-                    <p className="text-xs text-muted-foreground sm:hidden">ឈ្មោះវេន</p>
-                    <p className="text-sm font-medium">{session.shiftName}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground sm:hidden">ម៉ោងចូល</p>
-                    <p className="text-sm">{formatTime(session.checkIn)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground sm:hidden">ម៉ោងចេញ</p>
-                    <p className="text-sm">{formatTime(session.checkOut)}</p>
-                  </div>
-                  <div className="sm:justify-self-end sm:text-right">
-                    <Badge variant="secondary" className={getStatusColor(session.status)}>
-                      {session.status}
-                    </Badge>
-                  </div>
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-muted/20 px-3 py-2">
+                <div>
+                  <p className="text-xs text-muted-foreground">នាយកដ្ឋាន</p>
+                  <p className="text-sm font-medium">{attendance.department || '--'}</p>
                 </div>
-              ))}
+                <Badge variant="secondary" className={getStatusColor(attendance.status)}>
+                  {attendance.status}
+                </Badge>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-md border bg-background p-3">
+                  <p className="text-xs text-muted-foreground">ម៉ោងចូល</p>
+                  <p className="mt-1 text-sm font-semibold">{formatTime(attendance.checkIn)}</p>
+                </div>
+                <div className="rounded-md border bg-background p-3">
+                  <p className="text-xs text-muted-foreground">ម៉ោងចេញ</p>
+                  <p className="mt-1 text-sm font-semibold">{formatTime(attendance.checkOut)}</p>
+                </div>
+                <div className="rounded-md border bg-background p-3">
+                  <p className="text-xs text-muted-foreground">ម៉ោងធ្វើការសរុប</p>
+                  <p className="mt-1 text-sm font-semibold">
+                    {formatMinutes(attendance.totalWorkMin)}
+                  </p>
+                </div>
+                <div className="rounded-md border bg-background p-3">
+                  <p className="text-xs text-muted-foreground">ម៉ោងយឺត</p>
+                  <p className="mt-1 text-sm font-semibold">
+                    {formatMinutes(attendance.totalLateMin)}
+                  </p>
+                </div>
+              </div>
             </div>
-          )}
+          </div>
+
+          <div className="rounded-lg border">
+            <div className="flex items-center justify-between border-b bg-muted/20 px-4 py-3">
+              <p className="text-sm font-semibold">វេនការងារ</p>
+              <p className="text-xs text-muted-foreground">{sessions.length} វេន</p>
+            </div>
+
+            {sessions.length === 0 ? (
+              <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+                មិនមានព័ត៌មានលម្អិតវេន
+              </div>
+            ) : (
+              <div className="divide-y">
+                <div className="hidden grid-cols-[1.3fr_1fr_1fr_auto] gap-2 px-4 py-2 text-xs font-medium text-muted-foreground sm:grid">
+                  <p>ឈ្មោះវេន</p>
+                  <p>ម៉ោងចូល</p>
+                  <p>ម៉ោងចេញ</p>
+                  <p className="text-right">ស្ថានភាព</p>
+                </div>
+                {sessions.map((session) => (
+                  <div
+                    key={`${attendance.id}-${session.id}`}
+                    className="grid grid-cols-1 gap-2 px-4 py-3 sm:grid-cols-[1.3fr_1fr_1fr_auto] sm:items-center"
+                  >
+                    <div>
+                      <p className="text-xs text-muted-foreground sm:hidden">ឈ្មោះវេន</p>
+                      <p className="text-sm font-medium">{session.shiftName}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground sm:hidden">ម៉ោងចូល</p>
+                      <p className="text-sm">{formatTime(session.checkIn)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground sm:hidden">ម៉ោងចេញ</p>
+                      <p className="text-sm">{formatTime(session.checkOut)}</p>
+                    </div>
+                    <div className="sm:justify-self-end sm:text-right">
+                      <Badge variant="secondary" className={getStatusColor(session.status)}>
+                        {session.status}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

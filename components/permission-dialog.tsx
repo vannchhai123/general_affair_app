@@ -88,8 +88,8 @@ export function PermissionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[92dvh] flex-col overflow-hidden sm:max-w-[500px]">
+        <DialogHeader className="shrink-0">
           <DialogTitle>{permission ? 'Edit Permission' : 'Create Permission'}</DialogTitle>
           <DialogDescription>
             {permission
@@ -97,8 +97,8 @@ export function PermissionDialog({
               : 'Add a new permission to the system.'}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={form.handleSubmit(handleSubmit)}>
-          <div className="grid gap-4 py-4">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="flex min-h-0 flex-1 flex-col">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto py-4 pr-1">
             <div className="grid gap-2">
               <Label htmlFor="permission_name">Permission Name</Label>
               <Input
@@ -148,7 +148,7 @@ export function PermissionDialog({
               )}
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="shrink-0">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>

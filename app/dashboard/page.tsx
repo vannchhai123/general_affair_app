@@ -142,18 +142,77 @@ function DashboardLoading() {
   );
 }
 
+function DashboardError({
+  message,
+  onRetry,
+  isFetching,
+}: {
+  message?: string;
+  onRetry: () => void;
+  isFetching: boolean;
+}) {
+  return (
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-5">
+      <Card className="border-red-200 bg-red-50/60 shadow-sm">
+        <CardHeader>
+          <div className="flex items-start gap-3">
+            <div className="rounded-md bg-red-100 p-2 text-red-700">
+              <AlertCircle className="h-5 w-5" />
+            </div>
+            <div>
+              <CardTitle className="text-base text-red-950">
+                មិនអាចផ្ទុកទិន្នន័យផ្ទាំងគ្រប់គ្រងបានទេ
+              </CardTitle>
+              <CardDescription className="mt-1 text-red-800">
+                ផ្ទាំងគ្រប់គ្រងត្រូវការ endpoint <span className="font-mono">GET /dashboard</span>{' '}
+                ដែលដំណើរការពី <span className="font-mono">NEXT_PUBLIC_API_URL</span>។
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {message ? (
+            <div className="rounded-md border border-red-200 bg-white p-3 text-sm text-red-900">
+              {message}
+            </div>
+          ) : null}
+
+          <div className="rounded-md border bg-white p-4">
+            <p className="text-sm font-medium text-slate-950">ទម្រង់ response ដែលត្រូវការ</p>
+            <pre className="mt-3 overflow-x-auto rounded-md bg-slate-950 p-4 text-xs text-slate-50">
+              {`{
+  "officers": { "total": 0, "active": 0, "on_leave": 0, "inactive": 0 },
+  "attendance": { "total": 0, "approved": 0, "pending": 0, "absent": 0 },
+  "invitations": { "total": 0, "active": 0, "completed": 0 },
+  "missions": { "total": 0, "approved": 0, "pending": 0 },
+  "leave_requests": { "total": 0, "approved": 0, "pending": 0 },
+  "recent_attendance": []
+}`}
+            </pre>
+          </div>
+
+          <Button variant="outline" onClick={onRetry} disabled={isFetching}>
+            <RefreshCw className={`mr-2 h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+            ព្យាយាមម្តងទៀត
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 function statusBadge(status: string) {
   const normalizedStatus = status.toUpperCase();
 
   switch (normalizedStatus) {
     case 'APPROVED':
     case 'PRESENT':
-      return <Badge className="border-0 bg-emerald-100 text-emerald-700">Present</Badge>;
+      return <Badge className="border-0 bg-emerald-100 text-emerald-700">មានវត្តមាន</Badge>;
     case 'PENDING':
     case 'LATE':
       return <Badge className="border-0 bg-amber-100 text-amber-700">{status}</Badge>;
     case 'ABSENT':
-      return <Badge className="border-0 bg-red-100 text-red-700">Absent</Badge>;
+      return <Badge className="border-0 bg-red-100 text-red-700">អវត្តមាន</Badge>;
     default:
       return <Badge variant="secondary">{status}</Badge>;
   }
@@ -194,10 +253,10 @@ function RecentAttendanceTable({ records }: { records: Attendance[] }) {
       <Table>
         <TableHeader>
           <TableRow className="bg-slate-50/80">
-            <TableHead>Officer</TableHead>
-            <TableHead>Department</TableHead>
-            <TableHead>Work Time</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead>មន្ត្រី</TableHead>
+            <TableHead>នាយកដ្ឋាន</TableHead>
+            <TableHead>ម៉ោងធ្វើការ</TableHead>
+            <TableHead>ស្ថានភាព</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -215,7 +274,7 @@ function RecentAttendanceTable({ records }: { records: Attendance[] }) {
                       {record.firstName} {record.lastName}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {record.officerCode || 'No code'}
+                      {record.officerCode || 'គ្មានកូដ'}
                     </p>
                   </div>
                 </div>
@@ -234,9 +293,9 @@ function RecentAttendanceTable({ records }: { records: Attendance[] }) {
                   <div className="rounded-md bg-slate-100 p-3 text-slate-500">
                     <ClipboardCheck className="h-5 w-5" />
                   </div>
-                  <p className="text-sm font-medium text-slate-950">No attendance records yet</p>
+                  <p className="text-sm font-medium text-slate-950">មិនទាន់មានកំណត់ត្រាវត្តមាន</p>
                   <p className="text-sm text-muted-foreground">
-                    Recent check-ins will appear here once officers start recording attendance.
+                    ការឆែកចូលថ្មីៗនឹងបង្ហាញនៅទីនេះ នៅពេលមន្ត្រីចាប់ផ្តើមកត់ត្រាវត្តមាន។
                   </p>
                 </div>
               </TableCell>
@@ -249,10 +308,20 @@ function RecentAttendanceTable({ records }: { records: Attendance[] }) {
 }
 
 export default function DashboardPage() {
-  const { data, isLoading, refetch, isFetching } = useDashboard();
+  const { data, isLoading, isError, error, refetch, isFetching } = useDashboard();
 
-  if (isLoading || !data) {
+  if (isLoading) {
     return <DashboardLoading />;
+  }
+
+  if (isError || !data) {
+    return (
+      <DashboardError
+        message={error instanceof Error ? error.message : undefined}
+        onRetry={() => void refetch()}
+        isFetching={isFetching}
+      />
+    );
   }
 
   const activeOfficers = data.officers?.active ?? 0;
@@ -271,36 +340,36 @@ export default function DashboardPage() {
 
   const stats = [
     {
-      title: 'Total Officers',
+      title: 'មន្ត្រីសរុប',
       value: totalOfficers,
-      description: `${activeOfficers} active, ${data.officers?.on_leave ?? 0} on leave`,
+      description: `${activeOfficers} សកម្ម, ${data.officers?.on_leave ?? 0} កំពុងឈប់សម្រាក`,
       progress: percent(activeOfficers, totalOfficers),
       icon: Users,
       tone: 'bg-slate-100 text-slate-700',
       barTone: 'bg-slate-700',
     },
     {
-      title: "Today's Attendance",
+      title: 'វត្តមានថ្ងៃនេះ',
       value: attendanceTotal,
-      description: `${attendanceApproved} approved, ${pendingAttendance} pending`,
+      description: `${attendanceApproved} បានអនុម័ត, ${pendingAttendance} កំពុងរង់ចាំ`,
       progress: percent(attendanceApproved, attendanceTotal),
       icon: ClipboardCheck,
       tone: 'bg-emerald-50 text-emerald-700',
       barTone: 'bg-emerald-600',
     },
     {
-      title: 'Active Invitations',
+      title: 'លិខិតអញ្ជើញសកម្ម',
       value: activeInvitations,
-      description: `${completedInvitations} completed from ${invitationsTotal} total`,
+      description: `${completedInvitations} បានបញ្ចប់ ពីសរុប ${invitationsTotal}`,
       progress: percent(activeInvitations, invitationsTotal),
       icon: Mail,
       tone: 'bg-blue-50 text-blue-700',
       barTone: 'bg-blue-600',
     },
     {
-      title: 'Pending Missions',
+      title: 'បេសកកម្មកំពុងរង់ចាំ',
       value: pendingMissions,
-      description: `${data.missions?.approved ?? 0} approved from ${missionsTotal} total`,
+      description: `${data.missions?.approved ?? 0} បានអនុម័ត ពីសរុប ${missionsTotal}`,
       progress: percent(missionsTotal - pendingMissions, missionsTotal),
       icon: Target,
       tone: 'bg-amber-50 text-amber-700',
@@ -313,20 +382,21 @@ export default function DashboardPage() {
       <div className="flex flex-col gap-4 border-b pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div className="space-y-2">
           <Badge variant="outline" className="rounded-md bg-background">
-            Command center
+            មជ្ឈមណ្ឌលបញ្ជាការ
           </Badge>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Dashboard</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+              ផ្ទាំងគ្រប់គ្រង
+            </h1>
             <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
-              Monitor officers, attendance, invitations, missions, and approvals from one focused
-              workspace.
+              តាមដានមន្ត្រី វត្តមាន លិខិតអញ្ជើញ បេសកកម្ម និងការអនុម័ត ពីកន្លែងការងារតែមួយ។
             </p>
           </div>
         </div>
 
         <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
           <RefreshCw className={`mr-2 h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
-          Refresh
+          ធ្វើបច្ចុប្បន្នភាព
         </Button>
       </div>
 
@@ -341,8 +411,10 @@ export default function DashboardPage() {
           <CardHeader className="border-b bg-slate-50/80">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <CardTitle className="text-base">Recent Attendance</CardTitle>
-                <CardDescription>Latest officer attendance records and work time.</CardDescription>
+                <CardTitle className="text-base">វត្តមានថ្មីៗ</CardTitle>
+                <CardDescription>
+                  កំណត់ត្រាវត្តមាន និងម៉ោងធ្វើការចុងក្រោយរបស់មន្ត្រី។
+                </CardDescription>
               </div>
               <div className="rounded-md bg-white p-2 text-slate-600 shadow-sm">
                 <TrendingUp className="h-4 w-4" />
@@ -360,13 +432,13 @@ export default function DashboardPage() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <Badge className="border-0 bg-slate-900 text-white hover:bg-slate-900">
-                    Operations
+                    ប្រតិបត្តិការ
                   </Badge>
                   <h2 className="mt-4 text-2xl font-semibold tracking-tight text-slate-950">
-                    {attentionTotal} item{attentionTotal === 1 ? '' : 's'} need attention
+                    មាន {attentionTotal} ចំណុចត្រូវការការយកចិត្តទុកដាក់
                   </h2>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    Prioritize pending approvals, attendance exceptions, and mission confirmations.
+                    ផ្តល់អាទិភាពលើការអនុម័តកំពុងរង់ចាំ ករណីវត្តមានខុសប្រក្រតី និងការបញ្ជាក់បេសកកម្ម។
                   </p>
                 </div>
                 <div className="rounded-md bg-amber-50 p-3 text-amber-700">
@@ -380,19 +452,19 @@ export default function DashboardPage() {
                   <p className="mt-2 text-xl font-semibold text-slate-950">
                     {percent(activeOfficers, totalOfficers)}%
                   </p>
-                  <p className="text-xs text-muted-foreground">Active force</p>
+                  <p className="text-xs text-muted-foreground">កម្លាំងសកម្ម</p>
                 </div>
                 <div className="rounded-lg border bg-slate-50 p-3">
                   <CheckCircle2 className="h-4 w-4 text-blue-700" />
                   <p className="mt-2 text-xl font-semibold text-slate-950">
                     {percent(attendanceApproved, attendanceTotal)}%
                   </p>
-                  <p className="text-xs text-muted-foreground">Attendance OK</p>
+                  <p className="text-xs text-muted-foreground">វត្តមានត្រឹមត្រូវ</p>
                 </div>
                 <div className="rounded-lg border bg-slate-50 p-3">
                   <UserX className="h-4 w-4 text-red-700" />
                   <p className="mt-2 text-xl font-semibold text-slate-950">{absentToday}</p>
-                  <p className="text-xs text-muted-foreground">Absent today</p>
+                  <p className="text-xs text-muted-foreground">អវត្តមានថ្ងៃនេះ</p>
                 </div>
               </div>
             </CardContent>
@@ -400,42 +472,42 @@ export default function DashboardPage() {
 
           <Card className="overflow-hidden rounded-lg border-slate-200 shadow-sm">
             <CardHeader className="border-b bg-slate-50/80">
-              <CardTitle className="text-base">Action Queue</CardTitle>
-              <CardDescription>Pending work grouped by operational area.</CardDescription>
+              <CardTitle className="text-base">បញ្ជីការងារត្រូវដោះស្រាយ</CardTitle>
+              <CardDescription>ការងារកំពុងរង់ចាំដែលបានបែងចែកតាមផ្នែកប្រតិបត្តិការ។</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-3 p-4">
               <AttentionItem
                 icon={CalendarOff}
-                title="Pending Leave Requests"
-                helper="Requires approval"
+                title="សំណើឈប់សម្រាកកំពុងរង់ចាំ"
+                helper="ត្រូវការអនុម័ត"
                 value={pendingLeaveRequests}
                 tone="bg-amber-50 text-amber-700"
               />
               <AttentionItem
                 icon={Target}
-                title="Pending Missions"
-                helper="Awaiting confirmation"
+                title="បេសកកម្មកំពុងរង់ចាំ"
+                helper="កំពុងរង់ចាំការបញ្ជាក់"
                 value={pendingMissions}
                 tone="bg-blue-50 text-blue-700"
               />
               <AttentionItem
                 icon={ClipboardCheck}
-                title="Attendance Pending"
-                helper="Needs review"
+                title="វត្តមានកំពុងរង់ចាំ"
+                helper="ត្រូវការពិនិត្យ"
                 value={pendingAttendance}
                 tone="bg-red-50 text-red-700"
               />
               <AttentionItem
                 icon={Clock}
-                title="Active Invitations"
-                helper="Upcoming events"
+                title="លិខិតអញ្ជើញសកម្ម"
+                helper="ព្រឹត្តិការណ៍ខាងមុខ"
                 value={activeInvitations}
                 tone="bg-emerald-50 text-emerald-700"
               />
               <AttentionItem
                 icon={UserCheck}
-                title="Officers On Duty"
-                helper="Currently active"
+                title="មន្ត្រីកំពុងបំពេញការងារ"
+                helper="កំពុងសកម្ម"
                 value={activeOfficers}
                 tone="bg-slate-100 text-slate-700"
               />

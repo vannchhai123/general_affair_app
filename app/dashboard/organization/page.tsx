@@ -739,8 +739,8 @@ export default function OrganizationPage() {
       </Card>
 
       <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="flex max-h-[92dvh] flex-col overflow-hidden sm:max-w-lg">
+          <DialogHeader className="shrink-0">
             <DialogTitle>
               {dialogMode === 'department'
                 ? editingDepartment
@@ -756,200 +756,204 @@ export default function OrganizationPage() {
             </DialogDescription>
           </DialogHeader>
 
-          {dialogMode === 'department' ? (
-            <div className="grid gap-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="department-name">ឈ្មោះនាយកដ្ឋាន</Label>
-                  <Input
-                    id="department-name"
-                    value={departmentForm.name}
-                    onChange={(event) => {
-                      const name = event.target.value;
-                      setDepartmentForm((form) => ({ ...form, name }));
-                      setDepartmentErrors((errors) => ({ ...errors, name: undefined }));
-                    }}
-                    placeholder="រដ្ឋបាល"
-                    className={cn(departmentErrors.name && 'border-destructive')}
-                  />
-                  <FieldError message={departmentErrors.name} />
+          <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+            {dialogMode === 'department' ? (
+              <div className="grid gap-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="department-name">ឈ្មោះនាយកដ្ឋាន</Label>
+                    <Input
+                      id="department-name"
+                      value={departmentForm.name}
+                      onChange={(event) => {
+                        const name = event.target.value;
+                        setDepartmentForm((form) => ({ ...form, name }));
+                        setDepartmentErrors((errors) => ({ ...errors, name: undefined }));
+                      }}
+                      placeholder="រដ្ឋបាល"
+                      className={cn(departmentErrors.name && 'border-destructive')}
+                    />
+                    <FieldError message={departmentErrors.name} />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="department-code">កូដ</Label>
+                    <Input
+                      id="department-code"
+                      value={departmentForm.code}
+                      onChange={(event) => {
+                        const code = event.target.value;
+                        setDepartmentForm((form) => ({ ...form, code }));
+                        setDepartmentErrors((errors) => ({ ...errors, code: undefined }));
+                      }}
+                      placeholder="ADM"
+                      className={cn(departmentErrors.code && 'border-destructive')}
+                    />
+                    <FieldError message={departmentErrors.code} />
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="department-code">កូដ</Label>
-                  <Input
-                    id="department-code"
-                    value={departmentForm.code}
-                    onChange={(event) => {
-                      const code = event.target.value;
-                      setDepartmentForm((form) => ({ ...form, code }));
-                      setDepartmentErrors((errors) => ({ ...errors, code: undefined }));
-                    }}
-                    placeholder="ADM"
-                    className={cn(departmentErrors.code && 'border-destructive')}
-                  />
-                  <FieldError message={departmentErrors.code} />
-                </div>
-              </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="department-manager">អ្នកគ្រប់គ្រង</Label>
+                    <Input
+                      id="department-manager"
+                      value={departmentForm.manager ?? ''}
+                      onChange={(event) => {
+                        const manager = event.target.value;
+                        setDepartmentForm((form) => ({ ...form, manager }));
+                        setDepartmentErrors((errors) => ({ ...errors, manager: undefined }));
+                      }}
+                      placeholder="ជម្រើសបន្ថែម"
+                      className={cn(departmentErrors.manager && 'border-destructive')}
+                    />
+                    <FieldError message={departmentErrors.manager} />
+                  </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="department-manager">អ្នកគ្រប់គ្រង</Label>
-                  <Input
-                    id="department-manager"
-                    value={departmentForm.manager ?? ''}
-                    onChange={(event) => {
-                      const manager = event.target.value;
-                      setDepartmentForm((form) => ({ ...form, manager }));
-                      setDepartmentErrors((errors) => ({ ...errors, manager: undefined }));
-                    }}
-                    placeholder="ជម្រើសបន្ថែម"
-                    className={cn(departmentErrors.manager && 'border-destructive')}
-                  />
-                  <FieldError message={departmentErrors.manager} />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>ស្ថានភាព</Label>
-                  <Select
-                    value={departmentForm.status}
-                    onValueChange={(value: OrganizationStatus) => {
-                      setDepartmentForm((form) => ({ ...form, status: value }));
-                      setDepartmentErrors((errors) => ({ ...errors, status: undefined }));
-                    }}
-                  >
-                    <SelectTrigger className={cn(departmentErrors.status && 'border-destructive')}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">សកម្ម</SelectItem>
-                      <SelectItem value="inactive">មិនសកម្ម</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FieldError message={departmentErrors.status} />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="department-description">ការពិពណ៌នា</Label>
-                <Textarea
-                  id="department-description"
-                  value={departmentForm.description ?? ''}
-                  onChange={(event) => {
-                    const description = event.target.value;
-                    setDepartmentForm((form) => ({ ...form, description }));
-                    setDepartmentErrors((errors) => ({ ...errors, description: undefined }));
-                  }}
-                  placeholder="ការពិពណ៌នាជាជម្រើស បញ្ចូលបានរហូតដល់ 500 តួអក្សរ"
-                  className={cn(departmentErrors.description && 'border-destructive')}
-                />
-                <FieldError message={departmentErrors.description} />
-              </div>
-            </div>
-          ) : (
-            <div className="grid gap-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="position-title">ឈ្មោះតួនាទី</Label>
-                  <Input
-                    id="position-title"
-                    value={positionForm.title}
-                    onChange={(event) => {
-                      const title = event.target.value;
-                      setPositionForm((form) => ({ ...form, title }));
-                      setPositionErrors((errors) => ({ ...errors, title: undefined }));
-                    }}
-                    placeholder="ប្រធាននាយកដ្ឋាន"
-                    className={cn(positionErrors.title && 'border-destructive')}
-                  />
-                  <FieldError message={positionErrors.title} />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="position-code">កូដ</Label>
-                  <Input
-                    id="position-code"
-                    value={positionForm.code}
-                    onChange={(event) => {
-                      const code = event.target.value;
-                      setPositionForm((form) => ({ ...form, code }));
-                      setPositionErrors((errors) => ({ ...errors, code: undefined }));
-                    }}
-                    placeholder="HOD"
-                    className={cn(positionErrors.code && 'border-destructive')}
-                  />
-                  <FieldError message={positionErrors.code} />
-                </div>
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>នាយកដ្ឋាន</Label>
-                  <Select
-                    value={
-                      positionForm.departmentId ? String(positionForm.departmentId) : undefined
-                    }
-                    onValueChange={(value) => {
-                      setPositionForm((form) => ({ ...form, departmentId: Number(value) }));
-                      setPositionErrors((errors) => ({ ...errors, departmentId: undefined }));
-                    }}
-                  >
-                    <SelectTrigger
-                      className={cn(positionErrors.departmentId && 'border-destructive')}
+                  <div className="space-y-2">
+                    <Label>ស្ថានភាព</Label>
+                    <Select
+                      value={departmentForm.status}
+                      onValueChange={(value: OrganizationStatus) => {
+                        setDepartmentForm((form) => ({ ...form, status: value }));
+                        setDepartmentErrors((errors) => ({ ...errors, status: undefined }));
+                      }}
                     >
-                      <SelectValue placeholder="ជ្រើសរើសនាយកដ្ឋាន" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {departmentOptions.map((department: Department) => (
-                        <SelectItem key={department.id} value={String(department.id)}>
-                          {department.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FieldError message={positionErrors.departmentId} />
+                      <SelectTrigger
+                        className={cn(departmentErrors.status && 'border-destructive')}
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">សកម្ម</SelectItem>
+                        <SelectItem value="inactive">មិនសកម្ម</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FieldError message={departmentErrors.status} />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>ស្ថានភាព</Label>
-                  <Select
-                    value={positionForm.status}
-                    onValueChange={(value: OrganizationStatus) => {
-                      setPositionForm((form) => ({ ...form, status: value }));
-                      setPositionErrors((errors) => ({ ...errors, status: undefined }));
+                  <Label htmlFor="department-description">ការពិពណ៌នា</Label>
+                  <Textarea
+                    id="department-description"
+                    value={departmentForm.description ?? ''}
+                    onChange={(event) => {
+                      const description = event.target.value;
+                      setDepartmentForm((form) => ({ ...form, description }));
+                      setDepartmentErrors((errors) => ({ ...errors, description: undefined }));
                     }}
-                  >
-                    <SelectTrigger className={cn(positionErrors.status && 'border-destructive')}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">សកម្ម</SelectItem>
-                      <SelectItem value="inactive">មិនសកម្ម</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FieldError message={positionErrors.status} />
+                    placeholder="ការពិពណ៌នាជាជម្រើស បញ្ចូលបានរហូតដល់ 500 តួអក្សរ"
+                    className={cn(departmentErrors.description && 'border-destructive')}
+                  />
+                  <FieldError message={departmentErrors.description} />
                 </div>
               </div>
+            ) : (
+              <div className="grid gap-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="position-title">ឈ្មោះតួនាទី</Label>
+                    <Input
+                      id="position-title"
+                      value={positionForm.title}
+                      onChange={(event) => {
+                        const title = event.target.value;
+                        setPositionForm((form) => ({ ...form, title }));
+                        setPositionErrors((errors) => ({ ...errors, title: undefined }));
+                      }}
+                      placeholder="ប្រធាននាយកដ្ឋាន"
+                      className={cn(positionErrors.title && 'border-destructive')}
+                    />
+                    <FieldError message={positionErrors.title} />
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="position-description">ការពិពណ៌នា</Label>
-                <Textarea
-                  id="position-description"
-                  value={positionForm.description ?? ''}
-                  onChange={(event) => {
-                    const description = event.target.value;
-                    setPositionForm((form) => ({ ...form, description }));
-                    setPositionErrors((errors) => ({ ...errors, description: undefined }));
-                  }}
-                  placeholder="ការពិពណ៌នាជាជម្រើស បញ្ចូលបានរហូតដល់ 500 តួអក្សរ"
-                  className={cn(positionErrors.description && 'border-destructive')}
-                />
-                <FieldError message={positionErrors.description} />
+                  <div className="space-y-2">
+                    <Label htmlFor="position-code">កូដ</Label>
+                    <Input
+                      id="position-code"
+                      value={positionForm.code}
+                      onChange={(event) => {
+                        const code = event.target.value;
+                        setPositionForm((form) => ({ ...form, code }));
+                        setPositionErrors((errors) => ({ ...errors, code: undefined }));
+                      }}
+                      placeholder="HOD"
+                      className={cn(positionErrors.code && 'border-destructive')}
+                    />
+                    <FieldError message={positionErrors.code} />
+                  </div>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>នាយកដ្ឋាន</Label>
+                    <Select
+                      value={
+                        positionForm.departmentId ? String(positionForm.departmentId) : undefined
+                      }
+                      onValueChange={(value) => {
+                        setPositionForm((form) => ({ ...form, departmentId: Number(value) }));
+                        setPositionErrors((errors) => ({ ...errors, departmentId: undefined }));
+                      }}
+                    >
+                      <SelectTrigger
+                        className={cn(positionErrors.departmentId && 'border-destructive')}
+                      >
+                        <SelectValue placeholder="ជ្រើសរើសនាយកដ្ឋាន" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {departmentOptions.map((department: Department) => (
+                          <SelectItem key={department.id} value={String(department.id)}>
+                            {department.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FieldError message={positionErrors.departmentId} />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>ស្ថានភាព</Label>
+                    <Select
+                      value={positionForm.status}
+                      onValueChange={(value: OrganizationStatus) => {
+                        setPositionForm((form) => ({ ...form, status: value }));
+                        setPositionErrors((errors) => ({ ...errors, status: undefined }));
+                      }}
+                    >
+                      <SelectTrigger className={cn(positionErrors.status && 'border-destructive')}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">សកម្ម</SelectItem>
+                        <SelectItem value="inactive">មិនសកម្ម</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FieldError message={positionErrors.status} />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="position-description">ការពិពណ៌នា</Label>
+                  <Textarea
+                    id="position-description"
+                    value={positionForm.description ?? ''}
+                    onChange={(event) => {
+                      const description = event.target.value;
+                      setPositionForm((form) => ({ ...form, description }));
+                      setPositionErrors((errors) => ({ ...errors, description: undefined }));
+                    }}
+                    placeholder="ការពិពណ៌នាជាជម្រើស បញ្ចូលបានរហូតដល់ 500 តួអក្សរ"
+                    className={cn(positionErrors.description && 'border-destructive')}
+                  />
+                  <FieldError message={positionErrors.description} />
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          <DialogFooter>
+          <DialogFooter className="shrink-0">
             <Button variant="outline" onClick={() => handleDialogChange(false)}>
               បោះបង់
             </Button>

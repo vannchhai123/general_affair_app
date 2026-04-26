@@ -246,8 +246,8 @@ export function PermissionAssignmentDialog({
         if (!isSubmitting) onOpenChange(nextOpen);
       }}
     >
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col">
-        <DialogHeader>
+      <DialogContent className="flex h-[90dvh] flex-col overflow-hidden sm:max-w-[600px]">
+        <DialogHeader className="shrink-0">
           <DialogTitle className="flex items-center gap-2 text-xl">
             <UserCog className="h-5 w-5" />
             Assign Permissions
@@ -260,12 +260,12 @@ export function PermissionAssignmentDialog({
           placeholder="Search permissions..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="mb-2"
+          className="mb-2 shrink-0"
           disabled={isSubmitting}
         />
 
         {/* Permission Tree */}
-        <ScrollArea className="flex-1 max-h-[500px] pr-4">
+        <ScrollArea className="min-h-0 flex-1 pr-4">
           <div className="space-y-1">
             {filteredCategories.map((category) => {
               const isExpanded = expandedCategories.has(category.name);
@@ -339,7 +339,7 @@ export function PermissionAssignmentDialog({
         </ScrollArea>
 
         {/* Footer with changes summary */}
-        <div className="pt-4">
+        <div className="shrink-0 pt-4">
           <Separator className="mb-4" />
           <div className="flex items-center justify-between mb-4">
             {totalChanges > 0 && (
