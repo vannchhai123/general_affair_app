@@ -335,7 +335,7 @@ export default function ProfilePage() {
 
           <Card className="border-slate-200 shadow-sm">
             <CardHeader className="pb-4">
-              <CardTitle className="text-base">ប្តូរពាក្យសម្ងាត់</CardTitle>``
+              <CardTitle className="text-base">ប្តូរពាក្យសម្ងាត់</CardTitle>
             </CardHeader>
             <CardContent className="space-y-5">
               <div className="space-y-2">
