@@ -3,9 +3,10 @@
 import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import {
+  Activity,
+  Building2,
   Search,
   CalendarIcon,
-  Filter,
   Download,
   Upload,
   Plus,
@@ -20,13 +21,24 @@ import {
   X,
   AlertCircle,
   RefreshCw,
+  TimerReset,
+  TrendingUp,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from '@/components/ui/chart';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
@@ -57,6 +69,18 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAttendance } from '@/hooks/attendance/use-attendance';
 import type { Attendance } from '@/lib/schemas';
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  XAxis,
+  YAxis,
+} from 'recharts';
 
 // ─── Types ─────────────────────────────────────────────
 interface AttendanceFormData {
@@ -159,6 +183,40 @@ function getStatusColor(status: string): string {
   }
 }
 
+function formatCompactDate(date: string): string {
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) return date;
+  return format(parsed, 'MMM d');
+}
+
+function formatHoursFromMinutes(totalMinutes: number): string {
+  if (!Number.isFinite(totalMinutes) || totalMinutes <= 0) return '--';
+  return `${(totalMinutes / 60).toFixed(1)}h`;
+}
+
+const attendanceStatusChartConfig = {
+  present: { label: 'Present', color: '#059669' },
+  late: { label: 'Late', color: '#d97706' },
+  absent: { label: 'Absent', color: '#dc2626' },
+  halfDay: { label: 'Half-day', color: '#2563eb' },
+} satisfies ChartConfig;
+
+const attendanceTrendChartConfig = {
+  present: { label: 'Present', color: '#10b981' },
+  late: { label: 'Late', color: '#f59e0b' },
+  absent: { label: 'Absent', color: '#ef4444' },
+} satisfies ChartConfig;
+
+const departmentAttendanceChartConfig = {
+  present: { label: 'Present', color: '#059669' },
+  late: { label: 'Late', color: '#d97706' },
+  absent: { label: 'Absent', color: '#dc2626' },
+} satisfies ChartConfig;
+
+const shiftActivityChartConfig = {
+  sessions: { label: 'Sessions', color: '#0f766e' },
+} satisfies ChartConfig;
+
 // ─── Summary Cards Component ───────────────────────────
 function SummaryCards({
   data,
@@ -251,6 +309,388 @@ function SummaryCards({
 }
 
 // ─── Attendance Modal Component ────────────────────────
+function AttendanceSummaryDashboard({
+  records,
+  isLoading,
+  error,
+}: {
+  records: Attendance[];
+  isLoading: boolean;
+  error?: Error | null;
+}) {
+  const insights = useMemo(() => {
+    const total = records.length;
+    const present = records.filter((record) => record.status === 'Present').length;
+    const late = records.filter((record) => record.status === 'Late').length;
+    const absent = records.filter((record) => record.status === 'Absent').length;
+    const halfDay = records.filter((record) => record.status === 'Half-day').length;
+    const activeAttendance = present + late + halfDay;
+    const attendanceRate = total > 0 ? Math.round((activeAttendance / total) * 100) : 0;
+    const punctualityRate =
+      activeAttendance > 0 ? Math.round((present / activeAttendance) * 100) : 0;
+
+    const workedRecords = records.filter((record) => record.totalWorkMin > 0);
+    const lateRecords = records.filter((record) => record.totalLateMin > 0);
+
+    const averageWorkMinutes = workedRecords.length
+      ? Math.round(
+          workedRecords.reduce((sum, record) => sum + record.totalWorkMin, 0) /
+            workedRecords.length,
+        )
+      : 0;
+    const averageLateMinutes = lateRecords.length
+      ? Math.round(
+          lateRecords.reduce((sum, record) => sum + record.totalLateMin, 0) / lateRecords.length,
+        )
+      : 0;
+
+    const statusBreakdown = [
+      { key: 'present', label: 'Present', value: present, fill: 'var(--color-present)' },
+      { key: 'late', label: 'Late', value: late, fill: 'var(--color-late)' },
+      { key: 'absent', label: 'Absent', value: absent, fill: 'var(--color-absent)' },
+      { key: 'halfDay', label: 'Half-day', value: halfDay, fill: 'var(--color-halfDay)' },
+    ];
+
+    const trendMap = new Map<
+      string,
+      { date: string; present: number; late: number; absent: number }
+    >();
+    records.forEach((record) => {
+      const key = formatCompactDate(record.date);
+      const existing = trendMap.get(key) ?? { date: key, present: 0, late: 0, absent: 0 };
+      if (record.status === 'Present') existing.present += 1;
+      if (record.status === 'Late') existing.late += 1;
+      if (record.status === 'Absent') existing.absent += 1;
+      trendMap.set(key, existing);
+    });
+    const trendData = Array.from(trendMap.values()).slice(-7);
+
+    const departmentMap = new Map<
+      string,
+      { department: string; present: number; late: number; absent: number }
+    >();
+    records.forEach((record) => {
+      const departmentName = record.department?.trim() || 'Unassigned';
+      const existing = departmentMap.get(departmentName) ?? {
+        department: departmentName,
+        present: 0,
+        late: 0,
+        absent: 0,
+      };
+      if (record.status === 'Present') existing.present += 1;
+      if (record.status === 'Late') existing.late += 1;
+      if (record.status === 'Absent') existing.absent += 1;
+      departmentMap.set(departmentName, existing);
+    });
+    const departmentData = Array.from(departmentMap.values())
+      .sort(
+        (left, right) =>
+          right.present + right.late + right.absent - (left.present + left.late + left.absent),
+      )
+      .slice(0, 6);
+
+    const shiftMap = new Map<string, number>();
+    records.forEach((record) => {
+      (record.sessions ?? []).forEach((session) => {
+        const shiftName = session.shiftName?.trim() || 'Unknown shift';
+        shiftMap.set(shiftName, (shiftMap.get(shiftName) ?? 0) + 1);
+      });
+    });
+    const shiftData = Array.from(shiftMap.entries())
+      .map(([shift, sessions]) => ({ shift, sessions }))
+      .sort((left, right) => right.sessions - left.sessions)
+      .slice(0, 5);
+
+    const riskiestDepartment =
+      departmentData.length > 0
+        ? [...departmentData].sort((left, right) => right.late - left.late)[0]
+        : null;
+
+    return {
+      total,
+      attendanceRate,
+      punctualityRate,
+      averageWorkMinutes,
+      averageLateMinutes,
+      statusBreakdown,
+      trendData,
+      departmentData,
+      shiftData,
+      riskiestDepartment,
+    };
+  }, [records]);
+
+  if (isLoading || error) {
+    return (
+      <div className="grid gap-5 xl:grid-cols-2">
+        <Card className="border-slate-200 shadow-sm">
+          <CardContent className="p-6">
+            <Skeleton className="h-6 w-40" />
+            <Skeleton className="mt-4 h-[280px] w-full" />
+          </CardContent>
+        </Card>
+        <Card className="border-slate-200 shadow-sm">
+          <CardContent className="p-6">
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="mt-4 h-[280px] w-full" />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="grid gap-4 xl:grid-cols-[1.2fr_repeat(3,0.8fr)]">
+        <Card className="overflow-hidden border-0 bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.22),_transparent_35%),linear-gradient(135deg,#0f172a_0%,#111827_50%,#0f3d3e_100%)] text-white shadow-xl">
+          <CardContent className="p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <Badge className="border-0 bg-white/12 text-white hover:bg-white/12">
+                  Attendance Summary
+                </Badge>
+                <h2 className="mt-4 text-3xl font-semibold tracking-tight">
+                  Attendance health at a glance
+                </h2>
+                <p className="mt-2 max-w-xl text-sm leading-6 text-white/75">
+                  This dashboard highlights attendance coverage, punctuality, working-hour patterns,
+                  department pressure, and shift activity so admins can spot issues quickly.
+                </p>
+              </div>
+              <div className="rounded-3xl bg-white/10 p-3">
+                <TrendingUp className="h-6 w-6" />
+              </div>
+            </div>
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              <HeroMetric label="Records in view" value={insights.total} />
+              <HeroMetric label="Attendance rate" value={`${insights.attendanceRate}%`} />
+              <HeroMetric label="Punctuality" value={`${insights.punctualityRate}%`} />
+            </div>
+          </CardContent>
+        </Card>
+
+        <SummaryKpiCard
+          icon={UserCheck}
+          title="Attendance Rate"
+          value={`${insights.attendanceRate}%`}
+          helper="Present, late, and half-day combined"
+          tone="bg-emerald-50 text-emerald-700"
+        />
+        <SummaryKpiCard
+          icon={TimerReset}
+          title="Average Late Time"
+          value={formatMinutes(insights.averageLateMinutes)}
+          helper="Average delay among late records"
+          tone="bg-amber-50 text-amber-700"
+        />
+        <SummaryKpiCard
+          icon={Activity}
+          title="Average Work Time"
+          value={formatHoursFromMinutes(insights.averageWorkMinutes)}
+          helper="Average worked duration per record"
+          tone="bg-cyan-50 text-cyan-700"
+        />
+      </div>
+
+      <div className="grid gap-5 xl:grid-cols-[0.95fr_1.25fr]">
+        <Card className="border-slate-200 shadow-sm">
+          <CardHeader>
+            <CardTitle>Status Breakdown</CardTitle>
+            <CardDescription>
+              See the current mix of present, late, absent, and half-day records.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer
+              config={attendanceStatusChartConfig}
+              className="mx-auto h-[320px] w-full max-w-[340px]"
+            >
+              <PieChart>
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent hideLabel nameKey="key" />}
+                />
+                <Pie
+                  data={insights.statusBreakdown}
+                  dataKey="value"
+                  nameKey="key"
+                  innerRadius={78}
+                  outerRadius={118}
+                  paddingAngle={4}
+                  strokeWidth={0}
+                >
+                  {insights.statusBreakdown.map((entry) => (
+                    <Cell key={entry.key} fill={entry.fill} />
+                  ))}
+                </Pie>
+                <ChartLegend
+                  content={<ChartLegendContent nameKey="key" className="flex-wrap gap-3" />}
+                />
+              </PieChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        <Card className="border-slate-200 shadow-sm">
+          <CardHeader>
+            <CardTitle>Attendance Trend</CardTitle>
+            <CardDescription>
+              Track how presence, lateness, and absence move across recent attendance dates.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {insights.trendData.length > 0 ? (
+              <ChartContainer config={attendanceTrendChartConfig} className="h-[320px] w-full">
+                <AreaChart data={insights.trendData} margin={{ left: 12, right: 12, top: 10 }}>
+                  <CartesianGrid vertical={false} />
+                  <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
+                  <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
+                  <Area
+                    type="monotone"
+                    dataKey="present"
+                    stackId="attendance"
+                    fill="var(--color-present)"
+                    fillOpacity={0.25}
+                    stroke="var(--color-present)"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="late"
+                    stackId="attendance"
+                    fill="var(--color-late)"
+                    fillOpacity={0.25}
+                    stroke="var(--color-late)"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="absent"
+                    stackId="attendance"
+                    fill="var(--color-absent)"
+                    fillOpacity={0.18}
+                    stroke="var(--color-absent)"
+                  />
+                </AreaChart>
+              </ChartContainer>
+            ) : (
+              <EmptyChartState message="Not enough attendance dates are available to build a trend chart yet." />
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
+        <Card className="border-slate-200 shadow-sm">
+          <CardHeader>
+            <CardTitle>Department Attendance Mix</CardTitle>
+            <CardDescription>
+              Identify which departments carry the heaviest attendance load and late pressure.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {insights.departmentData.length > 0 ? (
+              <ChartContainer config={departmentAttendanceChartConfig} className="h-[340px] w-full">
+                <BarChart
+                  accessibilityLayer
+                  data={insights.departmentData}
+                  margin={{ left: 0, right: 12, top: 8 }}
+                >
+                  <CartesianGrid vertical={false} />
+                  <XAxis
+                    dataKey="department"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={10}
+                    interval={0}
+                    angle={insights.departmentData.length > 3 ? -10 : 0}
+                    textAnchor={insights.departmentData.length > 3 ? 'end' : 'middle'}
+                    height={56}
+                  />
+                  <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
+                  <Bar
+                    dataKey="present"
+                    stackId="dept"
+                    fill="var(--color-present)"
+                    radius={[8, 8, 0, 0]}
+                  />
+                  <Bar dataKey="late" stackId="dept" fill="var(--color-late)" />
+                  <Bar dataKey="absent" stackId="dept" fill="var(--color-absent)" />
+                </BarChart>
+              </ChartContainer>
+            ) : (
+              <EmptyChartState message="Department-level attendance data is not available yet." />
+            )}
+          </CardContent>
+        </Card>
+
+        <div className="space-y-5">
+          <Card className="border-slate-200 shadow-sm">
+            <CardHeader>
+              <CardTitle>Top Shift Activity</CardTitle>
+              <CardDescription>
+                See which shifts are generating the most attendance sessions.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {insights.shiftData.length > 0 ? (
+                <ChartContainer config={shiftActivityChartConfig} className="h-[260px] w-full">
+                  <BarChart
+                    accessibilityLayer
+                    data={insights.shiftData}
+                    layout="vertical"
+                    margin={{ left: 12, right: 10 }}
+                  >
+                    <CartesianGrid horizontal={false} />
+                    <YAxis
+                      type="category"
+                      dataKey="shift"
+                      tickLine={false}
+                      axisLine={false}
+                      width={110}
+                    />
+                    <XAxis type="number" hide />
+                    <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
+                    <Bar dataKey="sessions" fill="var(--color-sessions)" radius={[0, 8, 8, 0]} />
+                  </BarChart>
+                </ChartContainer>
+              ) : (
+                <EmptyChartState message="Shift session activity is not available yet." compact />
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200 shadow-sm">
+            <CardHeader>
+              <CardTitle>Admin Focus</CardTitle>
+              <CardDescription>Quick context on what may need attention right now.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <InsightRow
+                icon={Building2}
+                title="Highest late volume"
+                value={
+                  insights.riskiestDepartment
+                    ? `${insights.riskiestDepartment.department} (${insights.riskiestDepartment.late})`
+                    : 'No late records'
+                }
+              />
+              <InsightRow
+                icon={Clock}
+                title="Average late time"
+                value={formatMinutes(insights.averageLateMinutes)}
+              />
+              <InsightRow
+                icon={Users}
+                title="Records analyzed"
+                value={`${insights.total} attendance entries`}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AttendanceModal({
   open,
   onOpenChange,
@@ -518,6 +958,80 @@ function AttendanceDetailsDialog({
   );
 }
 
+function HeroMetric({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
+      <p className="text-xs uppercase tracking-[0.18em] text-white/65">{label}</p>
+      <p className="mt-3 text-3xl font-semibold text-white">{value}</p>
+    </div>
+  );
+}
+
+function SummaryKpiCard({
+  icon: Icon,
+  title,
+  value,
+  helper,
+  tone,
+}: {
+  icon: typeof Users;
+  title: string;
+  value: string;
+  helper: string;
+  tone: string;
+}) {
+  return (
+    <Card className="border-slate-200 shadow-sm">
+      <CardContent className="p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm text-muted-foreground">{title}</p>
+            <p className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">{value}</p>
+            <p className="mt-2 text-xs text-muted-foreground">{helper}</p>
+          </div>
+          <div className={`rounded-2xl p-2.5 ${tone}`}>
+            <Icon className="h-4 w-4" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function InsightRow({
+  icon: Icon,
+  title,
+  value,
+}: {
+  icon: typeof Users;
+  title: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-start gap-3 rounded-2xl border bg-slate-50/80 p-4">
+      <div className="rounded-xl bg-white p-2 text-slate-700 shadow-sm">
+        <Icon className="h-4 w-4" />
+      </div>
+      <div>
+        <p className="text-sm font-medium text-slate-900">{title}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+function EmptyChartState({ message, compact = false }: { message: string; compact?: boolean }) {
+  return (
+    <div
+      className={`rounded-2xl border border-dashed bg-slate-50/70 text-sm text-muted-foreground ${
+        compact ? 'p-4' : 'p-6'
+      }`}
+    >
+      {message}
+    </div>
+  );
+}
+
 export default function AttendancePage() {
   // State
   const [search, setSearch] = useState('');
@@ -534,14 +1048,12 @@ export default function AttendancePage() {
   // Fetch data from API
   const { data: attendanceData, isLoading, error, refetch } = useAttendance({ page, size: 10 });
 
-  console.log('Attendance List: ', { data: attendanceData });
-
   // Records from API response
-  const records = attendanceData?.content || [];
+  const records: Attendance[] = attendanceData?.content ?? [];
 
   // Client-side filtered records (for display within current page)
   const filteredRecords = useMemo(() => {
-    return records.filter((r) => {
+    return records.filter((r: Attendance) => {
       const matchSearch =
         !search ||
         r.firstName.toLowerCase().includes(search.toLowerCase()) ||
@@ -573,13 +1085,11 @@ export default function AttendancePage() {
     if (selectedIds.length === filteredRecords.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(filteredRecords.map((r) => r.id));
+      setSelectedIds(filteredRecords.map((r: Attendance) => r.id));
     }
   }
 
   async function handleSubmitAttendance(data: AttendanceFormData) {
-    // Replace with actual API call
-    console.log('Submitting attendance:', data);
     await refetch();
   }
 
@@ -614,17 +1124,6 @@ export default function AttendancePage() {
           </AlertDescription>
         </Alert>
       )}
-
-      {/* Summary Cards */}
-      <SummaryCards
-        data={
-          attendanceData
-            ? { content: records, totalElements: attendanceData.totalElements }
-            : undefined
-        }
-        isLoading={isLoading}
-        error={error}
-      />
 
       {/* Filters & Actions */}
       <div className="rounded-lg border bg-card p-4">
@@ -791,7 +1290,7 @@ export default function AttendancePage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredRecords.map((record) => {
+                {filteredRecords.map((record: Attendance) => {
                   const isLate = record.status === 'Late';
                   return (
                     <TableRow

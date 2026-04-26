@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const officerSchema = z.object({
   id: z.number(),
   user_id: z.number().nullable(),
+  uuid: z.string().nullable().optional(),
   officerCode: z.string(),
   first_name: z.string(),
   last_name: z.string(),
@@ -13,6 +14,17 @@ export const officerSchema = z.object({
   phone: z.string(),
   status: z.string(),
   username: z.string().nullable().optional(),
+  /**
+   * GET /api/v1/officer returns image_url from OfficerResponseDto.
+   * Keep imageUrl aliases optional for older client-side call sites.
+   */
+  imageUrl: z.string().nullable().optional(),
+  image_url: z.string().nullable().optional(),
+  avatar_url: z.string().nullable().optional(),
+  profileImage: z.string().nullable().optional(),
+  profile_image: z.string().nullable().optional(),
+  photoUrl: z.string().nullable().optional(),
+  photo_url: z.string().nullable().optional(),
 });
 
 export const officersResponseSchema = z.array(officerSchema);

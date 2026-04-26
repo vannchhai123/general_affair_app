@@ -8,6 +8,7 @@ import {
   Mail,
   ClipboardCheck,
   FileBarChart,
+  BarChart3,
   Target,
   CalendarOff,
   Clock,
@@ -16,6 +17,7 @@ import {
   ChevronDown,
   QrCode,
   User,
+  Building2,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -46,6 +48,7 @@ const mainNav = [
 ];
 
 const managementNav = [
+  { title: 'នាយកដ្ឋាន និងតួនាទី', href: '/dashboard/organization', icon: Building2 },
   { title: 'បេសកកម្ម', href: '/dashboard/missions', icon: Target },
   { title: 'សំណើសុំឈប់សម្រាក', href: '/dashboard/leave-requests', icon: CalendarOff },
   { title: 'វេនការងារ', href: '/dashboard/shifts', icon: Clock },
@@ -53,6 +56,7 @@ const managementNav = [
 
 const systemNav = [
   { title: 'របាយការណ៍', href: '/dashboard/reports', icon: FileBarChart },
+  { title: 'សង្ខេបវត្តមាន', href: '/dashboard/attendance-summary', icon: BarChart3 },
   { title: 'សិទ្ធិប្រើប្រាស់', href: '/dashboard/permissions', icon: Shield },
 ];
 

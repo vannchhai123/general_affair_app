@@ -1,21 +1,24 @@
 'use client';
 
-import { useState } from 'react';
-import { Plus, Pencil, Trash2, Clock } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import type { ReactNode } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  CalendarRange,
+  Clock3,
+  Eye,
+  Filter,
+  Pencil,
+  Plus,
+  Power,
+  Search,
+  Sparkles,
+  TimerReset,
+  Trash2,
+  Workflow,
+} from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,209 +29,1047 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useShifts } from '@/hooks/shifts/use-shifts';
-import { useCreateShift, useDeleteShift, useUpdateShift } from '@/hooks/shifts/use-shift-mutations';
-import type { Shift } from '@/lib/schemas';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { ShiftAssignmentPlanner } from '@/components/shifts/shift-assignment-planner';
+import { ShiftCalendarView } from '@/components/shifts/shift-calendar-view';
+import { ShiftDetailSheet } from '@/components/shifts/shift-detail-sheet';
+import { ShiftFormSheet } from '@/components/shifts/shift-form-sheet';
+import {
+  useCreateShift,
+  useDeleteShift,
+  useSaveShiftTemplate,
+  useShiftAssignments,
+  useShiftAudit,
+  useShiftDetail,
+  useShiftList,
+  useShiftReferenceData,
+  useToggleShiftStatus,
+  useUpdateShift,
+} from '@/hooks/shifts/use-shift-management';
+import type { Shift, ShiftAssignmentScope, ShiftFormInput } from '@/lib/schemas';
+import {
+  computeShiftDurationMinutes,
+  doDateRangesOverlap,
+  doTimesOverlap,
+  formatMinutesAsDuration,
+  getCheckInWindowLabel,
+  getCheckOutWindowLabel,
+  getLateAfterTime,
+} from '@/lib/shifts/utils';
 
-const emptyForm = { name: '', start_time: '', end_time: '', is_active: true };
+type SessionResponse = {
+  session: {
+    role_name?: string;
+  } | null;
+};
+
+type PendingAction = { type: 'delete'; shift: Shift } | { type: 'deactivate'; shift: Shift } | null;
+
+function buildQueryString(
+  searchParams: URLSearchParams | ReturnType<typeof useSearchParams>,
+  updates: Record<string, string | undefined>,
+) {
+  const next = new URLSearchParams(searchParams);
+  Object.entries(updates).forEach(([key, value]) => {
+    if (!value) next.delete(key);
+    else next.set(key, value);
+  });
+  return next.toString();
+}
 
 export default function ShiftsPage() {
-  const { data: shifts = [] } = useShifts();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const search = searchParams.get('search') ?? '';
+  const status = (searchParams.get('status') as 'all' | 'active' | 'inactive' | null) ?? 'all';
+  const page = Number(searchParams.get('page') ?? '1');
+
+  const [activeTab, setActiveTab] = useState<'list' | 'assignments' | 'calendar'>('list');
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [editingShift, setEditingShift] = useState<Shift | null>(null);
+  const [selectedShiftId, setSelectedShiftId] = useState<number | undefined>();
+  const [pendingAction, setPendingAction] = useState<PendingAction>(null);
+  const [selectedScope, setSelectedScope] = useState<ShiftAssignmentScope>('department');
+  const [selectedScopeId, setSelectedScopeId] = useState<number | undefined>();
+
+  const { data: sessionData } = useQuery<SessionResponse>({
+    queryKey: ['session'],
+    queryFn: async () => {
+      const response = await fetch('/api/auth/session');
+      return response.json();
+    },
+  });
+
+  const canManage = (sessionData?.session?.role_name ?? '').toUpperCase().includes('ADMIN');
+
+  const listQuery = useShiftList({
+    search,
+    status,
+    page: Math.max(page - 1, 0),
+    size: 10,
+  });
+  const referenceQuery = useShiftReferenceData();
+
+  const shifts: Shift[] = listQuery.data?.content ?? [];
+  const selectedShift = shifts.find((shift) => shift.id === selectedShiftId) ?? null;
+
+  const detailQuery = useShiftDetail(selectedShiftId);
+  const auditQuery = useShiftAudit(selectedShiftId);
+  const assignmentsQuery = useShiftAssignments(selectedScope, selectedScopeId);
+
   const createShift = useCreateShift();
   const updateShift = useUpdateShift();
+  const toggleShiftStatus = useToggleShiftStatus();
   const deleteShift = useDeleteShift();
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editItem, setEditItem] = useState<Shift | null>(null);
-  const [form, setForm] = useState(emptyForm);
-  const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [loading, setLoading] = useState(false);
+  const saveTemplate = useSaveShiftTemplate();
+
+  useEffect(() => {
+    if (!selectedShiftId && shifts[0]) {
+      setSelectedShiftId(shifts[0].id);
+    }
+  }, [selectedShiftId, shifts]);
+
+  useEffect(() => {
+    if (!selectedScopeId) {
+      const firstDepartment = referenceQuery.data?.departments[0];
+      if (firstDepartment) {
+        setSelectedScopeId(firstDepartment.id);
+      }
+    }
+  }, [referenceQuery.data?.departments, selectedScopeId]);
+
+  const selectedShiftDetails = detailQuery.data ?? selectedShift;
+  const totalPages = listQuery.data?.totalPages ?? 0;
+
+  const summary = useMemo(() => {
+    const active = shifts.filter((shift) => shift.status === 'active').length;
+    const inactive = shifts.filter((shift) => shift.status === 'inactive').length;
+    const grace = shifts.length
+      ? Math.round(shifts.reduce((total, shift) => total + shift.graceMinutes, 0) / shifts.length)
+      : 0;
+
+    return {
+      total: listQuery.data?.totalElements ?? shifts.length,
+      active,
+      inactive,
+      averageGrace: `${grace} នាទី`,
+    };
+  }, [listQuery.data?.totalElements, shifts]);
+
+  const globalConflicts = useMemo(() => {
+    const conflicts: Array<{ id: string; title: string; message: string }> = [];
+
+    for (let index = 0; index < shifts.length; index += 1) {
+      for (let compareIndex = index + 1; compareIndex < shifts.length; compareIndex += 1) {
+        const current = shifts[index];
+        const next = shifts[compareIndex];
+
+        if (current.status !== 'active' || next.status !== 'active') continue;
+
+        const overlaps =
+          doDateRangesOverlap(
+            current.effectiveFrom,
+            current.effectiveTo,
+            next.effectiveFrom,
+            next.effectiveTo,
+          ) &&
+          doTimesOverlap(
+            {
+              shift_name: current.name,
+              shift_code: current.code,
+              start_time: current.startTime,
+              end_time: current.endTime,
+              cross_midnight: current.crossMidnight,
+              grace_minutes: current.graceMinutes,
+              check_in_open_before_minutes: current.checkInOpenBeforeMinutes,
+              check_out_close_after_minutes: current.checkOutCloseAfterMinutes,
+              status: current.status,
+              effective_from: current.effectiveFrom,
+              effective_to: current.effectiveTo,
+            },
+            {
+              shift_name: next.name,
+              shift_code: next.code,
+              start_time: next.startTime,
+              end_time: next.endTime,
+              cross_midnight: next.crossMidnight,
+              grace_minutes: next.graceMinutes,
+              check_in_open_before_minutes: next.checkInOpenBeforeMinutes,
+              check_out_close_after_minutes: next.checkOutCloseAfterMinutes,
+              status: next.status,
+              effective_from: next.effectiveFrom,
+              effective_to: next.effectiveTo,
+            },
+          );
+
+        if (overlaps) {
+          conflicts.push({
+            id: `${current.id}-${next.id}`,
+            title: 'វេនសកម្មជាន់គ្នា',
+            message: `${current.name} ទាស់គ្នាជាមួយ ${next.name} នៅក្នុងកាលវិភាគសកម្ម។`,
+          });
+        }
+      }
+    }
+
+    return conflicts;
+  }, [shifts]);
+
+  function updateFilters(updates: Record<string, string | undefined>) {
+    const query = buildQueryString(searchParams, updates);
+    router.replace(`/dashboard/shifts${query ? `?${query}` : ''}`);
+  }
 
   function openCreate() {
-    setEditItem(null);
-    setForm(emptyForm);
-    setDialogOpen(true);
+    setEditingShift(null);
+    setEditorOpen(true);
   }
 
   function openEdit(shift: Shift) {
-    setEditItem(shift);
-    setForm({
-      name: shift.name,
-      start_time: shift.start_time?.slice(0, 5) || '',
-      end_time: shift.end_time?.slice(0, 5) || '',
-      is_active: shift.is_active,
-    });
-    setDialogOpen(true);
+    setEditingShift(shift);
+    setEditorOpen(true);
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      if (editItem) {
-        await updateShift.mutateAsync({ id: editItem.id, data: form });
-      } else {
-        await createShift.mutateAsync(form);
-      }
-      setDialogOpen(false);
-    } catch {
-      // handled by mutation toast
-    } finally {
-      setLoading(false);
+  async function handleSaveShift(values: ShiftFormInput) {
+    if (editingShift) {
+      await updateShift.mutateAsync({ id: editingShift.id, input: values });
+    } else {
+      await createShift.mutateAsync(values);
     }
+
+    setEditorOpen(false);
+    setEditingShift(null);
   }
 
-  async function handleDelete() {
-    if (!deleteId) return;
-    await deleteShift.mutateAsync(deleteId);
-    setDeleteId(null);
+  async function confirmAction() {
+    if (!pendingAction) return;
+
+    if (pendingAction.type === 'delete') {
+      await deleteShift.mutateAsync(pendingAction.shift.id);
+    }
+
+    if (pendingAction.type === 'deactivate') {
+      await toggleShiftStatus.mutateAsync({
+        id: pendingAction.shift.id,
+        status: 'inactive',
+      });
+    }
+
+    setPendingAction(null);
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Shifts</h1>
-          <p className="text-muted-foreground">Configure work shifts and schedules</p>
-        </div>
-        <Button onClick={openCreate}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Shift
-        </Button>
-      </div>
+    <div className="space-y-6">
+      <Card className="overflow-hidden border-0 bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.24),_transparent_35%),linear-gradient(135deg,#0f172a_0%,#111827_45%,#0b3b2e_100%)] text-white shadow-xl">
+        <CardContent className="p-0">
+          <div className="grid gap-6 px-6 py-6 lg:grid-cols-[1.45fr_0.9fr] lg:px-8">
+            <div className="space-y-5">
+              <Badge className="w-fit border-0 bg-white/12 px-3 py-1 text-white hover:bg-white/12">
+                ការគ្រប់គ្រងវេន • ការរៀបចំវត្តមានបែប Dynamic
+              </Badge>
 
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {shifts.map((shift: Shift) => (
-          <Card key={shift.id}>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                    <Clock className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">{shift.name}</CardTitle>
-                    <CardDescription>
-                      {shift.start_time?.slice(0, 5)} - {shift.end_time?.slice(0, 5)}
-                    </CardDescription>
-                  </div>
-                </div>
-                <Badge
-                  className={
-                    shift.is_active
-                      ? 'bg-emerald-100 text-emerald-700 border-0'
-                      : 'bg-muted text-muted-foreground border-0'
-                  }
-                >
-                  {shift.is_active ? 'Active' : 'Inactive'}
-                </Badge>
+              <div className="space-y-3">
+                <h1 className="max-w-3xl text-3xl font-semibold tracking-tight sm:text-4xl">
+                  គ្រប់គ្រងវេនការងារបែបទំនើប សម្រាប់លំហូរវត្តមានដែលច្បាស់ និងងាយប្រើ
+                </h1>
+                <p className="max-w-2xl text-sm leading-6 text-white/75">
+                  បង្កើតវេនបែប dynamic, ពិនិត្យច្បាប់វត្តមានជាមុន,
+                  និងគ្រប់គ្រងការចាត់តាំងតាមនាយកដ្ឋាន តួនាទី និងបុគ្គលិក ពីផ្ទាំងតែមួយ។
+                </p>
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <Button size="sm" variant="outline" onClick={() => openEdit(shift)}>
-                  <Pencil className="mr-1 h-3.5 w-3.5" /> Edit
+
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  onClick={openCreate}
+                  disabled={!canManage}
+                  className="bg-white text-slate-950 hover:bg-white/90"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  បង្កើតវេនថ្មី
                 </Button>
                 <Button
-                  size="sm"
                   variant="outline"
-                  className="text-destructive border-destructive/30 hover:bg-destructive/10"
-                  onClick={() => setDeleteId(shift.id)}
+                  disabled={listQuery.isLoading}
+                  onClick={() => listQuery.refetch()}
+                  className="border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white"
                 >
-                  <Trash2 className="mr-1 h-3.5 w-3.5" /> Delete
+                  <Workflow className="mr-2 h-4 w-4" />
+                  ផ្ទុកផ្ទាំងឡើងវិញ
                 </Button>
+                {!canManage ? (
+                  <Badge className="border-0 bg-amber-400/20 px-3 py-1 text-amber-100">
+                    មើលបានតែប៉ុណ្ណោះ
+                  </Badge>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+              <HeroStat
+                icon={Sparkles}
+                label="វេនសកម្ម"
+                value={summary.active}
+                helper="អាចប្រើសម្រាប់វត្តមាន"
+              />
+              <HeroStat
+                icon={TimerReset}
+                label="ពេលអនុគ្រោះមធ្យម"
+                value={summary.averageGrace}
+                helper="កម្រិតយឺតមធ្យម"
+              />
+              <HeroStat
+                icon={CalendarRange}
+                label="បញ្ហាប៉ះទង្គិច"
+                value={globalConflicts.length}
+                helper="ត្រូវការពិនិត្យ"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryCard
+          title="វេនសរុប"
+          value={summary.total}
+          helper="វេនដែលបានកំណត់ក្នុងប្រព័ន្ធ"
+          icon={Workflow}
+          tone="from-slate-600 to-slate-900"
+        />
+        <SummaryCard
+          title="វេនសកម្ម"
+          value={summary.active}
+          helper="អាចប្រើសម្រាប់វត្តមាន"
+          icon={Sparkles}
+          tone="from-emerald-500 to-teal-600"
+        />
+        <SummaryCard
+          title="វេនមិនសកម្ម"
+          value={summary.inactive}
+          helper="ផ្អាកប្រើដោយមិនលុបប្រវត្តិ"
+          icon={Power}
+          tone="from-amber-400 to-orange-500"
+        />
+        <SummaryCard
+          title="ពេលអនុគ្រោះមធ្យម"
+          value={summary.averageGrace}
+          helper="រយៈពេលអត់ទោសយឺត"
+          icon={TimerReset}
+          tone="from-cyan-500 to-blue-600"
+        />
+      </div>
+
+      <div className="space-y-6">
+        <div className="space-y-5">
+          <Card className="border-slate-200 shadow-sm">
+            <CardHeader className="gap-4 border-b bg-slate-50/70">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div className="space-y-1">
+                  <CardTitle className="text-lg">ផ្ទាំងគ្រប់គ្រងវេន</CardTitle>
+                  <CardDescription>
+                    មើលបញ្ជីវេន គ្រប់គ្រងការចាត់តាំង និងប្ដូរទៅកាន់ទិដ្ឋភាពប្រតិទិន
+                    ដោយមិនចាកចេញពីទំព័រ។
+                  </CardDescription>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline" className="bg-background">
+                    {summary.total} total
+                  </Badge>
+                  <Badge variant="outline" className="bg-background">
+                    {summary.active} សកម្ម
+                  </Badge>
+                  <Badge variant="outline" className="bg-background">
+                    {globalConflicts.length} បញ្ហាទំនាស់
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <div className="relative min-w-[240px] flex-1">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      value={search}
+                      onChange={(event) =>
+                        updateFilters({ search: event.target.value || undefined, page: '1' })
+                      }
+                      className="pl-9"
+                      placeholder="ស្វែងរកតាមឈ្មោះវេន ឬកូដ"
+                    />
+                  </div>
+
+                  <Select
+                    value={status}
+                    onValueChange={(value) => updateFilters({ status: value, page: '1' })}
+                  >
+                    <SelectTrigger className="w-full sm:w-[200px]">
+                      <Filter className="mr-2 h-4 w-4 text-muted-foreground" />
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">ស្ថានភាពទាំងអស់</SelectItem>
+                      <SelectItem value="active">សកម្ម</SelectItem>
+                      <SelectItem value="inactive">មិនសកម្ម</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => updateFilters({ search: undefined, status: 'all', page: '1' })}
+                  >
+                    សម្អាតតម្រង
+                  </Button>
+                  <Button onClick={openCreate} disabled={!canManage}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    វេនថ្មី
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="p-5">
+              <Tabs
+                value={activeTab}
+                onValueChange={(value) => setActiveTab(value as typeof activeTab)}
+              >
+                <TabsList>
+                  <TabsTrigger value="list">បញ្ជីវេន</TabsTrigger>
+                  <TabsTrigger value="assignments">ការចាត់តាំង</TabsTrigger>
+                  <TabsTrigger value="calendar">ប្រតិទិន</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="list" className="mt-5">
+                  {listQuery.isLoading ? (
+                    <ShiftTableSkeleton />
+                  ) : listQuery.error ? (
+                    <Alert variant="destructive">
+                      <AlertDescription>
+                        {(listQuery.error as Error).message || 'Failed to load shifts.'}
+                      </AlertDescription>
+                    </Alert>
+                  ) : shifts.length === 0 ? (
+                    <Empty className="rounded-3xl border">
+                      <EmptyHeader>
+                        <EmptyMedia variant="icon">
+                          <Clock3 />
+                        </EmptyMedia>
+                        <EmptyTitle>មិនមានវេនត្រូវនឹងលក្ខខណ្ឌ</EmptyTitle>
+                        <EmptyDescription>
+                          បង្កើតវេន dynamic ដំបូង ដើម្បីគ្រប់គ្រងវត្តមានឱ្យលើសពីវេនព្រឹក
+                          និងរសៀលដែលកំណត់ថេរ។
+                        </EmptyDescription>
+                      </EmptyHeader>
+                      <EmptyContent>
+                        <Button onClick={openCreate} disabled={!canManage}>
+                          <Plus className="mr-2 h-4 w-4" />
+                          បង្កើតវេនថ្មី
+                        </Button>
+                      </EmptyContent>
+                    </Empty>
+                  ) : (
+                    <>
+                      <div className="hidden lg:block">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>ឈ្មោះវេន</TableHead>
+                              <TableHead>ចាប់ផ្តើម</TableHead>
+                              <TableHead>បញ្ចប់</TableHead>
+                              <TableHead>រយៈពេល</TableHead>
+                              <TableHead>ពេលអនុគ្រោះ</TableHead>
+                              <TableHead>យឺតក្រោយ</TableHead>
+                              <TableHead>ស្ថានភាព</TableHead>
+                              <TableHead>កាលបរិច្ឆេទមានប្រសិទ្ធភាព</TableHead>
+                              <TableHead>នាយកដ្ឋាន</TableHead>
+                              <TableHead className="text-right">សកម្មភាព</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {shifts.map((shift) => (
+                              <TableRow key={shift.id}>
+                                <TableCell>
+                                  <div>
+                                    <p className="font-medium">{shift.name}</p>
+                                    <p className="text-xs text-muted-foreground">{shift.code}</p>
+                                  </div>
+                                </TableCell>
+                                <TableCell>{shift.startTime}</TableCell>
+                                <TableCell>{shift.endTime}</TableCell>
+                                <TableCell>
+                                  {formatMinutesAsDuration(
+                                    computeShiftDurationMinutes(
+                                      shift.startTime,
+                                      shift.endTime,
+                                      shift.crossMidnight,
+                                    ),
+                                  )}
+                                </TableCell>
+                                <TableCell>{shift.graceMinutes} នាទី</TableCell>
+                                <TableCell>{getLateAfterTime(shift)}</TableCell>
+                                <TableCell>
+                                  <Badge
+                                    className={
+                                      shift.status === 'active'
+                                        ? 'bg-emerald-100 text-emerald-700'
+                                        : 'bg-slate-100 text-slate-700'
+                                    }
+                                  >
+                                    {getStatusLabel(shift.status)}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="text-sm">
+                                  {shift.effectiveFrom}
+                                  <br />
+                                  <span className="text-xs text-muted-foreground">
+                                    {shift.effectiveTo ?? 'មិនកំណត់ថ្ងៃបញ្ចប់'}
+                                  </span>
+                                </TableCell>
+                                <TableCell>{shift.assignedDepartmentsCount}</TableCell>
+                                <TableCell className="text-right">
+                                  <div className="flex justify-end gap-1">
+                                    <ActionButton
+                                      label="មើល"
+                                      onClick={() => {
+                                        setSelectedShiftId(shift.id);
+                                        setDetailsOpen(true);
+                                      }}
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </ActionButton>
+                                    <ActionButton
+                                      label="កែសម្រួល"
+                                      onClick={() => openEdit(shift)}
+                                      disabled={!canManage}
+                                    >
+                                      <Pencil className="h-4 w-4" />
+                                    </ActionButton>
+                                    <ActionButton
+                                      label={
+                                        shift.status === 'active' ? 'បិទការប្រើ' : 'បើកការប្រើ'
+                                      }
+                                      onClick={() =>
+                                        shift.status === 'active'
+                                          ? setPendingAction({ type: 'deactivate', shift })
+                                          : toggleShiftStatus.mutate({
+                                              id: shift.id,
+                                              status: 'active',
+                                            })
+                                      }
+                                      disabled={!canManage}
+                                    >
+                                      <Power className="h-4 w-4" />
+                                    </ActionButton>
+                                    <ActionButton
+                                      label="លុប"
+                                      onClick={() => setPendingAction({ type: 'delete', shift })}
+                                      disabled={!canManage}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </ActionButton>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+
+                      <div className="grid gap-4 lg:hidden">
+                        {shifts.map((shift) => (
+                          <Card key={shift.id} className="border-slate-200">
+                            <CardContent className="space-y-4 p-4">
+                              <div className="flex items-start justify-between gap-3">
+                                <div>
+                                  <p className="font-medium">{shift.name}</p>
+                                  <p className="text-sm text-muted-foreground">{shift.code}</p>
+                                </div>
+                                <Badge
+                                  className={
+                                    shift.status === 'active'
+                                      ? 'bg-emerald-100 text-emerald-700'
+                                      : 'bg-slate-100 text-slate-700'
+                                  }
+                                >
+                                  {getStatusLabel(shift.status)}
+                                </Badge>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-3 text-sm">
+                                <Info label="ចាប់ផ្តើម" value={shift.startTime} />
+                                <Info label="បញ្ចប់" value={shift.endTime} />
+                                <Info label="ពេលអនុគ្រោះ" value={`${shift.graceMinutes} នាទី`} />
+                                <Info label="យឺតក្រោយ" value={getLateAfterTime(shift)} />
+                              </div>
+
+                              <div className="flex flex-wrap gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSelectedShiftId(shift.id);
+                                    setDetailsOpen(true);
+                                  }}
+                                >
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  មើល
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => openEdit(shift)}
+                                  disabled={!canManage}
+                                >
+                                  <Pencil className="mr-2 h-4 w-4" />
+                                  កែសម្រួល
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+
+                      {totalPages > 1 ? (
+                        <div className="mt-4 flex items-center justify-between border-t pt-4 text-sm">
+                          <p className="text-muted-foreground">
+                            ទំព័រ {page} នៃ {Math.max(totalPages, 1)}
+                          </p>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={page <= 1}
+                              onClick={() => updateFilters({ page: String(page - 1) })}
+                            >
+                              មុន
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={page >= totalPages}
+                              onClick={() => updateFilters({ page: String(page + 1) })}
+                            >
+                              បន្ទាប់
+                            </Button>
+                          </div>
+                        </div>
+                      ) : null}
+                    </>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="assignments" className="mt-5">
+                  <ShiftAssignmentPlanner
+                    shifts={shifts}
+                    references={{
+                      departments: referenceQuery.data?.departments ?? [],
+                      positions: referenceQuery.data?.positions ?? [],
+                      employees: referenceQuery.data?.employees ?? [],
+                    }}
+                    template={assignmentsQuery.data?.[0] ?? null}
+                    loading={saveTemplate.isPending}
+                    readOnly={!canManage}
+                    selectedScope={selectedScope}
+                    selectedScopeId={selectedScopeId}
+                    onScopeChange={(scope, id) => {
+                      setSelectedScope(scope);
+                      setSelectedScopeId(id);
+                    }}
+                    onSave={async (template) => {
+                      await saveTemplate.mutateAsync(template);
+                    }}
+                  />
+                </TabsContent>
+
+                <TabsContent value="calendar" className="mt-5">
+                  <ShiftCalendarView
+                    shifts={shifts}
+                    onQuickAdd={openCreate}
+                    onSelectShift={(shift) => {
+                      setSelectedShiftId(shift.id);
+                      setDetailsOpen(true);
+                    }}
+                  />
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid gap-5 xl:grid-cols-[1.05fr_1.45fr]">
+          <Card className="overflow-hidden border-slate-200 shadow-sm">
+            <CardHeader className="border-b bg-slate-50/80">
+              <CardTitle className="text-base">សកម្មភាពរហ័ស</CardTitle>
+              <CardDescription>
+                ចូលដំណើរការមុខងារសំខាន់ៗបានលឿន និងច្បាស់សម្រាប់ការគ្រប់គ្រងវេន។
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 p-5">
+              <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+                <button
+                  type="button"
+                  onClick={openCreate}
+                  disabled={!canManage}
+                  className="rounded-3xl bg-[linear-gradient(135deg,#0f172a_0%,#111827_45%,#0b3b2e_100%)] p-4 text-left text-white shadow-sm transition hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-2xl bg-white/12 p-2">
+                      <Plus className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="font-medium">បង្កើតវេនថ្មី</p>
+                      <p className="text-sm text-white/70">កំណត់ម៉ោង និងច្បាប់វត្តមានថ្មី</p>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('assignments')}
+                  className="rounded-3xl border bg-white p-4 text-left transition hover:border-slate-300 hover:shadow-sm"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-2xl bg-cyan-50 p-2 text-cyan-700">
+                      <Workflow className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-slate-900">ផ្ទាំងចាត់តាំង</p>
+                      <p className="text-sm text-muted-foreground">
+                        គ្រប់គ្រងវេនតាមផ្នែក តួនាទី និងបុគ្គលិក
+                      </p>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('calendar')}
+                  className="rounded-3xl border bg-white p-4 text-left transition hover:border-slate-300 hover:shadow-sm"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-2xl bg-emerald-50 p-2 text-emerald-700">
+                      <CalendarRange className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-slate-900">ទិដ្ឋភាពប្រតិទិន</p>
+                      <p className="text-sm text-muted-foreground">
+                        មើលការរៀបចំវេនជារូបភាពតាមសប្ដាហ៍ និងខែ
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              </div>
+
+              <div className="grid gap-3 rounded-3xl border bg-slate-50/80 p-4 sm:grid-cols-2">
+                <div className="rounded-2xl bg-white p-4">
+                  <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
+                    ស្ថានភាពគណនី
+                  </p>
+                  <p className="mt-2 text-sm font-medium text-slate-900">
+                    {canManage ? 'អាចកែប្រែ និងគ្រប់គ្រងបាន' : 'មើលបានតែប៉ុណ្ណោះ'}
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {canManage
+                      ? 'អ្នកអាចបង្កើត កែប្រែ បិទបើកស្ថានភាព និងចាត់តាំងវេនបាន។'
+                      : 'សម្រាប់ការកែប្រែ សូមចូលដោយគណនីដែលមានសិទ្ធិ ADMIN។'}
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-white p-4">
+                  <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
+                    ការណែនាំរហ័ស
+                  </p>
+                  <p className="mt-2 text-sm font-medium text-slate-900">លំហូរការងារដែលណែនាំ</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    បង្កើតវេនថ្មី មើលច្បាប់ជាមុន ហើយបន្តទៅផ្ទាំងចាត់តាំង ដើម្បីអនុវត្តជាក់ស្តែង។
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
-        ))}
-        {shifts.length === 0 && (
-          <div className="col-span-full text-center text-muted-foreground py-12">
-            No shifts configured
-          </div>
-        )}
+
+          <Card className="overflow-hidden border-slate-200 shadow-sm">
+            <CardHeader className="border-b bg-slate-50/80">
+              <CardTitle className="text-base">មើលច្បាប់ជាមុន</CardTitle>
+              <CardDescription>
+                មើលសង្ខេបលទ្ធផលវត្តមាន និងពេលវេលាដែលបានអនុវត្តសម្រាប់វេនដែលជ្រើស។
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 p-5">
+              {selectedShiftDetails ? (
+                <>
+                  <div className="rounded-[28px] bg-[linear-gradient(135deg,#0f172a_0%,#111827_50%,#0b3b2e_100%)] p-5 text-white">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm text-white/70">{selectedShiftDetails.code}</p>
+                        <p className="mt-1 text-xl font-semibold">{selectedShiftDetails.name}</p>
+                        <p className="mt-3 text-sm text-white/75">
+                          {selectedShiftDetails.startTime} - {selectedShiftDetails.endTime}
+                        </p>
+                      </div>
+                      <Badge
+                        className={
+                          selectedShiftDetails.status === 'active'
+                            ? 'border-0 bg-emerald-100 text-emerald-700'
+                            : 'border-0 bg-slate-100 text-slate-700'
+                        }
+                      >
+                        {getStatusLabel(selectedShiftDetails.status)}
+                      </Badge>
+                    </div>
+
+                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                      <div className="rounded-2xl bg-white/10 p-3">
+                        <p className="text-xs text-white/60">មានប្រសិទ្ធភាព</p>
+                        <p className="mt-1 text-sm font-medium">
+                          {selectedShiftDetails.effectiveFrom}
+                          {selectedShiftDetails.effectiveTo
+                            ? ` ដល់ ${selectedShiftDetails.effectiveTo}`
+                            : ' តទៅ'}
+                        </p>
+                      </div>
+                      <div className="rounded-2xl bg-white/10 p-3">
+                        <p className="text-xs text-white/60">នាយកដ្ឋាន</p>
+                        <p className="mt-1 text-sm font-medium">
+                          {selectedShiftDetails.assignedDepartmentsCount} កន្លែង
+                        </p>
+                      </div>
+                      <div className="rounded-2xl bg-white/10 p-3">
+                        <p className="text-xs text-white/60">បុគ្គលិក</p>
+                        <p className="mt-1 text-sm font-medium">
+                          {selectedShiftDetails.assignedEmployeesCount} នាក់
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <PreviewMetric
+                      label="ចន្លោះពេលឆែកចូល"
+                      value={getCheckInWindowLabel(selectedShiftDetails)}
+                    />
+                    <PreviewMetric
+                      label="កម្រិតយឺត"
+                      value={getLateAfterTime(selectedShiftDetails)}
+                    />
+                    <PreviewMetric
+                      label="ចន្លោះពេលឆែកចេញ"
+                      value={getCheckOutWindowLabel(selectedShiftDetails)}
+                    />
+                    <PreviewMetric
+                      label="ការឆ្លងថ្ងៃ"
+                      value={
+                        selectedShiftDetails.crossMidnight
+                          ? 'បន្តទៅថ្ងៃបន្ទាប់'
+                          : 'បញ្ចប់ក្នុងថ្ងៃដដែល'
+                      }
+                    />
+                  </div>
+
+                  <div className="grid gap-3 rounded-3xl border bg-slate-50/80 p-4 sm:grid-cols-2">
+                    <div className="rounded-2xl bg-white p-4">
+                      <p className="text-sm font-medium text-slate-900">សង្ខេបវេនដែលបានជ្រើស</p>
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        វេននេះគាំទ្រការចូលវត្តមានតាមម៉ោងដែលបានកំណត់
+                        និងអាចប្រើជាគោលការណ៍សម្រាប់ការចាត់តាំងប្រចាំថ្ងៃ។
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-white p-4">
+                      <p className="text-sm font-medium text-slate-900">ផលប៉ះពាល់បច្ចុប្បន្ន</p>
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        បច្ចុប្បន្នកំពុងភ្ជាប់ទៅនឹង {selectedShiftDetails.assignedDepartmentsCount}{' '}
+                        នាយកដ្ឋាន និង {selectedShiftDetails.assignedEmployeesCount} បុគ្គលិក។
+                      </p>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="rounded-3xl border border-dashed bg-slate-50/70 p-6 text-sm text-muted-foreground">
+                  សូមជ្រើសវេនពីបញ្ជី ឬប្រតិទិន ដើម្បីមើលសេចក្តីសង្ខេបច្បាប់វត្តមាន
+                  និងផលប៉ះពាល់របស់វេននោះ។
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle>{editItem ? 'Edit Shift' : 'New Shift'}</DialogTitle>
-            <DialogDescription>
-              {editItem ? 'Update shift configuration' : 'Add a new work shift'}
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="shift-name">Shift Name</Label>
-              <Input
-                id="shift-name"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                required
-                placeholder="e.g. Morning"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="start-time">Start Time</Label>
-                <Input
-                  id="start-time"
-                  type="time"
-                  value={form.start_time}
-                  onChange={(e) => setForm({ ...form, start_time: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="end-time">End Time</Label>
-                <Input
-                  id="end-time"
-                  type="time"
-                  value={form.end_time}
-                  onChange={(e) => setForm({ ...form, end_time: e.target.value })}
-                  required
-                />
-              </div>
-            </div>
-            <div className="flex items-center justify-between rounded-lg border p-3">
-              <Label htmlFor="is-active" className="text-sm">
-                Active
-              </Label>
-              <Switch
-                id="is-active"
-                checked={form.is_active}
-                onCheckedChange={(v) => setForm({ ...form, is_active: v })}
-              />
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={loading}>
-                {loading ? 'Saving...' : editItem ? 'Update' : 'Create'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <ShiftFormSheet
+        open={editorOpen}
+        onOpenChange={setEditorOpen}
+        shift={editingShift}
+        shifts={shifts}
+        readOnly={!canManage}
+        onSubmit={handleSaveShift}
+      />
 
-      <AlertDialog open={deleteId !== null} onOpenChange={() => setDeleteId(null)}>
+      <ShiftDetailSheet
+        open={detailsOpen}
+        onOpenChange={setDetailsOpen}
+        shift={selectedShiftDetails ?? null}
+        audit={auditQuery.data ?? []}
+      />
+
+      <AlertDialog open={!!pendingAction} onOpenChange={(open) => !open && setPendingAction(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Shift</AlertDialogTitle>
+            <AlertDialogTitle>
+              {pendingAction?.type === 'delete' ? 'លុបវេនមែនទេ?' : 'បិទវេនមែនទេ?'}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this shift?
+              {pendingAction?.type === 'delete'
+                ? `វានឹងលុប ${pendingAction.shift.name} ចេញពីម៉ូឌុលគ្រប់គ្រង។`
+                : `វានឹងបញ្ឈប់ការប្រើ ${pendingAction?.shift.name} សម្រាប់កាលវិភាគវត្តមានសកម្ម។`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
+            <AlertDialogCancel>បោះបង់</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmAction}>យល់ព្រម</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+function SummaryCard({
+  title,
+  value,
+  helper,
+  icon: Icon,
+  tone,
+}: {
+  title: string;
+  value: string | number;
+  helper: string;
+  icon: typeof Workflow;
+  tone: string;
+}) {
+  return (
+    <Card className="overflow-hidden border-slate-200 shadow-sm">
+      <CardContent className="p-0">
+        <div className={`h-1 w-full bg-gradient-to-r ${tone}`} />
+        <div className="flex items-start justify-between gap-3 p-5">
+          <div>
+            <p className="text-sm text-muted-foreground">{title}</p>
+            <p className="mt-2 text-3xl font-semibold tracking-tight">{value}</p>
+            <p className="mt-2 text-xs text-muted-foreground">{helper}</p>
+          </div>
+          <div className={`rounded-2xl bg-gradient-to-br p-3 text-white shadow-sm ${tone}`}>
+            <Icon className="h-5 w-5" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function HeroStat({
+  icon: Icon,
+  label,
+  value,
+  helper,
+}: {
+  icon: typeof Sparkles;
+  label: string;
+  value: string | number;
+  helper: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
+      <div className="flex items-center gap-2 text-white/70">
+        <Icon className="h-4 w-4" />
+        <p className="text-xs uppercase tracking-[0.18em]">{label}</p>
+      </div>
+      <p className="mt-3 text-3xl font-semibold">{value}</p>
+      <p className="mt-1 text-sm text-white/65">{helper}</p>
+    </div>
+  );
+}
+
+function getStatusLabel(status: 'active' | 'inactive') {
+  return status === 'active' ? 'សកម្ម' : 'មិនសកម្ម';
+}
+
+function PreviewMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border bg-slate-50/80 p-4">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="mt-1 text-sm font-medium">{value}</p>
+    </div>
+  );
+}
+
+function Info({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border bg-slate-50/80 p-3">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="mt-1 font-medium">{value}</p>
+    </div>
+  );
+}
+
+function ActionButton({
+  label,
+  onClick,
+  disabled,
+  children,
+}: {
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <Button aria-label={label} disabled={disabled} onClick={onClick} size="icon" variant="ghost">
+      {children}
+    </Button>
+  );
+}
+
+function ShiftTableSkeleton() {
+  return (
+    <div className="space-y-3">
+      {Array.from({ length: 5 }).map((_, index) => (
+        <div key={index} className="grid gap-3 rounded-2xl border p-4 md:grid-cols-6">
+          <Skeleton className="h-5 w-32" />
+          <Skeleton className="h-5 w-20" />
+          <Skeleton className="h-5 w-20" />
+          <Skeleton className="h-5 w-16" />
+          <Skeleton className="h-5 w-24" />
+          <Skeleton className="h-5 w-20" />
+        </div>
+      ))}
     </div>
   );
 }

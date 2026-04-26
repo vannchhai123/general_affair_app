@@ -9,3 +9,4 @@ export * from './leave';
 export * from './shift';
 export * from './dashboard';
 export * from './report';
+export * from './organization';

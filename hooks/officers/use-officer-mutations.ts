@@ -16,7 +16,7 @@ export function useCreateOfficer() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.officers.all });
-      toast.success('Officer created successfully');
+      toast.success('បានបង្កើតមន្ត្រីដោយជោគជ័យ');
     },
     onError: (error: ApiError) => {
       toast.error(error.message);
@@ -35,7 +35,7 @@ export function useUpdateOfficer() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.officers.all });
-      toast.success('Officer updated successfully');
+      toast.success('បានកែប្រែព័ត៌មានមន្ត្រីដោយជោគជ័យ');
     },
     onError: (error: ApiError) => {
       toast.error(error.message);
@@ -53,7 +53,7 @@ export function useDeleteOfficer() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.officers.all });
-      toast.success('Officer deleted successfully');
+      toast.success('បានលុបមន្ត្រីដោយជោគជ័យ');
     },
     onError: (error: ApiError) => {
       toast.error(error.message);
@@ -90,7 +90,7 @@ export function useUploadOfficerImage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.officers.all });
-      toast.success('Officer image uploaded successfully');
+      toast.success('បានបង្ហោះរូបភាពមន្ត្រីដោយជោគជ័យ');
     },
     onError: (error: ApiError) => {
       toast.error(error.message);

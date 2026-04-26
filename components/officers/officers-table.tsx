@@ -2,6 +2,7 @@ import { MoreHorizontal, Pencil, Trash2, Eye, Phone, Upload } from 'lucide-react
 import { Button } from '../ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { StatusBadge } from './status-badge';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,11 +14,34 @@ import { Officer } from '@/lib/schemas';
 
 interface OfficersTableProps {
   officers?: Officer[];
+  onView?: (officer: Officer) => void;
   onEdit?: (officer: Officer) => void;
   onDelete?: (officer: Officer) => void;
   onUploadImage?: (officer: Officer) => void;
   isLoading?: boolean;
   totalOfficer?: number;
+}
+
+function getOfficerImageUrl(officer: Officer) {
+  return (
+    officer.image_url ||
+    officer.imageUrl ||
+    officer.avatar_url ||
+    officer.profileImage ||
+    officer.profile_image ||
+    officer.photoUrl ||
+    officer.photo_url ||
+    undefined
+  );
+}
+
+function getOfficerInitials(officer: Officer) {
+  const initials = [officer.first_name, officer.last_name]
+    .filter(Boolean)
+    .map((name) => name[0])
+    .join('');
+
+  return initials || 'ម';
 }
 
 function TableSkeleton() {
@@ -30,6 +54,9 @@ function TableSkeleton() {
           </TableCell>
           <TableCell className="px-4 py-2">
             <Skeleton className="h-4 w-20" />
+          </TableCell>
+          <TableCell className="px-4 py-2">
+            <Skeleton className="h-9 w-9 rounded-full" />
           </TableCell>
           <TableCell className="px-4 py-2">
             <Skeleton className="h-4 w-20" />
@@ -54,6 +81,7 @@ function TableSkeleton() {
 
 export function OfficersTable({
   officers,
+  onView,
   onEdit,
   onDelete,
   onUploadImage,
@@ -78,6 +106,7 @@ export function OfficersTable({
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             <TableHead className="px-4 py-2">កូដមន្ត្រី</TableHead>
+            <TableHead className="px-4 py-2">រូបភាព</TableHead>
             <TableHead className="px-4 py-2">នាមខ្លួន</TableHead>
             <TableHead className="px-4 py-2">នាមត្រកូល</TableHead>
             <TableHead className="px-4 py-2">តួនាទី</TableHead>
@@ -96,6 +125,18 @@ export function OfficersTable({
               <TableRow key={o.id}>
                 <TableCell className="px-4 py-2 font-mono text-sm text-muted-foreground">
                   {o.officerCode || '—'}
+                </TableCell>
+                <TableCell className="px-4 py-2">
+                  <Avatar className="h-9 w-9 border bg-slate-50">
+                    <AvatarImage
+                      src={getOfficerImageUrl(o)}
+                      alt={`${o.first_name} ${o.last_name}`}
+                      className="object-cover"
+                    />
+                    <AvatarFallback className="text-xs font-semibold text-slate-700">
+                      {getOfficerInitials(o)}
+                    </AvatarFallback>
+                  </Avatar>
                 </TableCell>
                 <TableCell className="px-4 py-2 font-medium">{o.first_name}</TableCell>
                 <TableCell className="px-4 py-2 font-medium">{o.last_name}</TableCell>
@@ -121,9 +162,13 @@ export function OfficersTable({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="center">
+                      <DropdownMenuItem onClick={() => onView?.(o)}>
+                        <Eye className="mr-2 h-4 w-4" />
+                        មើលព័ត៌មាន
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => onUploadImage?.(o)}>
                         <Upload className="mr-2 h-4 w-4" />
-                        Upload Image
+                        បង្ហោះរូបភាព
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => onEdit?.(o)}>
                         <Pencil className="mr-2 h-4 w-4" />

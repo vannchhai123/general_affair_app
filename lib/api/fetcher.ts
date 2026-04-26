@@ -1,10 +1,14 @@
 import { z } from 'zod';
 import { apiFetch } from '@/lib/client';
+import { errorResponseSchema, type ErrorResponse } from '@/lib/schemas';
 import { queryKeys } from './query-keys';
 
 export { queryKeys };
 
-export class ApiError extends Error {
+export class ApiError<TField extends string = string> extends Error {
+  public readonly fieldErrors: Partial<Record<TField, string>>;
+  public readonly response?: ErrorResponse;
+
   constructor(
     message: string,
     public status: number,
@@ -13,6 +17,10 @@ export class ApiError extends Error {
   ) {
     super(message);
     this.name = 'ApiError';
+
+    const parsed = errorResponseSchema.safeParse(data);
+    this.response = parsed.success ? parsed.data : undefined;
+    this.fieldErrors = (this.response?.errors ?? {}) as Partial<Record<TField, string>>;
   }
 }
 
@@ -26,8 +34,14 @@ export async function fetchApi<T, S extends z.ZodType<T>>(
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      const parsedError = errorResponseSchema.safeParse(errorData);
+      const errorMessage = parsedError.success
+        ? parsedError.data.message || parsedError.data.error
+        : (errorData as { message?: string; error?: string }).message ||
+          (errorData as { message?: string; error?: string }).error;
+
       throw new ApiError(
-        (errorData as { error?: string }).error || `API request failed: ${response.statusText}`,
+        errorMessage || `API request failed: ${response.statusText}`,
         response.status,
         response.statusText,
         errorData,

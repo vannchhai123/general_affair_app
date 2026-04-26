@@ -55,11 +55,35 @@ export const queryKeys = {
   shifts: {
     all: ['shifts'] as const,
     lists: () => [...queryKeys.shifts.all, 'list'] as const,
+    list: (filters?: Record<string, string>) => [...queryKeys.shifts.lists(), { filters }] as const,
+    detail: (id: number) => [...queryKeys.shifts.all, 'detail', id] as const,
+    assignments: (scope?: string, id?: number | string) =>
+      [...queryKeys.shifts.all, 'assignments', scope ?? 'all', id ?? 'all'] as const,
+    references: () => [...queryKeys.shifts.all, 'references'] as const,
   },
   dashboard: {
     all: ['dashboard'] as const,
   },
   reports: {
     all: ['reports'] as const,
+  },
+  organization: {
+    all: ['organization'] as const,
+    departments: {
+      all: ['organization', 'departments'] as const,
+      lists: () => [...queryKeys.organization.departments.all, 'list'] as const,
+      list: (filters?: Record<string, string>) =>
+        [...queryKeys.organization.departments.lists(), { filters }] as const,
+      details: () => [...queryKeys.organization.departments.all, 'detail'] as const,
+      detail: (id: number) => [...queryKeys.organization.departments.details(), id] as const,
+    },
+    positions: {
+      all: ['organization', 'positions'] as const,
+      lists: () => [...queryKeys.organization.positions.all, 'list'] as const,
+      list: (filters?: Record<string, string>) =>
+        [...queryKeys.organization.positions.lists(), { filters }] as const,
+      details: () => [...queryKeys.organization.positions.all, 'detail'] as const,
+      detail: (id: number) => [...queryKeys.organization.positions.details(), id] as const,
+    },
   },
 } as const;

@@ -203,6 +203,44 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+## Shift Management Module
+
+The admin Shift Management module is available at `/dashboard/shifts` and is built for dynamic attendance rules rather than fixed morning and afternoon windows.
+
+### Included in the module
+
+- Shift list with search, status filters, URL-persisted state, and responsive table/card layouts
+- Create/edit shift sheet using React Hook Form and Zod validation
+- Weekly assignment planner for department, position, and employee scopes
+- Week/month calendar views with quick-add entry points
+- Detail drawer with audit timeline and attendance rule preview
+- Mock-capable service fallback for `/api/v1/shifts` and `/api/v1/shift-assignments`
+
+### Running the module
+
+```bash
+npm run dev
+```
+
+Open `http://localhost:3000/dashboard/shifts`.
+
+### Optional mock-only mode
+
+If the `/api/v1/shifts` endpoints are not ready yet, set:
+
+```bash
+NEXT_PUBLIC_SHIFT_MOCK_ONLY=true
+```
+
+This forces the module to use the local typed mock adapter backed by browser `localStorage`, so the full UI remains testable.
+
+### Targeted verification
+
+- Type check used during implementation: `node_modules/.bin/tsc --noEmit`
+- Shift logic tests added in `tests/shift-management.test.ts`
+
+Note: the repository still has pre-existing TypeScript errors in `app/dashboard/attendance/page.tsx`, which can block a completely clean full-project `tsc` pass even when the new shift module is valid.
+
 ### Build for Production
 
 ```bash
