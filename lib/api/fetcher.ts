@@ -24,7 +24,7 @@ export class ApiError<TField extends string = string> extends Error {
   }
 }
 
-export async function fetchApi<T, S extends z.ZodType<T>>(
+export async function fetchApi<T, S extends z.ZodType<T, z.ZodTypeDef, any>>(
   url: string,
   schema: S,
   options?: RequestInit,

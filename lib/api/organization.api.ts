@@ -14,10 +14,12 @@ import {
   type DepartmentField,
   type DepartmentFormValues,
   type DepartmentRequest,
+  type DepartmentsListResponse,
   type OrganizationStatus,
   type PositionField,
   type PositionFormValues,
   type PositionRequest,
+  type PositionsListResponse,
 } from '@/lib/schemas';
 
 const ORGANIZATION_BASE = '/organizations';
@@ -118,7 +120,7 @@ export function validatePosition(values: PositionFormValues) {
   return validateWithSchema<PositionRequest, PositionField>(positionRequestSchema, values);
 }
 
-async function organizationFetch<T, S extends z.ZodType<T>>(
+async function organizationFetch<T, S extends z.ZodType<T, z.ZodTypeDef, any>>(
   path: string,
   schema: S,
   options?: RequestInit,
@@ -131,7 +133,7 @@ export const organizationApi = {
   buildPositionListQuery,
   validateDepartment,
   validatePosition,
-  getDepartments(params: DepartmentListParams = {}) {
+  getDepartments(params: DepartmentListParams = {}): Promise<DepartmentsListResponse> {
     return organizationFetch(
       `/department${buildDepartmentListQuery(params)}`,
       departmentsListResponseSchema,
@@ -157,7 +159,7 @@ export const organizationApi = {
       method: 'DELETE',
     });
   },
-  getPositions(params: PositionListParams = {}) {
+  getPositions(params: PositionListParams = {}): Promise<PositionsListResponse> {
     return organizationFetch(
       `/position${buildPositionListQuery(params)}`,
       positionsListResponseSchema,
