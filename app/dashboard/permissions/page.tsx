@@ -18,6 +18,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import { CardNumber } from '@/components/ui/card-number';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PermissionsTable } from '@/components/permissions/permissions-table';
 import OfficersTable from '@/components/permissions/officers-table';
@@ -95,7 +96,7 @@ function SummaryCards({
       {cards.map((c) => (
         <div key={c.label} className={`rounded-lg border p-4 ${c.bg}`}>
           <div className="flex items-center justify-between">
-            <p className={`text-2xl font-bold ${c.color}`}>{c.value}</p>
+            <CardNumber value={c.value} className={`text-2xl font-bold ${c.color}`} />
             <c.icon className={`h-5 w-5 ${c.color}`} />
           </div>
           <p className="mt-1 text-sm text-muted-foreground">{c.label}</p>
@@ -135,7 +136,7 @@ export default function PermissionsPage() {
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Permissions</h1>
+          <h1 className="page-title text-2xl tracking-tight">Permissions</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Manage system permissions and assign them to officers.
           </p>

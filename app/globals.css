@@ -3,6 +3,14 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@font-face {
+  font-family: 'KhmerOSBokor';
+  src: url('/fonts/KhmerOSBokor.ttf') format('truetype');
+  font-display: swap;
+  font-weight: 400;
+  font-style: normal;
+}
+
 :root {
   --background: oklch(0.98 0.002 250);
   --foreground: oklch(0.15 0.01 250);
@@ -122,5 +130,23 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-khmer), sans-serif;
+  }
+}
+
+@layer utilities {
+  .font-khmer-moul-light {
+    font-family: var(--font-khmer-moul-light), var(--font-khmer), sans-serif;
+    font-weight: 400;
+  }
+
+  .page-title {
+    font-family: var(--font-khmer-moul-light), var(--font-khmer), sans-serif;
+    font-weight: 700;
+    color: #3c0366;
+  }
+
+  .font-khmer-bokor {
+    font-family: 'KhmerOSBokor', var(--font-khmer), sans-serif;
+    font-weight: 400;
   }
 }

@@ -5,6 +5,7 @@ import { Check, X, Calendar, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardNumber } from '@/components/ui/card-number';
 import {
   Table,
   TableBody,
@@ -69,14 +70,16 @@ export default function LeaveRequestsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Leave Requests</h1>
+        <h1 className="page-title text-2xl tracking-tight">Leave Requests</h1>
         <p className="text-muted-foreground">Review and approve officer leave requests</p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className="text-base">All Leave Requests</CardTitle>
-          <CardDescription>{`${leaves.length} requests`}</CardDescription>
+          <CardDescription>
+            <CardNumber value={leaves.length} /> requests
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="rounded-lg border">

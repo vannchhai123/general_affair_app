@@ -3,6 +3,7 @@
 import { format } from 'date-fns';
 import { Building2, CalendarDays, Clock3, FileText, MapPin, UserRoundCog } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { CardNumber } from '@/components/ui/card-number';
 import {
   Sheet,
   SheetContent,
@@ -34,7 +35,7 @@ function DetailItem({
         <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
           {label}
         </p>
-        <p className="mt-1 text-sm font-medium text-foreground">{value}</p>
+        <CardNumber value={value} className="mt-1 block text-sm font-medium text-foreground" />
       </div>
     </div>
   );

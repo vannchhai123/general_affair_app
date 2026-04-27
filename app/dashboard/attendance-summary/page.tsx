@@ -13,15 +13,15 @@ export default function AttendanceSummaryPage() {
   const records: Attendance[] = data?.content ?? [];
 
   return (
-    <div className="mx-auto flex min-w-0 w-full max-w-7xl flex-col gap-6 overflow-x-hidden">
+    <div className="flex min-w-0 w-full flex-col gap-6 overflow-x-hidden">
       <div className="flex flex-col gap-4 border-b pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div className="space-y-2">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">សង្ខេបវត្តមាន</h1>
-            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
+            <h1 className="page-title text-2xl tracking-tight">សង្ខេបវត្តមាន</h1>
+            {/* <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
               ផ្ទាំងគ្រប់គ្រងសម្រាប់អ្នកគ្រប់គ្រង ដើម្បីមើលសមត្ថភាពវត្តមាន ការមកទាន់ពេល
               ស្ថានភាពតាមនាយកដ្ឋាន និងសកម្មភាពវេន។
-            </p>
+            </p> */}
           </div>
         </div>
 

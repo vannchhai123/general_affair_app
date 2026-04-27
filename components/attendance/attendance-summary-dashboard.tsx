@@ -4,12 +4,12 @@ import { useMemo } from 'react';
 import { format } from 'date-fns';
 import { Activity, Clock, TimerReset, UserCheck, Users } from 'lucide-react';
 import {
-  Area,
-  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
   Cell,
+  Line,
+  LineChart,
   Pie,
   PieChart,
   XAxis,
@@ -17,6 +17,7 @@ import {
 } from 'recharts';
 import type { Attendance } from '@/lib/schemas';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardNumber } from '@/components/ui/card-number';
 import {
   ChartContainer,
   ChartLegend,
@@ -147,10 +148,11 @@ export function AttendanceSummaryDashboard({
       departmentMap.set(departmentName, existing);
     });
     const departmentData = Array.from(departmentMap.values())
-      .sort(
-        (left, right) =>
-          right.present + right.late + right.absent - (left.present + left.late + left.absent),
-      )
+      .map((department) => ({
+        ...department,
+        total: department.present + department.late + department.absent,
+      }))
+      .sort((left, right) => right.total - left.total)
       .slice(0, 6);
 
     const shiftMap = new Map<string, number>();
@@ -282,35 +284,37 @@ export function AttendanceSummaryDashboard({
                 config={attendanceTrendChartConfig}
                 className="h-[240px] min-w-0 w-full"
               >
-                <AreaChart data={insights.trendData} margin={{ left: 12, right: 12, top: 10 }}>
-                  <CartesianGrid vertical={false} />
+                <LineChart data={insights.trendData} margin={{ left: 12, right: 12, top: 10 }}>
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" />
                   <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
-                  <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
-                  <Area
+                  <YAxis tickLine={false} axisLine={false} width={28} />
+                  <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
+                  <ChartLegend content={<ChartLegendContent className="flex-wrap gap-3" />} />
+                  <Line
                     type="monotone"
                     dataKey="present"
-                    stackId="attendance"
-                    fill="var(--color-present)"
-                    fillOpacity={0.25}
                     stroke="var(--color-present)"
+                    strokeWidth={2.5}
+                    dot={{ r: 3, strokeWidth: 2 }}
+                    activeDot={{ r: 5 }}
                   />
-                  <Area
+                  <Line
                     type="monotone"
                     dataKey="late"
-                    stackId="attendance"
-                    fill="var(--color-late)"
-                    fillOpacity={0.25}
                     stroke="var(--color-late)"
+                    strokeWidth={2.5}
+                    dot={{ r: 3, strokeWidth: 2 }}
+                    activeDot={{ r: 5 }}
                   />
-                  <Area
+                  <Line
                     type="monotone"
                     dataKey="absent"
-                    stackId="attendance"
-                    fill="var(--color-absent)"
-                    fillOpacity={0.18}
                     stroke="var(--color-absent)"
+                    strokeWidth={2.5}
+                    dot={{ r: 3, strokeWidth: 2 }}
+                    activeDot={{ r: 5 }}
                   />
-                </AreaChart>
+                </LineChart>
               </ChartContainer>
             ) : (
               <EmptyChartState message="មិនទាន់មានទិន្នន័យគ្រប់គ្រាន់សម្រាប់បង្កើតក្រាហ្វនិន្នាការនៅឡើយទេ។" />
@@ -329,34 +333,47 @@ export function AttendanceSummaryDashboard({
             {insights.departmentData.length > 0 ? (
               <ChartContainer
                 config={departmentAttendanceChartConfig}
-                className="h-[240px] min-w-0 w-full"
+                className="h-[280px] min-w-0 w-full"
               >
                 <BarChart
                   accessibilityLayer
                   data={insights.departmentData}
-                  margin={{ left: 0, right: 12, top: 8 }}
+                  margin={{ left: 4, right: 12, top: 12, bottom: 8 }}
+                  barCategoryGap="22%"
                 >
-                  <CartesianGrid vertical={false} />
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" />
                   <XAxis
                     dataKey="department"
                     tickLine={false}
                     axisLine={false}
                     tickMargin={10}
                     interval={0}
-                    angle={insights.departmentData.length > 3 ? -10 : 0}
-                    textAnchor={insights.departmentData.length > 3 ? 'end' : 'middle'}
-                    height={56}
+                    minTickGap={6}
+                    tickFormatter={(value: string) =>
+                      value.length > 12 ? `${value.slice(0, 12)}...` : value
+                    }
                   />
-                  <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
+                  <YAxis tickLine={false} axisLine={false} width={28} />
+                  <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
+                  <ChartLegend content={<ChartLegendContent className="flex-wrap gap-3" />} />
                   <Bar
                     dataKey="present"
-                    stackId="dept"
                     fill="var(--color-present)"
-                    maxBarSize={56}
-                    radius={[8, 8, 0, 0]}
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={22}
                   />
-                  <Bar dataKey="late" stackId="dept" fill="var(--color-late)" maxBarSize={56} />
-                  <Bar dataKey="absent" stackId="dept" fill="var(--color-absent)" maxBarSize={56} />
+                  <Bar
+                    dataKey="late"
+                    fill="var(--color-late)"
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={22}
+                  />
+                  <Bar
+                    dataKey="absent"
+                    fill="var(--color-absent)"
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={22}
+                  />
                 </BarChart>
               </ChartContainer>
             ) : (
@@ -423,8 +440,11 @@ function SummaryKpiCard({
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-sm text-muted-foreground">{title}</p>
-            <p className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">{value}</p>
+            <p className="font-khmer-moul-light text-sm text-muted-foreground">{title}</p>
+            <CardNumber
+              value={value}
+              className="mt-2 block text-3xl font-semibold tracking-tight text-slate-950"
+            />
             {/* <p className="mt-2 text-xs text-muted-foreground">{helper}</p> */}
           </div>
           <div className={`rounded-2xl p-2.5 ${tone}`}>

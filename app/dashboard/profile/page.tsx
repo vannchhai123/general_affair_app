@@ -201,13 +201,13 @@ export default function ProfilePage() {
     .toUpperCase();
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+    <div className="flex w-full min-w-0 flex-col gap-6">
       <Card className="overflow-hidden border-0 shadow-md">
         <CardContent className="relative bg-gradient-to-r from-emerald-50 via-cyan-50 to-sky-100 px-6 py-7">
           <div className="absolute inset-y-0 right-0 hidden w-1/3 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.7),transparent_65%)] md:block" />
           <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight">គណនីរបស់ខ្ញុំ</h1>
+              <h1 className="page-title text-2xl tracking-tight">គណនីរបស់ខ្ញុំ</h1>
               <p className="mt-1 text-sm text-slate-600">
                 គ្រប់គ្រងព័ត៌មានគណនី រូបភាព និងពាក្យសម្ងាត់របស់អ្នកគ្រប់គ្រងនៅកន្លែងតែមួយ។
               </p>

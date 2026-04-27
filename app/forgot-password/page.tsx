@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 import { ArrowLeft, Mail, Send, Shield, Sparkles } from 'lucide-react';
 
@@ -14,6 +15,7 @@ const DEFAULT_SUCCESS_MESSAGE =
   'ប្រសិនបើមានគណនីដែលប្រើអ៊ីមែលនេះ សេចក្តីណែនាំសម្រាប់កំណត់ពាក្យសម្ងាត់ឡើងវិញត្រូវបានផ្ញើរួចហើយ។';
 
 export default function ForgotPasswordPage() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -50,8 +52,8 @@ export default function ForgotPasswordPage() {
         throw new Error(data.error || 'Failed to verify email');
       }
 
-      setEmail('');
       setSuccess(data.message || DEFAULT_SUCCESS_MESSAGE);
+      router.push(`/forgot-password/reset?email=${encodeURIComponent(trimmedEmail)}`);
     } catch (error) {
       setSuccess('');
       setError(error instanceof Error ? error.message : 'Failed to verify email');

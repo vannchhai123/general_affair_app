@@ -31,6 +31,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardNumber } from '@/components/ui/card-number';
 import {
   Empty,
   EmptyContent,
@@ -325,7 +326,7 @@ export default function ShiftsPage() {
             <CardHeader className="gap-4 border-b bg-slate-50/70">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div className="space-y-1">
-                  <CardTitle className="text-lg">ផ្ទាំងគ្រប់គ្រងវេន</CardTitle>
+                  <CardTitle className="page-title text-lg">ផ្ទាំងគ្រប់គ្រងវេន</CardTitle>
                 </div>
               </div>
 
@@ -807,7 +808,10 @@ function SummaryCard({
         <div className="flex items-start justify-between gap-3 p-5">
           <div>
             <p className="text-sm text-muted-foreground">{title}</p>
-            <p className="mt-2 text-3xl font-semibold tracking-tight">{value}</p>
+            <CardNumber
+              value={value}
+              className="mt-2 block text-3xl font-semibold tracking-tight"
+            />
             <p className="mt-2 text-xs text-muted-foreground">{helper}</p>
           </div>
           <div className={`rounded-2xl bg-gradient-to-br p-3 text-white shadow-sm ${tone}`}>
@@ -827,7 +831,7 @@ function PreviewMetric({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border bg-slate-50/80 p-4">
       <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 text-sm font-medium">{value}</p>
+      <CardNumber value={value} className="mt-1 block text-sm font-medium" />
     </div>
   );
 }
@@ -836,7 +840,7 @@ function Info({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border bg-slate-50/80 p-3">
       <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 font-medium">{value}</p>
+      <CardNumber value={value} className="mt-1 block font-medium" />
     </div>
   );
 }

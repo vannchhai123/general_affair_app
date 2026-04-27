@@ -2,6 +2,7 @@
 
 import { CalendarRange, CircleCheckBig, CircleDashed, CircleX } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { CardNumber } from '@/components/ui/card-number';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Invitation } from '@/lib/schemas';
 
@@ -69,7 +70,10 @@ export function InvitationStats({
                   </>
                 ) : (
                   <>
-                    <p className="text-3xl font-semibold tracking-tight">{counts[item.key]}</p>
+                    <CardNumber
+                      value={counts[item.key]}
+                      className="block text-3xl font-semibold tracking-tight"
+                    />
                     <p className="mt-1 text-sm text-muted-foreground">{item.label}</p>
                   </>
                 )}

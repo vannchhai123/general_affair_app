@@ -27,6 +27,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardNumber } from '@/components/ui/card-number';
 import {
   Dialog,
   DialogContent,
@@ -140,7 +141,7 @@ function MetricCard({
       <CardContent className="flex items-start justify-between gap-4 p-4">
         <div>
           <p className="text-xs font-medium text-muted-foreground">{title}</p>
-          <p className="mt-2 text-2xl font-semibold">{value}</p>
+          <CardNumber value={value} className="mt-2 block text-2xl font-semibold" />
           <p className="mt-1 text-xs text-muted-foreground">{description}</p>
         </div>
         <div className="rounded-md bg-slate-100 p-2.5 text-slate-700">
@@ -444,18 +445,18 @@ export default function OrganizationPage() {
       : 'មិនអាចផ្ទុកតួនាទីបានទេ។';
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-5">
+    <div className="flex w-full min-w-0 flex-col gap-5">
       <div className="flex flex-col gap-4 border-b pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div className="space-y-2">
-          <Badge variant="outline" className="rounded-md bg-background">
+          {/* <Badge variant="outline" className="rounded-md bg-background">
             ការរៀបចំរចនាសម្ព័ន្ធអង្គភាព
-          </Badge>
+          </Badge> */}
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">នាយកដ្ឋាន និងតួនាទីការងារ</h1>
-            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+            <h1 className="page-title text-2xl tracking-tight">នាយកដ្ឋាន និងតួនាទីការងារ</h1>
+            {/* <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
               គ្រប់គ្រងរចនាសម្ព័ន្ធអង្គភាព ធ្វើឱ្យតួនាទីការងារស្របតាមនាយកដ្ឋាន
               និងរក្សាទិន្នន័យឱ្យសមកាលកម្មជាមួយ API ខាងក្រោយ។
-            </p>
+            </p> */}
           </div>
         </div>
 
@@ -592,7 +593,10 @@ export default function OrganizationPage() {
 
                         <div>
                           <p className="text-xs text-muted-foreground">ចំនួនមន្ត្រី</p>
-                          <p className="mt-1 text-sm font-medium">{department.officerCount}</p>
+                          <CardNumber
+                            value={department.officerCount}
+                            className="mt-1 block text-sm font-medium"
+                          />
                         </div>
 
                         <DropdownMenu>
@@ -685,7 +689,10 @@ export default function OrganizationPage() {
 
                         <div>
                           <p className="text-xs text-muted-foreground">ចំនួនមន្ត្រី</p>
-                          <p className="mt-1 text-sm font-medium">{position.officerCount}</p>
+                          <CardNumber
+                            value={position.officerCount}
+                            className="mt-1 block text-sm font-medium"
+                          />
                         </div>
 
                         <DropdownMenu>
@@ -750,10 +757,6 @@ export default function OrganizationPage() {
                   ? 'កែប្រែតួនាទី'
                   : 'បង្កើតតួនាទី'}
             </DialogTitle>
-            <DialogDescription>
-              សូមបំពេញព័ត៌មានដែលចាំបាច់។ ការត្រួតពិនិត្យនៅផ្នែកខាងមុខត្រូវនឹងលក្ខខណ្ឌរបស់ backend
-              ហើយកំហុសពីម៉ាស៊ីនមេនឹងបង្ហាញនៅជិតវាលទិន្នន័យ។
-            </DialogDescription>
           </DialogHeader>
 
           <div className="min-h-0 flex-1 overflow-y-auto pr-1">
@@ -843,7 +846,6 @@ export default function OrganizationPage() {
                       setDepartmentForm((form) => ({ ...form, description }));
                       setDepartmentErrors((errors) => ({ ...errors, description: undefined }));
                     }}
-                    placeholder="ការពិពណ៌នាជាជម្រើស បញ្ចូលបានរហូតដល់ 500 តួអក្សរ"
                     className={cn(departmentErrors.description && 'border-destructive')}
                   />
                   <FieldError message={departmentErrors.description} />

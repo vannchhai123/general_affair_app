@@ -1,6 +1,7 @@
 'use client';
 
 import type { ComponentType } from 'react';
+import { CardNumber } from '@/components/ui/card-number';
 
 interface SummaryCardProps {
   label: string;
@@ -14,7 +15,7 @@ export function SummaryCard({ label, value, icon: Icon, color, bg }: SummaryCard
   return (
     <div className={`rounded-lg border p-4 ${bg} shadow-sm transition-shadow hover:shadow-md`}>
       <div className="flex items-center justify-between">
-        <p className={`text-2xl font-bold ${color}`}>{value}</p>
+        <CardNumber value={value} className={`text-2xl font-bold ${color}`} />
         <Icon className={`h-5 w-5 ${color}`} />
       </div>
       <p className="mt-1 text-sm text-muted-foreground">{label}</p>

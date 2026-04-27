@@ -3,6 +3,7 @@
 import type { ComponentType } from 'react';
 import { CalendarClock, Clock3, History, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { CardNumber } from '@/components/ui/card-number';
 import {
   Drawer,
   DrawerContent,
@@ -189,7 +190,7 @@ function MetaCard({
         <Icon className="h-4 w-4" />
         <p className="text-xs">{label}</p>
       </div>
-      <p className="mt-2 text-sm font-semibold text-slate-900">{value}</p>
+      <CardNumber value={value} className="mt-2 block text-sm font-semibold text-slate-900" />
     </div>
   );
 }
@@ -198,7 +199,7 @@ function PreviewCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl bg-slate-50 p-4">
       <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 text-sm font-medium">{value}</p>
+      <CardNumber value={value} className="mt-1 block text-sm font-medium" />
     </div>
   );
 }

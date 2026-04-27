@@ -2,7 +2,17 @@
 
 import Cookies from 'js-cookie';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL as string;
+const API_BASE_URL = buildApiBaseUrl(process.env.NEXT_PUBLIC_API_URL as string);
+
+function buildApiBaseUrl(baseUrl: string) {
+  const normalized = baseUrl?.replace(/\/$/, '') ?? '';
+
+  if (normalized.endsWith('/api/v1')) {
+    return normalized;
+  }
+
+  return `${normalized}/api/v1`;
+}
 
 type FetchOptions = RequestInit & {
   retry?: boolean;

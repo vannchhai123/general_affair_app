@@ -60,7 +60,7 @@ export default function ReportsPage() {
     return (
       <div className="flex flex-col gap-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Reports</h1>
+          <h1 className="page-title text-2xl tracking-tight">Reports</h1>
           <p className="text-muted-foreground">Analytics and system reports</p>
         </div>
         <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
@@ -104,7 +104,7 @@ export default function ReportsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Reports</h1>
+        <h1 className="page-title text-2xl tracking-tight">Reports</h1>
         <p className="text-muted-foreground">Analytics and system reports</p>
       </div>
 

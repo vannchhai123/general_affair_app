@@ -140,7 +140,7 @@ export default function QRAttendancePage() {
       {/* Page Title */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">សម័យវត្តមាន QR</h1>
+          <h1 className="page-title text-2xl tracking-tight">សម័យវត្តមាន QR</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             បង្ហាញ QR សុវត្ថិភាពសម្រាប់ឆែកចូល និងឆែកចេញរបស់មន្ត្រី
           </p>

@@ -10,6 +10,18 @@ const khmerFont = localFont({
   display: 'swap',
 });
 
+const khmerMoulLightFont = localFont({
+  src: '../public/fonts/KhmerOSMoulLight.ttf',
+  variable: '--font-khmer-moul-light',
+  display: 'swap',
+});
+
+const khmerBokorFont = localFont({
+  src: '../public/fonts/KhmerOSBokor.ttf',
+  variable: '--font-khmer-bokor',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
   title: 'Officer Management System - Admin',
   description: 'Admin dashboard for officer, attendance, invitation, and report management',
@@ -39,8 +51,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="km">
-      <body className={`${khmerFont.variable} font-sans antialiased`}>
+    <html lang="km" suppressHydrationWarning>
+      <body
+        suppressHydrationWarning
+        className={`${khmerFont.variable} ${khmerMoulLightFont.variable} ${khmerBokorFont.variable} font-sans antialiased`}
+      >
         <QueryProvider>{children}</QueryProvider>
         <Analytics />
       </body>

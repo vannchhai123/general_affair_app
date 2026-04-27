@@ -6,6 +6,7 @@ import { BriefcaseBusiness, Camera, Hash, Mail, Phone, UserRound, Users } from '
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { CardNumber } from '@/components/ui/card-number';
 import {
   Dialog,
   DialogContent,
@@ -99,7 +100,7 @@ function DetailItem({
         <Icon className="h-3.5 w-3.5" />
         <span>{label}</span>
       </div>
-      <p className="mt-2 break-words text-sm font-medium">{value || '-'}</p>
+      <CardNumber value={value || '-'} className="mt-2 block break-words text-sm font-medium" />
     </div>
   );
 }
