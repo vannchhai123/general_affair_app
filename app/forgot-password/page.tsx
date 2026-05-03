@@ -87,8 +87,8 @@ export default function ForgotPasswordPage() {
 
             <Card className="rounded-3xl border shadow-sm">
               <CardContent className="p-5">
-                <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-                  <div className="space-y-2">
+                <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+                  <div className="space-y-4">
                     <Label htmlFor="email">
                       អ៊ីមែល <span className="text-red-500">*</span>
                     </Label>
@@ -112,7 +112,7 @@ export default function ForgotPasswordPage() {
                     className="h-11 w-full rounded-xl text-sm font-semibold shadow-lg"
                     disabled={loading}
                   >
-                    {loading ? 'កំពុងដំណើរការ...' : 'ផ្ញើសំណើកំណត់ពាក្យសម្ងាត់ឡើងវិញ'}
+                    {loading ? 'កំពុងដំណើរការ...' : 'ផ្ញើសំណើ'}
                     {!loading ? <Send className="ml-2 h-4 w-4" /> : null}
                   </Button>
 
@@ -144,16 +144,27 @@ export default function ForgotPasswordPage() {
           <div className="relative z-10 my-10">
             <Card className="mx-auto w-full max-w-xs rounded-3xl border-0 bg-white/95 text-slate-900 shadow-2xl">
               <CardContent className="p-6">
-                <h3 className="page-title text-lg font-semibold text-foreground">
-                  ការស្ដារគណនីដោយសុវត្ថិភាព
-                </h3>
+                <h3 className="page-title text-base text-foreground">ការស្ដារគណនីដោយសុវត្ថិភាព</h3>
 
-                <div className="mt-6 space-y-3 text-sm text-muted-foreground">
-                  <div className="rounded-2xl bg-slate-100 px-4 py-3">1. ផ្ទៀងផ្ទាត់អ៊ីមែល</div>
-                  <div className="rounded-2xl bg-slate-100 px-4 py-3">
-                    2. ទទួលសេចក្តីណែនាំស្ដារគណនី
+                <div className="mt-5 space-y-2.5">
+                  <div className="flex items-center gap-3 rounded-2xl bg-slate-100/90 px-4 py-3 text-sm text-slate-700">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-xs font-semibold text-white">
+                      1
+                    </span>
+                    <span>ផ្ទៀងផ្ទាត់អ៊ីមែល</span>
                   </div>
-                  <div className="rounded-2xl bg-slate-100 px-4 py-3">3. កំណត់ពាក្យសម្ងាត់ថ្មី</div>
+                  <div className="flex items-center gap-3 rounded-2xl bg-slate-100/90 px-4 py-3 text-sm text-slate-700">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-xs font-semibold text-white">
+                      2
+                    </span>
+                    <span>ទទួលសេចក្តីណែនាំស្ដារគណនី</span>
+                  </div>
+                  <div className="flex items-center gap-3 rounded-2xl bg-slate-100/90 px-4 py-3 text-sm text-slate-700">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-xs font-semibold text-white">
+                      3
+                    </span>
+                    <span>កំណត់ពាក្យសម្ងាត់ថ្មី</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>

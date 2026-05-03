@@ -186,19 +186,6 @@ function ResetForgotPasswordForm() {
               noValidate
             >
               <div className="space-y-2">
-                <Label htmlFor="email">អ៊ីមែល</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  className="h-11 rounded-xl"
-                  autoComplete="email"
-                  disabled={loading || otpVerified}
-                />
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="otp">លេខកូដ OTP</Label>
                 <InputOTP
                   id="otp"

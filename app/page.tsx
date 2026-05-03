@@ -1,6 +1,4 @@
 'use client';
-
-import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -206,16 +204,9 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="relative z-10 max-w-sm">
-            <div className="inline-flex rounded-3xl bg-white/12 p-4 backdrop-blur-sm">
-              <Image
-                src="/icon.svg"
-                alt="General Affairs Management System logo"
-                width={56}
-                height={56}
-                className="h-14 w-14"
-                priority
-              />
+          <div className="relative z-10 mx-auto max-w-sm text-center">
+            <div className="inline-flex h-24 w-24 items-center justify-center rounded-[2rem] border border-white/15 bg-white/12 shadow-lg shadow-emerald-950/15 backdrop-blur-sm">
+              <Shield className="h-12 w-12 text-white" />
             </div>
 
             <p className="mt-5 text-xs font-medium uppercase tracking-[0.18em] text-emerald-50/70">
@@ -224,12 +215,8 @@ export default function LoginPage() {
             <h3 className="mt-3 font-khmer-moul-light text-xl leading-[1.55] text-white lg:text-[1.2rem]">
               ប្រព័ន្ធគ្រប់គ្រងរដ្ឋបាល និងការប្រើប្រាស់ក្នុងអង្គភាព
             </h3>
-            <p className="mt-4 text-sm leading-7 text-emerald-50/80">
-              ចូលប្រើបានងាយ សាមញ្ញ និងស្រួលប្រើសម្រាប់ការងារប្រចាំថ្ងៃ។
-            </p>
           </div>
-
-          <div className="relative z-10">
+          <div className="relative z-10 flex justify-center">
             <div className="inline-flex rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white/85 backdrop-blur-sm">
               គ្រប់គ្រងព័ត៌មាន និងប្រតិបត្តិការនៅកន្លែងតែមួយ
             </div>
