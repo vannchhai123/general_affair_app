@@ -67,28 +67,10 @@ export default function ForgotPasswordPage() {
       <div className="mx-auto grid min-h-[calc(100vh-3rem)] max-w-6xl overflow-hidden rounded-3xl border bg-white shadow-2xl md:grid-cols-2">
         <section className="flex items-center justify-center px-6 py-10 md:px-10 lg:px-14">
           <div className="w-full max-w-[380px]">
-            <div className="mb-10 flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg">
-                <Shield className="h-5 w-5" />
-              </div>
-
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
-                  GAMS
-                </p>
-                <h1 className="mt-1 text-sm font-medium text-foreground">
-                  ប្រព័ន្ធគ្រប់គ្រងកិច្ចការទូទៅ
-                </h1>
-              </div>
-            </div>
-
             <div className="mb-8">
-              <h2 className="text-3xl font-semibold tracking-tight text-foreground">
+              <h2 className="page-title text-2xl tracking-tight text-foreground">
                 ភ្លេចពាក្យសម្ងាត់
               </h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                សូមបញ្ចូលអ៊ីមែលរបស់អ្នក ដើម្បីស្នើសុំសេចក្តីណែនាំសម្រាប់កំណត់ពាក្យសម្ងាត់ឡើងវិញ។
-              </p>
             </div>
 
             {error ? (
@@ -162,12 +144,9 @@ export default function ForgotPasswordPage() {
           <div className="relative z-10 my-10">
             <Card className="mx-auto w-full max-w-xs rounded-3xl border-0 bg-white/95 text-slate-900 shadow-2xl">
               <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-foreground">ការស្ដារគណនីដោយសុវត្ថិភាព</h3>
-                <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                  បញ្ចូលអ៊ីមែលរបស់អ្នក
-                  ហើយប្រព័ន្ធនឹងផ្ញើសេចក្តីណែនាំបន្ទាប់សម្រាប់កំណត់ពាក្យសម្ងាត់ឡើងវិញ
-                  ប្រសិនបើមានគណនីនោះ។
-                </p>
+                <h3 className="page-title text-lg font-semibold text-foreground">
+                  ការស្ដារគណនីដោយសុវត្ថិភាព
+                </h3>
 
                 <div className="mt-6 space-y-3 text-sm text-muted-foreground">
                   <div className="rounded-2xl bg-slate-100 px-4 py-3">1. ផ្ទៀងផ្ទាត់អ៊ីមែល</div>
@@ -184,11 +163,9 @@ export default function ForgotPasswordPage() {
             <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/60">
               ប្រព័ន្ធគ្រប់គ្រងកិច្ចការទូទៅ
             </p>
-            <h3 className="text-2xl font-semibold leading-9">សេវាកំណត់ពាក្យសម្ងាត់ឡើងវិញ</h3>
-            <p className="mt-3 text-sm leading-7 text-white/75">
-              ដំណើរការស្ដារគណនីឥឡូវនេះប្រើ endpoint ផ្ទៀងផ្ទាត់អ៊ីមែល
-              មុនពេលផ្ញើសេចក្តីណែនាំទៅអ្នកប្រើប្រាស់។
-            </p>
+            <h3 className="font-khmer-moul-light text-xl font-semibold leading-9">
+              សេវាកំណត់ពាក្យសម្ងាត់ឡើងវិញ
+            </h3>
           </div>
         </section>
       </div>

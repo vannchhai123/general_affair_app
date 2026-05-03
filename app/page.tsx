@@ -1,24 +1,14 @@
 'use client';
 
+import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import {
-  AlertCircle,
-  ArrowRight,
-  Building2,
-  Eye,
-  EyeOff,
-  Phone,
-  Shield,
-  Star,
-  UserRound,
-} from 'lucide-react';
+import { AlertCircle, ArrowRight, Eye, EyeOff, Shield, Star } from 'lucide-react';
 
 import { loginAction } from '@/lib/actions/auth';
 import { setTokens } from '@/lib/client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -102,26 +92,8 @@ export default function LoginPage() {
       <div className="mx-auto grid min-h-[calc(100vh-3rem)] max-w-6xl overflow-hidden rounded-3xl border bg-white shadow-2xl md:grid-cols-2">
         <section className="flex items-center justify-center px-6 py-10 md:px-10 lg:px-14">
           <div className="w-full max-w-[380px]">
-            <div className="mb-10 flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg">
-                <Shield className="h-5 w-5" />
-              </div>
-
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
-                  GAMS
-                </p>
-                <h1 className="mt-1 text-sm font-medium text-foreground">
-                  ប្រព័ន្ធគ្រប់គ្រងកិច្ចការទូទៅ
-                </h1>
-              </div>
-            </div>
-
             <div className="mb-8">
-              <h2 className="text-3xl font-semibold tracking-tight text-foreground">ចូលគណនី</h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                សូមបញ្ចូលព័ត៌មានគណនីរបស់អ្នក ដើម្បីចូលប្រើប្រព័ន្ធ GAMS។
-              </p>
+              <h2 className="page-title text-2xl tracking-tight text-foreground">ចូលគណនី</h2>
             </div>
 
             {error ? (
@@ -139,7 +111,6 @@ export default function LoginPage() {
                 <Input
                   id="username"
                   type="text"
-                  placeholder="សូមបញ្ចូលឈ្មោះអ្នកប្រើប្រាស់"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="h-11 rounded-xl"
@@ -157,7 +128,6 @@ export default function LoginPage() {
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="សូមបញ្ចូលពាក្យសម្ងាត់"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="h-11 rounded-xl pr-11"
@@ -225,71 +195,44 @@ export default function LoginPage() {
         </section>
 
         <section className="relative hidden overflow-hidden bg-gradient-to-br from-emerald-900 via-emerald-700 to-green-500 p-8 text-white md:flex md:flex-col md:justify-between lg:p-10">
-          <div className="absolute -right-16 -top-16 h-72 w-72 rounded-full border border-white/10" />
-          <div className="absolute right-8 top-8 h-44 w-44 rounded-full border border-white/10" />
-          <div className="absolute -bottom-28 -left-20 h-[26rem] w-[26rem] rounded-full border border-white/10" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.12),_transparent_32%)]" />
+          <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
+          <div className="absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-emerald-200/10 blur-3xl" />
 
-          <div className="relative z-10 flex items-center gap-2 text-white/70">
-            <Star className="h-4 w-4" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.16em]">
-              Secure Portal
-            </span>
-          </div>
-
-          <div className="relative z-10 my-10">
-            <Card className="mx-auto w-full max-w-xs rounded-3xl border-0 bg-white/95 text-slate-900 shadow-2xl">
-              <CardContent className="p-4">
-                <div className="mb-4 flex items-center gap-3 border-b pb-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-base font-semibold text-emerald-700">
-                    ស
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold">សុខ ដាណេត</p>
-                    <p className="text-xs text-muted-foreground">អ្នកគ្រប់គ្រងទូទៅ</p>
-                  </div>
-                </div>
-
-                <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  កំពុងសកម្ម
-                </div>
-
-                <div className="space-y-3 text-xs text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4" />
-                    <span>នាយកដ្ឋានរដ្ឋបាល</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4" />
-                    <span>+855 23 000 000</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <UserRound className="h-4 w-4" />
-                    <span>ID: GAM-2024-0042</span>
-                  </div>
-                </div>
-
-                <div className="mt-4 flex items-center justify-end">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
-                    <Shield className="h-5 w-5" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="relative z-10">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-white/90 backdrop-blur-sm">
+              <Star className="h-4 w-4" />
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em]">Welcome</span>
+            </div>
           </div>
 
           <div className="relative z-10 max-w-sm">
-            <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/60">
+            <div className="inline-flex rounded-3xl bg-white/12 p-4 backdrop-blur-sm">
+              <Image
+                src="/icon.svg"
+                alt="General Affairs Management System logo"
+                width={56}
+                height={56}
+                className="h-14 w-14"
+                priority
+              />
+            </div>
+
+            <p className="mt-5 text-xs font-medium uppercase tracking-[0.18em] text-emerald-50/70">
               General Affairs Management System
             </p>
-            <h3 className="text-2xl font-semibold leading-9">
+            <h3 className="mt-3 font-khmer-moul-light text-xl leading-[1.55] text-white lg:text-[1.2rem]">
               ប្រព័ន្ធគ្រប់គ្រងរដ្ឋបាល និងការប្រើប្រាស់ក្នុងអង្គភាព
             </h3>
-            <p className="mt-3 text-sm leading-7 text-white/75">
-              គ្រប់គ្រងព័ត៌មានមន្ត្រី សិទ្ធិ និងប្រតិបត្តិការប្រចាំថ្ងៃ ចំណុចតែមួយ។
+            <p className="mt-4 text-sm leading-7 text-emerald-50/80">
+              ចូលប្រើបានងាយ សាមញ្ញ និងស្រួលប្រើសម្រាប់ការងារប្រចាំថ្ងៃ។
             </p>
+          </div>
+
+          <div className="relative z-10">
+            <div className="inline-flex rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white/85 backdrop-blur-sm">
+              គ្រប់គ្រងព័ត៌មាន និងប្រតិបត្តិការនៅកន្លែងតែមួយ
+            </div>
           </div>
         </section>
       </div>

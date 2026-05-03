@@ -142,7 +142,6 @@ function MetricCard({
         <div>
           <p className="text-xs font-medium text-muted-foreground">{title}</p>
           <CardNumber value={value} className="mt-2 block text-2xl font-semibold" />
-          <p className="mt-1 text-xs text-muted-foreground">{description}</p>
         </div>
         <div className="rounded-md bg-slate-100 p-2.5 text-slate-700">
           <Icon className="h-5 w-5" />

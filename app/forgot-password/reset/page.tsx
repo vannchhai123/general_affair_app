@@ -161,15 +161,9 @@ function ResetForgotPasswordForm() {
         <Card className="w-full max-w-xl rounded-3xl border bg-white shadow-2xl">
           <CardContent className="p-6 md:p-8">
             <div className="mb-8 flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg">
-                <ShieldCheck className="h-5 w-5" />
-              </div>
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
-                  កំណត់ពាក្យសម្ងាត់ឡើងវិញ
-                </p>
-                <h1 className="mt-1 text-2xl font-semibold tracking-tight text-foreground">
-                  {otpVerified ? 'បង្កើតពាក្យសម្ងាត់ថ្មី' : 'បញ្ចូលលេខកូដ OTP ៦ ខ្ទង់'}
+                <h1 className="page-title mt-1 text-xl font-semibold tracking-tight text-foreground">
+                  {otpVerified ? 'បង្កើតពាក្យសម្ងាត់ថ្មី' : 'បញ្ចូលលេខកូដ ៦ ខ្ទង់'}
                 </h1>
               </div>
             </div>
