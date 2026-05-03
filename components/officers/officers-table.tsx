@@ -106,7 +106,6 @@ export function OfficersTable({
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             <TableHead className="px-4 py-2">កូដមន្ត្រី</TableHead>
-            <TableHead className="px-4 py-2">រូបភាព</TableHead>
             <TableHead className="px-4 py-2">នាមខ្លួន</TableHead>
             <TableHead className="px-4 py-2">នាមត្រកូល</TableHead>
             <TableHead className="px-4 py-2">តួនាទី</TableHead>
@@ -125,18 +124,6 @@ export function OfficersTable({
               <TableRow key={o.id}>
                 <TableCell className="px-4 py-2 font-mono text-sm text-muted-foreground">
                   {o.officerCode || '—'}
-                </TableCell>
-                <TableCell className="px-4 py-2">
-                  <Avatar className="h-9 w-9 border bg-slate-50">
-                    <AvatarImage
-                      src={getOfficerImageUrl(o)}
-                      alt={`${o.first_name} ${o.last_name}`}
-                      className="object-cover"
-                    />
-                    <AvatarFallback className="text-xs font-semibold text-slate-700">
-                      {getOfficerInitials(o)}
-                    </AvatarFallback>
-                  </Avatar>
                 </TableCell>
                 <TableCell className="px-4 py-2 font-medium">{o.first_name}</TableCell>
                 <TableCell className="px-4 py-2 font-medium">{o.last_name}</TableCell>

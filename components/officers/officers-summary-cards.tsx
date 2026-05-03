@@ -57,9 +57,12 @@ export function OfficersSummaryCards({ stats, isLoading }: OfficersSummaryCardsP
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         {cards.map((card) => (
-          <Card key={card.label} className="gap-4 overflow-hidden rounded-lg">
+          <Card
+            key={card.label}
+            className="gap-4 overflow-hidden rounded-2xl border bg-white shadow-sm"
+          >
             <CardContent className="p-4">
               <div className="space-y-2">
                 <Skeleton className="h-5 w-12" />
@@ -74,28 +77,26 @@ export function OfficersSummaryCards({ stats, isLoading }: OfficersSummaryCardsP
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
       {cards.map((card) => (
-        <Card key={card.label} className="gap-0 overflow-hidden rounded-lg shadow-none">
+        <Card
+          key={card.label}
+          className="gap-0 overflow-hidden rounded-2xl border bg-white shadow-sm"
+        >
           <CardContent className="p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-xs font-medium text-muted-foreground">{card.label}</p>
+                <p className="font-khmer-moul-light text-[11px] text-muted-foreground">
+                  {card.label}
+                </p>
                 <CardNumber
                   value={card.value}
-                  className={`mt-2 block text-3xl font-semibold tracking-tight ${card.color}`}
+                  className={`mt-2 block text-2xl font-semibold tracking-tight ${card.color}`}
                 />
-                <p className="mt-1 text-xs text-muted-foreground">{card.helper}</p>
               </div>
-              <div className={`rounded-md p-2.5 ${card.iconBg}`}>
-                <card.icon className="h-5 w-5" />
+              <div className={`rounded-xl p-2.5 ${card.iconBg}`}>
+                <card.icon className="h-4.5 w-4.5" />
               </div>
-            </div>
-            <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-slate-100">
-              <div
-                className={`h-full rounded-full ${card.bar}`}
-                style={{ width: `${card.progress}%` }}
-              />
             </div>
           </CardContent>
         </Card>

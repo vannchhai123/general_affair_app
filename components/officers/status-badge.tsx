@@ -1,7 +1,8 @@
 import { Badge } from '@/components/ui/badge';
+import { normalizeOfficerStatus } from '@/lib/officers/page-utils';
 
 export function StatusBadge({ status }: { status: string }) {
-  switch (status) {
+  switch (normalizeOfficerStatus(status)) {
     case 'active':
       return <Badge className="bg-emerald-100 text-emerald-700">សកម្ម</Badge>;
     case 'on_leave':

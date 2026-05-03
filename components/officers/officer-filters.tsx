@@ -1,4 +1,7 @@
 import { Search } from 'lucide-react';
+
+import type { Department } from '@/lib/schemas';
+
 import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
@@ -9,6 +12,7 @@ interface OfficerFiltersProps {
   setDepartment: (value: string) => void;
   status: string;
   setStatus: (value: string) => void;
+  departments?: Department[];
 }
 
 export function OfficerFilters({
@@ -18,6 +22,7 @@ export function OfficerFilters({
   setDepartment,
   status,
   setStatus,
+  departments = [],
 }: OfficerFiltersProps) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -32,14 +37,16 @@ export function OfficerFilters({
       </div>
 
       <Select value={department} onValueChange={setDepartment}>
-        <SelectTrigger className="w-full sm:w-[180px]">
+        <SelectTrigger className="w-full sm:w-[220px]">
           <SelectValue placeholder="នាយកដ្ឋាន" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">នាយកដ្ឋានទាំងអស់</SelectItem>
-          <SelectItem value="Operations">ប្រតិបត្តិការ</SelectItem>
-          <SelectItem value="Security">សន្តិសុខ</SelectItem>
-          <SelectItem value="Administration">រដ្ឋបាល</SelectItem>
+          {departments.map((item) => (
+            <SelectItem key={item.id} value={item.name}>
+              {item.name}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
 

@@ -1,7 +1,7 @@
 import type { Officer } from '@/lib/schemas';
 import type { OfficerFormData } from '@/components/officers/officer-dialog';
 
-export const OFFICERS_PAGE_SIZE = 5;
+export const OFFICERS_PAGE_SIZE = 10;
 export const MAX_OFFICER_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 export const ACCEPTED_OFFICER_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
@@ -23,6 +23,25 @@ export type DepartmentChartItem = {
   department: string;
   officers: number;
 };
+
+export function normalizeOfficerStatus(status?: string | null) {
+  const normalized = status
+    ?.trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_');
+
+  switch (normalized) {
+    case 'active':
+      return 'active';
+    case 'on_leave':
+    case 'leave':
+      return 'on_leave';
+    case 'inactive':
+      return 'inactive';
+    default:
+      return normalized || '';
+  }
+}
 
 export function getOfficerFormData(officer: Officer): OfficerFormData & { id: number } {
   return {

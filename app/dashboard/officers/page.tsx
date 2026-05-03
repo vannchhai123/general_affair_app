@@ -22,15 +22,16 @@ import {
 } from '@/hooks/officers/use-officer-mutations';
 import { useOfficerStats } from '@/hooks/officers/use-officer-stats';
 import { useOfficers } from '@/hooks/officers/use-officers';
+import { useDepartments } from '@/hooks/organization/use-departments';
 import {
   ACCEPTED_OFFICER_IMAGE_TYPES,
   MAX_OFFICER_IMAGE_SIZE_BYTES,
   OFFICERS_PAGE_SIZE,
-  getActiveOfficerFilterCount,
   getDepartmentChartData,
   getOfficerFormData,
   getOfficerPagination,
   getOfficerStatusChartData,
+  normalizeOfficerStatus,
 } from '@/lib/officers/page-utils';
 import type { Officer } from '@/lib/schemas';
 import { Users } from 'lucide-react';
@@ -48,44 +49,64 @@ export default function OfficersPage() {
   const [deleteOfficerData, setDeleteOfficerData] = useState<Officer | null>(null);
 
   const { data: stats, isLoading: statsLoading } = useOfficerStats();
+  const { departments = [] } = useDepartments({ page: 0, size: 100 });
   const {
     officers = [],
-    total = 0,
     mutate,
     isLoading,
     isError,
     error,
   } = useOfficers({
-    search,
-    department: department === 'all' ? undefined : department,
-    status: status === 'all' ? undefined : status,
-    page,
-    pageSize: OFFICERS_PAGE_SIZE,
+    page: 1,
+    pageSize: 1000,
   });
 
   const createOfficer = useCreateOfficer();
   const updateOfficer = useUpdateOfficer();
   const deleteOfficer = useDeleteOfficer();
   const uploadOfficerImage = useUploadOfficerImage();
+  const statusChartData = useMemo(() => getOfficerStatusChartData(stats), [stats]);
+  const filteredOfficers = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase();
 
+    return officers.filter((officer: Officer) => {
+      const matchesSearch =
+        !normalizedSearch ||
+        [
+          officer.first_name,
+          officer.last_name,
+          officer.email,
+          officer.officerCode,
+          officer.phone,
+          officer.position,
+          officer.department,
+        ]
+          .filter((value): value is string => Boolean(value))
+          .some((value: string) => value.toLowerCase().includes(normalizedSearch));
+
+      const matchesDepartment = department === 'all' || officer.department === department;
+      const normalizedStatus = normalizeOfficerStatus(officer.status);
+      const matchesStatus = status === 'all' || normalizedStatus === status;
+
+      return matchesSearch && matchesDepartment && matchesStatus;
+    });
+  }, [department, officers, search, status]);
   const pagination = getOfficerPagination({
     page,
     pageSize: OFFICERS_PAGE_SIZE,
-    total,
+    total: filteredOfficers.length,
   });
-  const activeFilterCount = getActiveOfficerFilterCount({ search, department, status });
-  const statusChartData = useMemo(() => getOfficerStatusChartData(stats), [stats]);
-  const departmentChartData = useMemo(() => getDepartmentChartData(officers), [officers]);
+  const paginatedOfficers = useMemo(() => {
+    const startIndex = (pagination.currentPage - 1) * OFFICERS_PAGE_SIZE;
+    return filteredOfficers.slice(startIndex, startIndex + OFFICERS_PAGE_SIZE);
+  }, [filteredOfficers, pagination.currentPage]);
+  const departmentChartData = useMemo(
+    () => getDepartmentChartData(filteredOfficers),
+    [filteredOfficers],
+  );
 
   function resetPage() {
     setPage(1);
-  }
-
-  function resetFilters() {
-    setSearch('');
-    setDepartment('all');
-    setStatus('all');
-    resetPage();
   }
 
   function handleAdd() {
@@ -173,14 +194,19 @@ export default function OfficersPage() {
       <OfficersSummaryCards stats={stats} isLoading={statsLoading || !stats} />
 
       <div className="flex flex-col gap-5">
+        <OfficersAnalyticsCard
+          statusChartData={statusChartData}
+          departmentChartData={departmentChartData}
+        />
+
         <OfficersDirectoryCard
-          officers={officers}
-          total={total}
+          officers={paginatedOfficers}
+          total={filteredOfficers.length}
           isLoading={isLoading}
           search={search}
           department={department}
           status={status}
-          activeFilterCount={activeFilterCount}
+          departments={departments}
           currentPage={pagination.currentPage}
           totalPages={pagination.totalPages}
           startItem={pagination.startItem}
@@ -197,17 +223,11 @@ export default function OfficersPage() {
             setStatus(value);
             resetPage();
           }}
-          onResetFilters={resetFilters}
           onPageChange={setPage}
           onView={setViewingOfficer}
           onEdit={handleEdit}
           onDelete={setDeleteOfficerData}
           onUploadImage={handleUploadImage}
-        />
-
-        <OfficersAnalyticsCard
-          statusChartData={statusChartData}
-          departmentChartData={departmentChartData}
         />
       </div>
 

@@ -28,7 +28,7 @@ const officerStatusChartConfig = {
 
 const departmentChartConfig = {
   officers: {
-    label: 'ចំនួនមន្ត្រី',
+    label: 'ចំនួនមន្រ្តី',
     color: '#0f766e',
   },
 } satisfies ChartConfig;
@@ -43,16 +43,17 @@ export function OfficersAnalyticsCard({
   departmentChartData,
 }: OfficersAnalyticsCardProps) {
   return (
-    <Card className="overflow-hidden border-slate-200 shadow-sm">
-      <CardHeader className="border-b bg-slate-50/80">
-        <CardTitle className="text-base">ផ្ទាំងវិភាគមន្ត្រី</CardTitle>
-      </CardHeader>
-      <CardContent className="grid gap-5 p-5 xl:grid-cols-2">
-        <div className="rounded-3xl border bg-white p-4">
-          <p className="text-sm font-medium text-slate-900">ស្ថានភាពមន្ត្រី</p>
+    <div className="grid gap-4 xl:grid-cols-[0.92fr_1.08fr]">
+      <Card className="overflow-hidden rounded-2xl border bg-white shadow-sm">
+        <CardHeader className="pb-0">
+          <CardTitle className="font-khmer-moul-light text-sm text-foreground">
+            ស្ថានភាពមន្រ្តី
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-3">
           <ChartContainer
             config={officerStatusChartConfig}
-            className="mx-auto mt-4 h-[300px] w-full max-w-[340px]"
+            className="mx-auto h-[250px] w-full max-w-[300px]"
           >
             <PieChart>
               <ChartTooltip
@@ -63,8 +64,8 @@ export function OfficersAnalyticsCard({
                 data={statusChartData}
                 dataKey="value"
                 nameKey="key"
-                innerRadius={70}
-                outerRadius={106}
+                innerRadius={58}
+                outerRadius={92}
                 paddingAngle={4}
                 strokeWidth={0}
               >
@@ -77,16 +78,22 @@ export function OfficersAnalyticsCard({
               />
             </PieChart>
           </ChartContainer>
-        </div>
+        </CardContent>
+      </Card>
 
-        <div className="rounded-3xl border bg-white p-4">
-          <p className="text-sm font-medium text-slate-900">ការចែកចាយតាមនាយកដ្ឋាន</p>
+      <Card className="overflow-hidden rounded-2xl border bg-white shadow-sm">
+        <CardHeader className="pb-0">
+          <CardTitle className="font-khmer-moul-light text-sm text-foreground">
+            ការចែកចាយតាមនាយកដ្ឋាន
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-3">
           {departmentChartData.length > 0 ? (
-            <ChartContainer config={departmentChartConfig} className="mt-4 h-[320px] w-full">
+            <ChartContainer config={departmentChartConfig} className="h-[250px] w-full">
               <BarChart
                 accessibilityLayer
                 data={departmentChartData}
-                margin={{ left: 10, right: 10, top: 10 }}
+                margin={{ left: 4, right: 4, top: 8, bottom: 0 }}
               >
                 <CartesianGrid vertical={false} />
                 <XAxis
@@ -95,21 +102,21 @@ export function OfficersAnalyticsCard({
                   axisLine={false}
                   tickMargin={10}
                   interval={0}
-                  angle={departmentChartData.length > 3 ? -12 : 0}
+                  angle={departmentChartData.length > 3 ? -10 : 0}
                   textAnchor={departmentChartData.length > 3 ? 'end' : 'middle'}
-                  height={60}
+                  height={56}
                 />
                 <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" />} />
                 <Bar dataKey="officers" fill="var(--color-officers)" radius={[10, 10, 0, 0]} />
               </BarChart>
             </ChartContainer>
           ) : (
-            <div className="mt-4 rounded-2xl border border-dashed bg-slate-50/70 p-5 text-sm text-muted-foreground">
-              មិនទាន់មានទិន្នន័យគ្រប់គ្រាន់សម្រាប់គូសក្រាហ្វតាមនាយកដ្ឋានទេ។
+            <div className="rounded-2xl border border-dashed bg-slate-50/70 p-5 text-sm text-muted-foreground">
+              មិនទាន់មានទិន្នន័យគ្រប់គ្រាន់សម្រាប់បង្ហាញតាមនាយកដ្ឋាន។
             </div>
           )}
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
