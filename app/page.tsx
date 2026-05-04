@@ -1,8 +1,9 @@
 'use client';
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, ArrowRight, Eye, EyeOff, Shield, Star } from 'lucide-react';
+import { AlertCircle, ArrowRight, Eye, EyeOff, Star } from 'lucide-react';
 
 import { loginAction } from '@/lib/actions/auth';
 import { setTokens } from '@/lib/client';
@@ -205,8 +206,15 @@ export default function LoginPage() {
           </div>
 
           <div className="relative z-10 mx-auto max-w-sm text-center">
-            <div className="inline-flex h-24 w-24 items-center justify-center rounded-[2rem] border border-white/15 bg-white/12 shadow-lg shadow-emerald-950/15 backdrop-blur-sm">
-              <Shield className="h-12 w-12 text-white" />
+            <div className="inline-flex items-center justify-center rounded-[2rem] bg-white p-4 shadow-lg shadow-emerald-950/15">
+              <Image
+                src="/images/images.jpg"
+                alt="General Affairs logo"
+                width={120}
+                height={120}
+                className="h-auto w-24 object-contain lg:w-28"
+                priority
+              />
             </div>
 
             <p className="mt-5 text-xs font-medium uppercase tracking-[0.18em] text-emerald-50/70">

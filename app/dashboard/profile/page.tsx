@@ -208,16 +208,7 @@ export default function ProfilePage() {
           <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="page-title text-2xl tracking-tight">គណនីរបស់ខ្ញុំ</h1>
-              <p className="mt-1 text-sm text-slate-600">
-                គ្រប់គ្រងព័ត៌មានគណនី រូបភាព និងពាក្យសម្ងាត់របស់អ្នកគ្រប់គ្រងនៅកន្លែងតែមួយ។
-              </p>
             </div>
-            <Badge
-              variant="secondary"
-              className="w-fit border border-white/70 bg-white/85 text-slate-700"
-            >
-              {profile.role_name}
-            </Badge>
           </div>
         </CardContent>
       </Card>
@@ -226,9 +217,6 @@ export default function ProfilePage() {
         <Card className="h-fit border-slate-200 shadow-sm">
           <CardHeader>
             <CardTitle className="text-base">រូបភាពគណនី</CardTitle>
-            <CardDescription>
-              បង្ហោះរូបភាពថ្មីសម្រាប់បង្ហាញនៅ Sidebar និងគណនីរបស់អ្នក។
-            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="rounded-xl border bg-slate-50 p-3">
@@ -275,9 +263,6 @@ export default function ProfilePage() {
           <Card className="border-slate-200 shadow-sm">
             <CardHeader className="pb-4">
               <CardTitle className="text-base">ព័ត៌មានផ្ទាល់ខ្លួន</CardTitle>
-              <CardDescription>
-                ធ្វើបច្ចុប្បន្នភាពព័ត៌មានគណនីសម្រាប់អ្នកគ្រប់គ្រងនេះ។
-              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid gap-4 sm:grid-cols-3">
@@ -346,7 +331,6 @@ export default function ProfilePage() {
                     type={showCurrentPassword ? 'text' : 'password'}
                     value={currentPassword}
                     onChange={(event) => setCurrentPassword(event.target.value)}
-                    placeholder="សូមបញ្ចូលពាក្យសម្ងាត់បច្ចុប្បន្ន"
                     autoComplete="current-password"
                     className="pr-10"
                   />
@@ -376,7 +360,6 @@ export default function ProfilePage() {
                       type={showNewPassword ? 'text' : 'password'}
                       value={newPassword}
                       onChange={(event) => setNewPassword(event.target.value)}
-                      placeholder="សូមបញ្ចូលពាក្យសម្ងាត់ថ្មី"
                       autoComplete="new-password"
                       className="pr-10"
                     />
@@ -403,7 +386,6 @@ export default function ProfilePage() {
                       type={showConfirmPassword ? 'text' : 'password'}
                       value={confirmPassword}
                       onChange={(event) => setConfirmPassword(event.target.value)}
-                      placeholder="សូមបញ្ជាក់ពាក្យសម្ងាត់ថ្មី"
                       autoComplete="new-password"
                       className="pr-10"
                     />

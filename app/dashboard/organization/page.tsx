@@ -497,9 +497,6 @@ export default function OrganizationPage() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <CardTitle className="text-base">បញ្ជីរចនាសម្ព័ន្ធអង្គភាព</CardTitle>
-              <CardDescription>
-                ស្វែងរក ត្រង បង្កើត កែប្រែ និងលុបនាយកដ្ឋាន ឬតួនាទីការងារ។
-              </CardDescription>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row">
               <div className="relative min-w-0 sm:w-72">
