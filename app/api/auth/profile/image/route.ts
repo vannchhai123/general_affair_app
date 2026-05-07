@@ -36,7 +36,7 @@ export async function POST(request: Request) {
   const avatarUrl = `/uploads/profiles/${filename}`;
   const updatedSession = {
     ...session,
-    avatar_url: avatarUrl,
+    avatarUrl,
   };
 
   await createSession(updatedSession);

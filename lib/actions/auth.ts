@@ -1,6 +1,18 @@
 'use server';
 
-import { createSession, SessionUser } from '@/lib/api/auth';
+import { cookies } from 'next/headers';
+import { createSession } from '@/lib/api/auth';
+import { normalizeSessionUser, type SessionUser } from '@/lib/auth/session';
+
+function buildApiBaseUrl(baseUrl: string) {
+  const normalized = baseUrl?.replace(/\/$/, '') ?? '';
+
+  if (normalized.endsWith('/api/v1')) {
+    return normalized;
+  }
+
+  return `${normalized}/api/v1`;
+}
 
 export async function createUserSession(user: SessionUser) {
   await createSession(user);
@@ -15,8 +27,8 @@ export async function loginAction(formData: FormData) {
   }
 
   try {
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL as string;
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    const apiBaseUrl = buildApiBaseUrl(process.env.NEXT_PUBLIC_API_URL as string);
+    const response = await fetch(`${apiBaseUrl}/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -25,36 +37,45 @@ export async function loginAction(formData: FormData) {
     });
 
     if (!response.ok) {
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       return { error: data.message || 'Login failed' };
     }
 
     const data = await response.json();
-
-    // Create server-side session
-    await createSession({
-      id: data.user?.id || 0,
-      username: username,
-      full_name: data.user?.fullName || username,
-      role_id: data.user?.roleId || 0,
-      role_name: data.user?.role || 'user',
-      avatar_url: data.user?.avatarUrl || data.user?.imageUrl || '',
+    const authData = data.data ?? data.user ?? {};
+    const user = normalizeSessionUser({
+      uuid: authData.uuid,
+      username,
+      fullName: authData.fullName,
+      role: authData.role,
+      enabled: authData.enabled,
+      avatarUrl: authData.avatarUrl ?? authData.imageUrl,
+      permissions: authData.permissions,
     });
 
-    // Return tokens to client
+    await createSession(user);
+
+    const cookieStore = await cookies();
+    cookieStore.set('accessToken', data.accessToken, {
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24,
+      path: '/',
+    });
+    cookieStore.set('refreshToken', data.refreshToken, {
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7,
+      path: '/',
+    });
+
     return {
       success: true,
       accessToken: data.accessToken,
       refreshToken: data.refreshToken,
-      user: {
-        id: data.user?.id || 0,
-        username: username,
-        fullName: data.user?.fullName || username,
-        roleId: data.user?.roleId || 0,
-        role: data.user?.role || 'user',
-      },
+      user,
     };
-  } catch (error) {
+  } catch {
     return { error: 'Something went wrong. Please try again.' };
   }
 }

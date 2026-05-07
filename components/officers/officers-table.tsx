@@ -1,8 +1,7 @@
-import { MoreHorizontal, Pencil, Trash2, Eye, Phone, Upload } from 'lucide-react';
-import { Button } from '../ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
-import { StatusBadge } from './status-badge';
+import { Eye, MoreHorizontal, Pencil, Phone, Trash2, Upload } from 'lucide-react';
+import type { Officer } from '@/lib/schemas';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Button } from '../ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +9,8 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { Skeleton } from '../ui/skeleton';
-import { Officer } from '@/lib/schemas';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import { StatusBadge } from './status-badge';
 
 interface OfficersTableProps {
   officers?: Officer[];
@@ -22,26 +22,13 @@ interface OfficersTableProps {
   totalOfficer?: number;
 }
 
-function getOfficerImageUrl(officer: Officer) {
-  return (
-    officer.image_url ||
-    officer.imageUrl ||
-    officer.avatar_url ||
-    officer.profileImage ||
-    officer.profile_image ||
-    officer.photoUrl ||
-    officer.photo_url ||
-    undefined
-  );
-}
-
 function getOfficerInitials(officer: Officer) {
   const initials = [officer.first_name, officer.last_name]
     .filter(Boolean)
     .map((name) => name[0])
     .join('');
 
-  return initials || 'ម';
+  return initials || 'OF';
 }
 
 function TableSkeleton() {
@@ -54,9 +41,6 @@ function TableSkeleton() {
           </TableCell>
           <TableCell className="px-4 py-2">
             <Skeleton className="h-4 w-20" />
-          </TableCell>
-          <TableCell className="px-4 py-2">
-            <Skeleton className="h-9 w-9 rounded-full" />
           </TableCell>
           <TableCell className="px-4 py-2">
             <Skeleton className="h-4 w-20" />
@@ -86,16 +70,21 @@ export function OfficersTable({
   onDelete,
   onUploadImage,
   isLoading,
-  totalOfficer,
 }: OfficersTableProps) {
+  const showUpload = Boolean(onUploadImage);
+  const showEdit = Boolean(onEdit);
+  const showDelete = Boolean(onDelete);
+
   if (!isLoading && (!officers || officers.length === 0)) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
         <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
           <Eye className="h-6 w-6 text-muted-foreground" />
         </div>
-        <h3 className="text-sm font-medium">រកមិនឃើញមន្ត្រី</h3>
-        <p className="mt-1 text-sm text-muted-foreground">សូមកែតម្រូវតម្រង ឬបន្ថែមមន្ត្រីថ្មី។</p>
+        <h3 className="text-sm font-medium">No officers found</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Adjust filters or create an officer to populate this directory.
+        </p>
       </div>
     );
   }
@@ -105,14 +94,14 @@ export function OfficersTable({
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
-            <TableHead className="px-4 py-2">កូដមន្ត្រី</TableHead>
-            <TableHead className="px-4 py-2">នាមខ្លួន</TableHead>
-            <TableHead className="px-4 py-2">នាមត្រកូល</TableHead>
-            <TableHead className="px-4 py-2">តួនាទី</TableHead>
-            <TableHead className="hidden px-4 py-2 lg:table-cell">នាយកដ្ឋាន</TableHead>
-            <TableHead className="hidden px-4 py-2 md:table-cell">ទូរស័ព្ទ</TableHead>
-            <TableHead className="px-4 py-2">ស្ថានភាព</TableHead>
-            <TableHead className="w-12 px-4 py-2 text-center">សកម្មភាព</TableHead>
+            <TableHead className="px-4 py-2">Officer Code</TableHead>
+            <TableHead className="px-4 py-2">First Name</TableHead>
+            <TableHead className="px-4 py-2">Last Name</TableHead>
+            <TableHead className="px-4 py-2">Position</TableHead>
+            <TableHead className="hidden px-4 py-2 lg:table-cell">Department</TableHead>
+            <TableHead className="hidden px-4 py-2 md:table-cell">Phone</TableHead>
+            <TableHead className="px-4 py-2">Status</TableHead>
+            <TableHead className="w-12 px-4 py-2 text-center">Actions</TableHead>
           </TableRow>
         </TableHeader>
 
@@ -120,51 +109,57 @@ export function OfficersTable({
           {isLoading ? (
             <TableSkeleton />
           ) : (
-            officers?.map((o) => (
-              <TableRow key={o.id}>
+            officers?.map((officer) => (
+              <TableRow key={officer.id}>
                 <TableCell className="px-4 py-2 font-mono text-sm text-muted-foreground">
-                  {o.officerCode || '—'}
+                  {officer.officerCode || '-'}
                 </TableCell>
-                <TableCell className="px-4 py-2 font-medium">{o.first_name}</TableCell>
-                <TableCell className="px-4 py-2 font-medium">{o.last_name}</TableCell>
-                <TableCell className="px-4 py-2 text-sm">{o.position}</TableCell>
+                <TableCell className="px-4 py-2 font-medium">{officer.first_name}</TableCell>
+                <TableCell className="px-4 py-2 font-medium">{officer.last_name}</TableCell>
+                <TableCell className="px-4 py-2 text-sm">{officer.position}</TableCell>
                 <TableCell className="hidden px-4 py-2 text-sm lg:table-cell">
-                  {o.department}
+                  {officer.department}
                 </TableCell>
                 <TableCell className="hidden px-4 py-2 text-sm md:table-cell">
                   <div className="flex items-center gap-1.5 text-muted-foreground">
                     <Phone className="h-3.5 w-3.5" />
-                    {o.phone || <span className="text-muted-foreground/50">—</span>}
+                    {officer.phone || '-'}
                   </div>
                 </TableCell>
                 <TableCell className="px-4 py-2">
-                  <StatusBadge status={o.status} />
+                  <StatusBadge status={officer.status} />
                 </TableCell>
                 <TableCell className="px-4 py-2 text-center">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="h-8 w-8">
                         <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">បើកម៉ឺនុយ</span>
+                        <span className="sr-only">Open menu</span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="center">
-                      <DropdownMenuItem onClick={() => onView?.(o)}>
+                      <DropdownMenuItem onClick={() => onView?.(officer)}>
                         <Eye className="mr-2 h-4 w-4" />
-                        មើលព័ត៌មាន
+                        View
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onUploadImage?.(o)}>
-                        <Upload className="mr-2 h-4 w-4" />
-                        បង្ហោះរូបភាព
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onEdit?.(o)}>
-                        <Pencil className="mr-2 h-4 w-4" />
-                        កែប្រែ
-                      </DropdownMenuItem>
-                      <DropdownMenuItem variant="destructive" onClick={() => onDelete?.(o)}>
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        លុប
-                      </DropdownMenuItem>
+                      {showUpload ? (
+                        <DropdownMenuItem onClick={() => onUploadImage?.(officer)}>
+                          <Upload className="mr-2 h-4 w-4" />
+                          Upload Image
+                        </DropdownMenuItem>
+                      ) : null}
+                      {showEdit ? (
+                        <DropdownMenuItem onClick={() => onEdit?.(officer)}>
+                          <Pencil className="mr-2 h-4 w-4" />
+                          Edit
+                        </DropdownMenuItem>
+                      ) : null}
+                      {showDelete ? (
+                        <DropdownMenuItem variant="destructive" onClick={() => onDelete?.(officer)}>
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      ) : null}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

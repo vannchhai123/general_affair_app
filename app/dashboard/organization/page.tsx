@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState, type ElementType } from 'react';
+import { usePathname } from 'next/navigation';
 import {
   BriefcaseBusiness,
   Building2,
@@ -225,7 +226,10 @@ function PaginationControls({
 }
 
 export default function OrganizationPage() {
-  const [activeTab, setActiveTab] = useState<TabValue>('departments');
+  const pathname = usePathname();
+  const [activeTab, setActiveTab] = useState<TabValue>(
+    pathname.includes('/positions') ? 'positions' : 'departments',
+  );
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<StatusFilter>('all');
   const [departmentPage, setDepartmentPage] = useState(0);

@@ -3,10 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, CalendarIcon, Download, Plus, RefreshCw, Search, Upload } from 'lucide-react';
 import { toast } from 'sonner';
-
+import { RequireAccess } from '@/components/auth/require-access';
+import { useAuth } from '@/components/auth/auth-provider';
 import {
-  AttendanceFormDialog,
   AttendanceDetailsDialog,
+  AttendanceFormDialog,
 } from '@/components/attendance/attendance-dialogs';
 import { AttendanceTable } from '@/components/attendance/attendance-table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -36,12 +37,11 @@ function getDateInputToday() {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
-
   return `${year}-${month}-${day}`;
 }
 
 const departmentOptions = [
-  { value: 'all', label: 'នាយកដ្ឋានទាំងអស់' },
+  { value: 'all', label: 'All Departments' },
   { value: 'HR', label: 'HR' },
   { value: 'IT', label: 'IT' },
   { value: 'Finance', label: 'Finance' },
@@ -50,19 +50,20 @@ const departmentOptions = [
 ];
 
 const statusOptions = [
-  { value: 'all', label: 'ស្ថានភាពទាំងអស់' },
-  { value: 'Present', label: 'វត្តមាន' },
-  { value: 'Absent', label: 'អវត្តមាន' },
-  { value: 'Late', label: 'មកយឺត' },
-  { value: 'Half-day', label: 'ពាក់កណ្តាលថ្ងៃ' },
+  { value: 'all', label: 'All Statuses' },
+  { value: 'Present', label: 'Present' },
+  { value: 'Absent', label: 'Absent' },
+  { value: 'Late', label: 'Late' },
+  { value: 'Half-day', label: 'Half-day' },
 ];
 
 const viewModes = [
-  { value: 'daily', label: 'ប្រចាំថ្ងៃ' },
-  { value: 'monthly', label: 'ប្រចាំខែ' },
+  { value: 'daily', label: 'Daily' },
+  { value: 'monthly', label: 'Monthly' },
 ];
 
 export default function AttendancePage() {
+  const { hasPermission } = useAuth();
   const [search, setSearch] = useState('');
   const [date, setDate] = useState('');
   const [department, setDepartment] = useState('all');
@@ -76,6 +77,11 @@ export default function AttendancePage() {
   const [editingAttendance, setEditingAttendance] = useState<Attendance | null>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
 
+  const canCreate = hasPermission('ATTENDANCE_CREATE');
+  const canEdit = hasPermission('ATTENDANCE_UPDATE');
+  const canExport = hasPermission('ATTENDANCE_EXPORT');
+  const canImport = hasPermission('ATTENDANCE_IMPORT');
+
   useEffect(() => {
     setDate((current) => current || getDateInputToday());
   }, []);
@@ -87,12 +93,8 @@ export default function AttendancePage() {
     status: status === 'all' ? undefined : (status as AttendanceStatus),
     viewMode,
   };
-  const {
-    data: attendanceData,
-    isLoading,
-    error,
-    refetch,
-  } = useAttendance({
+
+  const { data, isLoading, error, refetch } = useAttendance({
     page,
     size: 10,
     ...normalizedFilters,
@@ -101,9 +103,9 @@ export default function AttendancePage() {
   const updateAttendance = useUpdateAttendance();
   const exportAttendance = useExportAttendance();
   const importAttendance = useImportAttendance();
-  const records = attendanceData?.content ?? [];
-  const totalPages = attendanceData?.totalPages || 0;
 
+  const records = data?.content ?? [];
+  const totalPages = data?.totalPages || 0;
   const filteredRecords = useMemo<Attendance[]>(() => records, [records]);
 
   function resetPage() {
@@ -111,39 +113,12 @@ export default function AttendancePage() {
     setSelectedIds([]);
   }
 
-  function openDetails(record: Attendance) {
-    setSelectedAttendance(record);
-    setDetailOpen(true);
-  }
-
-  function openCreateDialog() {
-    setEditingAttendance(null);
-    setModalOpen(true);
-  }
-
-  function openEditDialog(record: Attendance) {
-    setEditingAttendance(record);
-    setModalOpen(true);
-  }
-
-  function toggleSelect(id: number) {
-    setSelectedIds((current) =>
-      current.includes(id) ? current.filter((selectedId) => selectedId !== id) : [...current, id],
-    );
-  }
-
-  function toggleSelectAll() {
-    setSelectedIds((current) =>
-      current.length === filteredRecords.length ? [] : filteredRecords.map((record) => record.id),
-    );
-  }
-
-  async function handleSubmitAttendance(data: AttendanceFormData) {
+  async function handleSubmitAttendance(values: AttendanceFormData) {
     if (editingAttendance) {
-      await updateAttendance.mutateAsync({ id: editingAttendance.id, data });
+      await updateAttendance.mutateAsync({ id: editingAttendance.id, data: values });
       setEditingAttendance(null);
     } else {
-      await createAttendance.mutateAsync(data);
+      await createAttendance.mutateAsync(values);
     }
 
     await refetch();
@@ -153,29 +128,23 @@ export default function AttendancePage() {
     const { blob, filename } = await exportAttendance.mutateAsync(normalizedFilters);
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
-
     link.href = url;
     link.download = filename;
     document.body.appendChild(link);
     link.click();
     link.remove();
     window.URL.revokeObjectURL(url);
-
-    toast.success('បាននាំចេញរបាយការណ៍វត្តមាន');
-  }
-
-  function handleBulkUpload() {
-    importInputRef.current?.click();
+    toast.success('Attendance export generated.');
   }
 
   async function handleImportFile(file: File) {
     const result = await importAttendance.mutateAsync(file);
-    const summary = `បានបង្កើត ${result.created}, បានកែសម្រួល ${result.updated}, បរាជ័យ ${result.failed}`;
+    const summary = `Created ${result.created}, updated ${result.updated}, failed ${result.failed}`;
 
     if (result.failed > 0) {
       toast.warning(summary);
       result.errors.slice(0, 3).forEach((item) => {
-        toast.error(`ជួរ ${item.row}: ${item.message}`);
+        toast.error(`Row ${item.row}: ${item.message}`);
       });
     } else {
       toast.success(summary);
@@ -185,93 +154,114 @@ export default function AttendancePage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <AttendancePageHeader />
+    <RequireAccess permission="ATTENDANCE_VIEW">
+      <div className="flex flex-col gap-6">
+        <div className="border-b pb-4">
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-950">
+            Attendance Management
+          </h1>
+          <p className="mt-1 text-sm text-slate-600">
+            Filter daily records, import spreadsheets, and correct attendance entries.
+          </p>
+        </div>
 
-      <input
-        ref={importInputRef}
-        type="file"
-        accept=".xlsx"
-        className="hidden"
-        onChange={(event) => {
-          const file = event.target.files?.[0];
-          event.target.value = '';
-          if (file) void handleImportFile(file);
-        }}
-      />
+        <input
+          ref={importInputRef}
+          type="file"
+          accept=".xlsx"
+          className="hidden"
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            event.target.value = '';
+            if (file) void handleImportFile(file);
+          }}
+        />
 
-      {error && <AttendanceErrorAlert onRetry={() => refetch()} />}
+        {error ? <AttendanceErrorAlert onRetry={() => void refetch()} /> : null}
 
-      <AttendanceFilters
-        search={search}
-        date={date}
-        department={department}
-        status={status}
-        onSearchChange={(value) => {
-          setSearch(value);
-          resetPage();
-        }}
-        onDateChange={(value) => {
-          setDate(value);
-          resetPage();
-        }}
-        onDepartmentChange={(value) => {
-          setDepartment(value);
-          resetPage();
-        }}
-        onStatusChange={(value) => {
-          setStatus(value);
-          resetPage();
-        }}
-        onAdd={openCreateDialog}
-        onExport={handleExport}
-        onBulkUpload={handleBulkUpload}
-      />
+        <AttendanceFilters
+          search={search}
+          date={date}
+          department={department}
+          status={status}
+          onSearchChange={(value) => {
+            setSearch(value);
+            resetPage();
+          }}
+          onDateChange={(value) => {
+            setDate(value);
+            resetPage();
+          }}
+          onDepartmentChange={(value) => {
+            setDepartment(value);
+            resetPage();
+          }}
+          onStatusChange={(value) => {
+            setStatus(value);
+            resetPage();
+          }}
+          onAdd={canCreate ? () => setModalOpen(true) : undefined}
+          onExport={canExport ? () => void handleExport() : undefined}
+          onBulkUpload={canImport ? () => importInputRef.current?.click() : undefined}
+        />
 
-      <AttendanceViewControls
-        viewMode={viewMode}
-        selectedCount={selectedIds.length}
-        onViewModeChange={setViewMode}
-      />
+        <AttendanceViewControls
+          viewMode={viewMode}
+          selectedCount={selectedIds.length}
+          onViewModeChange={setViewMode}
+        />
 
-      <AttendanceTable
-        records={filteredRecords}
-        isLoading={isLoading}
-        selectedIds={selectedIds}
-        page={page}
-        totalPages={totalPages}
-        onAdd={openCreateDialog}
-        onDetails={openDetails}
-        onEdit={openEditDialog}
-        onToggleSelect={toggleSelect}
-        onToggleSelectAll={toggleSelectAll}
-        onPageChange={setPage}
-      />
+        <AttendanceTable
+          records={filteredRecords}
+          isLoading={isLoading}
+          selectedIds={selectedIds}
+          page={page}
+          totalPages={totalPages}
+          onAdd={canCreate ? () => setModalOpen(true) : undefined}
+          onDetails={(record) => {
+            setSelectedAttendance(record);
+            setDetailOpen(true);
+          }}
+          onEdit={
+            canEdit
+              ? (record) => {
+                  setEditingAttendance(record);
+                  setModalOpen(true);
+                }
+              : undefined
+          }
+          onToggleSelect={(id) =>
+            setSelectedIds((current) =>
+              current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
+            )
+          }
+          onToggleSelectAll={() =>
+            setSelectedIds((current) =>
+              current.length === filteredRecords.length
+                ? []
+                : filteredRecords.map((item) => item.id),
+            )
+          }
+          onPageChange={setPage}
+        />
 
-      <AttendanceFormDialog
-        open={modalOpen}
-        onOpenChange={(open) => {
-          setModalOpen(open);
-          if (!open) setEditingAttendance(null);
-        }}
-        attendance={editingAttendance}
-        onSubmit={handleSubmitAttendance}
-      />
+        <AttendanceFormDialog
+          open={modalOpen}
+          onOpenChange={(open) => {
+            setModalOpen(open);
+            if (!open) setEditingAttendance(null);
+          }}
+          attendance={editingAttendance}
+          onSubmit={handleSubmitAttendance}
+        />
 
-      <AttendanceDetailsDialog
-        open={detailOpen}
-        onOpenChange={setDetailOpen}
-        attendance={selectedAttendance}
-      />
-    </div>
-  );
-}
-
-function AttendancePageHeader() {
-  return (
-    <div className="sticky top-0 z-20 border-b bg-background/95 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-      <h1 className="page-title text-2xl tracking-tight">ការគ្រប់គ្រងវត្តមាន</h1>
-    </div>
+        <AttendanceDetailsDialog
+          open={detailOpen}
+          onOpenChange={setDetailOpen}
+          attendance={selectedAttendance}
+        />
+      </div>
+    </RequireAccess>
   );
 }
 
@@ -280,10 +270,10 @@ function AttendanceErrorAlert({ onRetry }: { onRetry: () => void }) {
     <Alert variant="destructive">
       <AlertCircle className="h-4 w-4" />
       <AlertDescription className="flex items-center justify-between">
-        <span>មិនអាចទាញយកទិន្នន័យវត្តមានបានទេ</span>
+        <span>Unable to load attendance records.</span>
         <Button variant="outline" size="sm" onClick={onRetry} className="ml-auto">
           <RefreshCw className="mr-2 h-3 w-3" />
-          ព្យាយាមម្តងទៀត
+          Retry
         </Button>
       </AlertDescription>
     </Alert>
@@ -311,9 +301,9 @@ function AttendanceFilters({
   onDateChange: (value: string) => void;
   onDepartmentChange: (value: string) => void;
   onStatusChange: (value: string) => void;
-  onAdd: () => void;
-  onExport: () => void;
-  onBulkUpload: () => void;
+  onAdd?: () => void;
+  onExport?: () => void;
+  onBulkUpload?: () => void;
 }) {
   return (
     <div className="rounded-lg border bg-card p-4">
@@ -324,7 +314,7 @@ function AttendanceFilters({
             <Input
               value={search}
               onChange={(event) => onSearchChange(event.target.value)}
-              placeholder="ស្វែងរកមន្ត្រីតាមឈ្មោះ ឬលេខសម្គាល់"
+              placeholder="Search by officer name or code"
               className="pl-9"
             />
           </div>
@@ -341,7 +331,7 @@ function AttendanceFilters({
 
           <Select value={department} onValueChange={onDepartmentChange}>
             <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="នាយកដ្ឋាន" />
+              <SelectValue placeholder="Department" />
             </SelectTrigger>
             <SelectContent>
               {departmentOptions.map((option) => (
@@ -354,7 +344,7 @@ function AttendanceFilters({
 
           <Select value={status} onValueChange={onStatusChange}>
             <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="ស្ថានភាព" />
+              <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
               {statusOptions.map((option) => (
@@ -367,18 +357,24 @@ function AttendanceFilters({
         </div>
 
         <div className="flex flex-wrap items-center gap-2 border-t pt-4">
-          <Button onClick={onAdd}>
-            <Plus className="mr-2 h-4 w-4" />
-            កត់ត្រាវត្តមាន
-          </Button>
-          <Button variant="outline" onClick={onExport}>
-            <Download className="mr-2 h-4 w-4" />
-            នាំចេញរបាយការណ៍
-          </Button>
-          <Button variant="outline" onClick={onBulkUpload}>
-            <Upload className="mr-2 h-4 w-4" />
-            បញ្ចូលជាក្រុម
-          </Button>
+          {onAdd ? (
+            <Button onClick={onAdd}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create Attendance
+            </Button>
+          ) : null}
+          {onExport ? (
+            <Button variant="outline" onClick={onExport}>
+              <Download className="mr-2 h-4 w-4" />
+              Export XLSX
+            </Button>
+          ) : null}
+          {onBulkUpload ? (
+            <Button variant="outline" onClick={onBulkUpload}>
+              <Upload className="mr-2 h-4 w-4" />
+              Import XLSX
+            </Button>
+          ) : null}
         </div>
       </div>
     </div>
@@ -409,14 +405,9 @@ function AttendanceViewControls({
         </TabsList>
       </Tabs>
 
-      {selectedCount > 0 && (
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">{selectedCount} បានជ្រើសរើស</span>
-          <Button variant="outline" size="sm">
-            សកម្មភាពជាក្រុម
-          </Button>
-        </div>
-      )}
+      {selectedCount > 0 ? (
+        <div className="text-sm text-muted-foreground">{selectedCount} selected</div>
+      ) : null}
     </div>
   );
 }

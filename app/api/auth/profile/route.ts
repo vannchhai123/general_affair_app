@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createSession, getSession } from '@/lib/api/auth';
+import { normalizeSessionUser } from '@/lib/auth/session';
 
 export async function GET() {
   const session = await getSession();
@@ -26,11 +27,14 @@ export async function PUT(request: Request) {
   const fullName = body.full_name?.trim();
   const avatarUrl = body.avatar_url?.trim();
 
-  const updatedSession = {
+  const updatedSession = normalizeSessionUser({
     ...session,
-    ...(fullName ? { full_name: fullName } : {}),
-    ...(avatarUrl !== undefined ? { avatar_url: avatarUrl } : {}),
-  };
+    fullName: fullName || session.fullName,
+    avatarUrl: avatarUrl !== undefined ? avatarUrl : session.avatarUrl,
+    permissions: session.permissions,
+  });
+  updatedSession.uuid = session.uuid;
+  updatedSession.username = session.username;
 
   await createSession(updatedSession);
 

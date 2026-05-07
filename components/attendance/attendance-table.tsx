@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight, Eye, Pencil, Plus, Users } from 'lucide-react';
-
+import type { Attendance } from '@/lib/schemas';
 import { AttendanceStatusBadge } from '@/components/attendance/attendance-status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,6 @@ import {
   formatAttendanceTime,
   getAttendanceInitials,
 } from '@/lib/attendance/utils';
-import type { Attendance } from '@/lib/schemas';
 
 export function AttendanceTable({
   records,
@@ -40,9 +39,9 @@ export function AttendanceTable({
   selectedIds: number[];
   page: number;
   totalPages: number;
-  onAdd: () => void;
+  onAdd?: () => void;
   onDetails: (record: Attendance) => void;
-  onEdit: (record: Attendance) => void;
+  onEdit?: (record: Attendance) => void;
   onToggleSelect: (id: number) => void;
   onToggleSelectAll: () => void;
   onPageChange: (page: number) => void;
@@ -64,15 +63,15 @@ export function AttendanceTable({
                     onCheckedChange={onToggleSelectAll}
                   />
                 </TableHead>
-                <TableHead>មន្ត្រី</TableHead>
-                <TableHead>លេខសម្គាល់មន្ត្រី</TableHead>
-                <TableHead>នាយកដ្ឋាន</TableHead>
-                <TableHead>កាលបរិច្ឆេទ</TableHead>
-                <TableHead>ម៉ោងចូល</TableHead>
-                <TableHead>ម៉ោងចេញ</TableHead>
-                <TableHead>ម៉ោងសរុប</TableHead>
-                <TableHead>ស្ថានភាព</TableHead>
-                <TableHead className="w-[100px]">សកម្មភាព</TableHead>
+                <TableHead>Officer</TableHead>
+                <TableHead>Officer Code</TableHead>
+                <TableHead>Department</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Check In</TableHead>
+                <TableHead>Check Out</TableHead>
+                <TableHead>Total Work</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="w-[100px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -89,10 +88,10 @@ export function AttendanceTable({
             </TableBody>
           </Table>
 
-          {totalPages > 0 && (
+          {totalPages > 0 ? (
             <div className="flex items-center justify-end gap-2 border-t px-4 py-3">
               <p className="text-sm text-muted-foreground">
-                ទំព័រ {page + 1} នៃ {totalPages}
+                Page {page + 1} of {totalPages}
               </p>
               <Button
                 variant="outline"
@@ -101,7 +100,7 @@ export function AttendanceTable({
                 disabled={page === 0}
               >
                 <ChevronLeft className="h-4 w-4" />
-                មុន
+                Previous
               </Button>
               <Button
                 variant="outline"
@@ -109,11 +108,11 @@ export function AttendanceTable({
                 onClick={() => onPageChange(Math.min(totalPages - 1, page + 1))}
                 disabled={page >= totalPages - 1}
               >
-                បន្ទាប់
+                Next
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
-          )}
+          ) : null}
         </>
       )}
     </div>
@@ -130,13 +129,13 @@ function AttendanceTableRow({
   record: Attendance;
   selected: boolean;
   onDetails: (record: Attendance) => void;
-  onEdit: (record: Attendance) => void;
+  onEdit?: (record: Attendance) => void;
   onToggleSelect: (id: number) => void;
 }) {
-  const isLate = record.status === 'Late';
-
   return (
-    <TableRow className={`transition-colors hover:bg-muted/50 ${isLate ? 'bg-amber-50/50' : ''}`}>
+    <TableRow
+      className={`transition-colors hover:bg-muted/50 ${record.status === 'Late' ? 'bg-amber-50/50' : ''}`}
+    >
       <TableCell>
         <Checkbox checked={selected} onCheckedChange={() => onToggleSelect(record.id)} />
       </TableCell>
@@ -152,20 +151,20 @@ function AttendanceTableRow({
             </AvatarFallback>
           </Avatar>
           <div>
-            <p className="font-khmer-moul-light font-medium">
+            <p className="font-medium">
               {record.firstName} {record.lastName}
             </p>
           </div>
         </div>
       </TableCell>
       <TableCell className="font-mono text-sm text-muted-foreground">
-        {record.officerCode || '—'}
+        {record.officerCode || '-'}
       </TableCell>
       <TableCell className="text-sm">{record.department}</TableCell>
       <TableCell className="text-sm">{formatAttendanceDate(record.date)}</TableCell>
       <TableCell className="text-sm">{formatAttendanceTime(record.checkIn)}</TableCell>
       <TableCell className="text-sm">{formatAttendanceTime(record.checkOut)}</TableCell>
-      <TableCell className="font-khmer-moul-light text-sm font-medium">
+      <TableCell className="text-sm font-medium">
         <CardNumber value={calculateAttendanceHours(record.checkIn, record.checkOut)} />
       </TableCell>
       <TableCell>
@@ -173,26 +172,14 @@ function AttendanceTableRow({
       </TableCell>
       <TableCell>
         <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            title="View Details / Khmer"
-            aria-label="View Details / Khmer"
-            onClick={() => onDetails(record)}
-          >
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onDetails(record)}>
             <Eye className="h-4 w-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            title="Edit / Khmer"
-            aria-label="Edit / Khmer"
-            onClick={() => onEdit(record)}
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
+          {onEdit ? (
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(record)}>
+              <Pencil className="h-4 w-4" />
+            </Button>
+          ) : null}
         </div>
       </TableCell>
     </TableRow>
@@ -218,18 +205,22 @@ function AttendanceTableSkeleton() {
   );
 }
 
-function AttendanceTableEmpty({ onAdd }: { onAdd: () => void }) {
+function AttendanceTableEmpty({ onAdd }: { onAdd?: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
       <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
         <Users className="h-6 w-6 text-muted-foreground" />
       </div>
-      <h3 className="font-khmer-moul-light text-sm font-medium">រកមិនឃើញកំណត់ត្រាវត្តមាន</h3>
-      <p className="mt-1 text-sm text-muted-foreground">សូមកែតម្រូវតម្រង ឬបន្ថែមវត្តមានថ្មី</p>
-      <Button onClick={onAdd} className="mt-4">
-        <Plus className="mr-2 h-4 w-4" />
-        កត់ត្រាវត្តមាន
-      </Button>
+      <h3 className="text-sm font-medium">No attendance records found</h3>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Adjust the filters or create a new attendance record.
+      </p>
+      {onAdd ? (
+        <Button onClick={onAdd} className="mt-4">
+          <Plus className="mr-2 h-4 w-4" />
+          Create Attendance
+        </Button>
+      ) : null}
     </div>
   );
 }

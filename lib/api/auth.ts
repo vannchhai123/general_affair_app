@@ -1,14 +1,5 @@
 import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
-
-export interface SessionUser {
-  id: number;
-  username: string;
-  full_name: string;
-  role_id: number;
-  role_name: string;
-  avatar_url?: string;
-}
+import type { SessionUser } from '@/lib/auth/session';
 
 export async function getSession(): Promise<SessionUser | null> {
   const cookieStore = await cookies();
@@ -38,4 +29,6 @@ export async function createSession(user: SessionUser) {
 export async function destroySession() {
   const cookieStore = await cookies();
   cookieStore.delete('session');
+  cookieStore.delete('accessToken');
+  cookieStore.delete('refreshToken');
 }

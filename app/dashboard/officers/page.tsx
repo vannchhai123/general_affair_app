@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
-
+import { RequireAccess } from '@/components/auth/require-access';
+import { useAuth } from '@/components/auth/auth-provider';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   OfficerDetailDialog,
@@ -37,6 +38,7 @@ import type { Officer } from '@/lib/schemas';
 import { Users } from 'lucide-react';
 
 export default function OfficersPage() {
+  const { hasPermission } = useAuth();
   const [search, setSearch] = useState('');
   const [department, setDepartment] = useState('all');
   const [status, setStatus] = useState('all');
@@ -104,6 +106,9 @@ export default function OfficersPage() {
     () => getDepartmentChartData(filteredOfficers),
     [filteredOfficers],
   );
+  const canCreate = hasPermission('OFFICER_CREATE');
+  const canUpdate = hasPermission('OFFICER_UPDATE');
+  const canUploadImage = hasPermission('OFFICER_UPDATE');
 
   function resetPage() {
     setPage(1);
@@ -188,70 +193,76 @@ export default function OfficersPage() {
   }
 
   return (
-    <div className="flex w-full min-w-0 flex-col gap-5">
-      <OfficersPageHeader isRefreshing={isLoading} onRefresh={() => mutate()} onAdd={handleAdd} />
-
-      <OfficersSummaryCards stats={stats} isLoading={statsLoading || !stats} />
-
-      <div className="flex flex-col gap-5">
-        <OfficersAnalyticsCard
-          statusChartData={statusChartData}
-          departmentChartData={departmentChartData}
+    <RequireAccess permission="OFFICER_VIEW">
+      <div className="flex w-full min-w-0 flex-col gap-5">
+        <OfficersPageHeader
+          isRefreshing={isLoading}
+          onRefresh={() => mutate()}
+          onAdd={canCreate ? handleAdd : undefined}
         />
 
-        <OfficersDirectoryCard
-          officers={paginatedOfficers}
-          total={filteredOfficers.length}
-          isLoading={isLoading}
-          search={search}
-          department={department}
-          status={status}
-          departments={departments}
-          currentPage={pagination.currentPage}
-          totalPages={pagination.totalPages}
-          startItem={pagination.startItem}
-          endItem={pagination.endItem}
-          onSearchChange={(value) => {
-            setSearch(value);
-            resetPage();
+        <OfficersSummaryCards stats={stats} isLoading={statsLoading || !stats} />
+
+        <div className="flex flex-col gap-5">
+          <OfficersAnalyticsCard
+            statusChartData={statusChartData}
+            departmentChartData={departmentChartData}
+          />
+
+          <OfficersDirectoryCard
+            officers={paginatedOfficers}
+            total={filteredOfficers.length}
+            isLoading={isLoading}
+            search={search}
+            department={department}
+            status={status}
+            departments={departments}
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            startItem={pagination.startItem}
+            endItem={pagination.endItem}
+            onSearchChange={(value) => {
+              setSearch(value);
+              resetPage();
+            }}
+            onDepartmentChange={(value) => {
+              setDepartment(value);
+              resetPage();
+            }}
+            onStatusChange={(value) => {
+              setStatus(value);
+              resetPage();
+            }}
+            onPageChange={setPage}
+            onView={setViewingOfficer}
+            onEdit={canUpdate ? handleEdit : undefined}
+            onDelete={undefined}
+            onUploadImage={canUploadImage ? handleUploadImage : undefined}
+          />
+        </div>
+
+        <OfficerDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          officer={editingOfficer}
+          onSubmit={handleSubmit}
+        />
+
+        <OfficerDetailDialog
+          open={!!viewingOfficer}
+          onOpenChange={(open) => {
+            if (!open) setViewingOfficer(null);
           }}
-          onDepartmentChange={(value) => {
-            setDepartment(value);
-            resetPage();
-          }}
-          onStatusChange={(value) => {
-            setStatus(value);
-            resetPage();
-          }}
-          onPageChange={setPage}
-          onView={setViewingOfficer}
-          onEdit={handleEdit}
-          onDelete={setDeleteOfficerData}
-          onUploadImage={handleUploadImage}
+          officer={viewingOfficer}
+          onUploadImage={canUploadImage ? handleUploadImage : undefined}
+        />
+
+        <OfficersDeleteDialog
+          officer={deleteOfficerData}
+          onOpenChange={(open) => !open && setDeleteOfficerData(null)}
+          onConfirm={confirmDelete}
         />
       </div>
-
-      <OfficerDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        officer={editingOfficer}
-        onSubmit={handleSubmit}
-      />
-
-      <OfficerDetailDialog
-        open={!!viewingOfficer}
-        onOpenChange={(open) => {
-          if (!open) setViewingOfficer(null);
-        }}
-        officer={viewingOfficer}
-        onUploadImage={handleUploadImage}
-      />
-
-      <OfficersDeleteDialog
-        officer={deleteOfficerData}
-        onOpenChange={(open) => !open && setDeleteOfficerData(null)}
-        onConfirm={confirmDelete}
-      />
-    </div>
+    </RequireAccess>
   );
 }

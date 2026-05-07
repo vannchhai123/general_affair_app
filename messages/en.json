@@ -1,0 +1,49 @@
+{
+  "login": {
+    "title": "Login",
+    "username": "Username",
+    "password": "Password",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "loginButton": "Login",
+    "processing": "Processing...",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "error": "Please fill in the information correctly",
+    "passwordStrength": {
+      "weak": "Weak",
+      "fair": "Fair",
+      "good": "Good",
+      "strong": "Strong"
+    }
+  },
+  "welcome": {
+    "badge": "Welcome",
+    "description": "General Affairs Management System",
+    "title": "Administrative and Usage Management System in Organizations",
+    "subtitle": "Manage information and operations in one place"
+  },
+  "metadata": {
+    "title": "Officer Management System - Admin",
+    "description": "Admin dashboard for officer, attendance, invitation, and report management"
+  },
+  "dashboard": {
+    "stats": {
+      "totalOfficers": "Total Officers",
+      "activeOfficers": "Active Officers",
+      "attendanceToday": "Attendance Today",
+      "qrSessions": "QR Sessions"
+    },
+    "attention": {
+      "officerAvailability": "Officer availability",
+      "pendingLeaveRequests": "Pending leave requests",
+      "needsReview": "Needs review",
+      "pendingMissions": "Pending missions",
+      "operationalFollowUp": "Operational follow-up",
+      "pendingAttendanceApprovals": "Pending attendance approvals",
+      "awaitingConfirmation": "Awaiting confirmation",
+      "activeSessions": "Active sessions",
+      "runningToday": "Running today"
+    }
+  }
+}

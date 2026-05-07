@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, ArrowRight, Eye, EyeOff, Star } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import { loginAction } from '@/lib/actions/auth';
 import { setTokens } from '@/lib/client';
@@ -12,10 +13,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-const KHMER_ERROR_MESSAGE = 'សូមបំពេញព័ត៌មានឲ្យបានត្រឹមត្រូវ';
-
 export default function LoginPage() {
   const router = useRouter();
+  const t = useTranslations('login');
+  const tw = useTranslations('welcome');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
@@ -34,15 +35,21 @@ export default function LoginPage() {
     if (/\d/.test(password)) score++;
     if (/[^A-Za-z0-9]/.test(password)) score++;
 
-    const labels = ['', 'ខ្សោយ', 'ល្មម', 'ល្អ', 'ខ្លាំង'];
+    const labels = [
+      '',
+      t('passwordStrength.weak'),
+      t('passwordStrength.fair'),
+      t('passwordStrength.good'),
+      t('passwordStrength.strong'),
+    ];
     return { score, label: labels[score] };
-  }, [password]);
+  }, [password, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!username.trim() || !password.trim()) {
-      setError(KHMER_ERROR_MESSAGE);
+      setError(t('error'));
       return;
     }
 
@@ -57,7 +64,7 @@ export default function LoginPage() {
       const result = await loginAction(formData);
 
       if (result.error) {
-        setError(KHMER_ERROR_MESSAGE);
+        setError(t('error'));
         return;
       }
 
@@ -67,9 +74,9 @@ export default function LoginPage() {
         return;
       }
 
-      setError(KHMER_ERROR_MESSAGE);
+      setError(t('error'));
     } catch {
-      setError(KHMER_ERROR_MESSAGE);
+      setError(t('error'));
     } finally {
       setLoading(false);
     }
@@ -92,7 +99,7 @@ export default function LoginPage() {
         <section className="flex items-center justify-center px-6 py-10 md:px-10 lg:px-14">
           <div className="w-full max-w-[380px]">
             <div className="mb-8">
-              <h2 className="page-title text-2xl tracking-tight text-foreground">ចូលគណនី</h2>
+              <h2 className="page-title text-2xl tracking-tight text-foreground">{t('title')}</h2>
             </div>
 
             {error ? (
@@ -105,7 +112,7 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="username">
-                  ឈ្មោះអ្នកប្រើប្រាស់ <span className="text-red-500">*</span>
+                  {t('username')} <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="username"
@@ -120,7 +127,7 @@ export default function LoginPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="password">
-                  ពាក្យសម្ងាត់ <span className="text-red-500">*</span>
+                  {t('password')} <span className="text-red-500">*</span>
                 </Label>
 
                 <div className="relative">
@@ -135,7 +142,7 @@ export default function LoginPage() {
                   />
                   <button
                     type="button"
-                    aria-label={showPassword ? 'លាក់ពាក្យសម្ងាត់' : 'បង្ហាញពាក្យសម្ងាត់'}
+                    aria-label={showPassword ? t('hidePassword') : t('showPassword')}
                     onClick={() => setShowPassword((prev) => !prev)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-foreground"
                     disabled={loading}
@@ -169,7 +176,7 @@ export default function LoginPage() {
                     disabled={loading}
                   />
                   <Label htmlFor="remember" className="cursor-pointer font-normal">
-                    ចងចាំខ្ញុំ
+                    {t('rememberMe')}
                   </Label>
                 </div>
 
@@ -177,7 +184,7 @@ export default function LoginPage() {
                   href="/forgot-password"
                   className="text-sm font-medium text-primary transition hover:underline"
                 >
-                  ភ្លេចពាក្យសម្ងាត់?
+                  {t('forgotPassword')}
                 </Link>
               </div>
 
@@ -186,7 +193,7 @@ export default function LoginPage() {
                 className="h-11 w-full rounded-xl text-sm font-semibold shadow-lg"
                 disabled={loading}
               >
-                {loading ? 'កំពុងដំណើរការ...' : 'ចូលប្រើ'}
+                {loading ? t('processing') : t('loginButton')}
                 {!loading ? <ArrowRight className="ml-2 h-4 w-4" /> : null}
               </Button>
             </form>
@@ -201,7 +208,9 @@ export default function LoginPage() {
           <div className="relative z-10">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-white/90 backdrop-blur-sm">
               <Star className="h-4 w-4" />
-              <span className="text-[11px] font-semibold uppercase tracking-[0.18em]">Welcome</span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em]">
+                {tw('badge')}
+              </span>
             </div>
           </div>
 
@@ -218,15 +227,15 @@ export default function LoginPage() {
             </div>
 
             <p className="mt-5 text-xs font-medium uppercase tracking-[0.18em] text-emerald-50/70">
-              General Affairs Management System
+              {tw('description')}
             </p>
             <h3 className="mt-3 font-khmer-moul-light text-xl leading-[1.55] text-white lg:text-[1.2rem]">
-              ប្រព័ន្ធគ្រប់គ្រងរដ្ឋបាល និងការប្រើប្រាស់ក្នុងអង្គភាព
+              {tw('title')}
             </h3>
           </div>
           <div className="relative z-10 flex justify-center">
             <div className="inline-flex rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white/85 backdrop-blur-sm">
-              គ្រប់គ្រងព័ត៌មាន និងប្រតិបត្តិការនៅកន្លែងតែមួយ
+              {tw('subtitle')}
             </div>
           </div>
         </section>

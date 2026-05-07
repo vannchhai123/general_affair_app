@@ -43,11 +43,13 @@ function deriveRefreshSeconds(data: QrScanResponse) {
     return clampRefreshSeconds(data.expiresIn);
   }
 
-  if (!data.expires_at) {
+  const expiresAtValue = data.expiresAt || data.expires_at;
+
+  if (!expiresAtValue) {
     return FALLBACK_EXPIRES_IN;
   }
 
-  const expiresAt = new Date(data.expires_at).getTime();
+  const expiresAt = new Date(expiresAtValue).getTime();
   if (Number.isNaN(expiresAt)) {
     return FALLBACK_EXPIRES_IN;
   }
@@ -61,11 +63,23 @@ function deriveToken(data: QrScanResponse) {
 }
 
 function deriveSessionId(data?: QrScanResponse) {
-  return data?.session_id?.trim() || '';
+  return data?.sessionId?.trim() || data?.session_id?.trim() || '';
 }
 
 function deriveSessionName(data?: QrScanResponse) {
   return data?.message?.trim() || data?.sessionName?.trim() || data?.location?.trim() || '';
+}
+
+function deriveShiftType(data?: QrScanResponse) {
+  return data?.shiftType?.trim() || data?.shift_type?.trim() || '';
+}
+
+function deriveStartsAt(data?: QrScanResponse) {
+  return data?.startsAt?.trim() || data?.starts_at?.trim() || '';
+}
+
+function deriveEndsAt(data?: QrScanResponse) {
+  return data?.endsAt?.trim() || data?.ends_at?.trim() || '';
 }
 
 async function fetchPublicQrResponse(): Promise<QrScanResponse> {
@@ -169,9 +183,9 @@ export function useQrScanDisplay(_sessionId?: string): UseQrScanDisplayResult {
     setQrToken('');
     setSessionId(deriveSessionId(data));
     setSessionName(deriveSessionName(data));
-    setShiftType(data?.shift_type?.trim() || '');
-    setStartsAt(data?.starts_at?.trim() || '');
-    setEndsAt(data?.ends_at?.trim() || '');
+    setShiftType(deriveShiftType(data));
+    setStartsAt(deriveStartsAt(data));
+    setEndsAt(deriveEndsAt(data));
     setLastUpdatedAt(Date.now());
   }, []);
 
@@ -195,9 +209,9 @@ export function useQrScanDisplay(_sessionId?: string): UseQrScanDisplayResult {
       setQrToken(token);
       setSessionId(deriveSessionId(data));
       setSessionName(deriveSessionName(data) || 'សម័យវត្តមាន');
-      setShiftType(data.shift_type?.trim() || '');
-      setStartsAt(data.starts_at?.trim() || '');
-      setEndsAt(data.ends_at?.trim() || '');
+      setShiftType(deriveShiftType(data));
+      setStartsAt(deriveStartsAt(data));
+      setEndsAt(deriveEndsAt(data));
       setSessionStatus('active');
       setLastUpdatedAt(Date.now());
       scheduleNextRefresh(nextRefreshIn, fetchQrToken);

@@ -1,0 +1,49 @@
+{
+  "login": {
+    "title": "ចូលគណនី",
+    "username": "ឈ្មោះអ្នកប្រើប្រាស់",
+    "password": "ពាក្យសម្ងាត់",
+    "rememberMe": "ចងចាំខ្ញុំ",
+    "forgotPassword": "ភ្លេចពាក្យសម្ងាត់?",
+    "loginButton": "ចូលប្រើ",
+    "processing": "កំពុងដំណើរការ...",
+    "showPassword": "បង្ហាញពាក្យសម្ងាត់",
+    "hidePassword": "លាក់ពាក្យសម្ងាត់",
+    "error": "សូមបំពេញព័ត៌មានឲ្យបានត្រឹមត្រូវ",
+    "passwordStrength": {
+      "weak": "ខ្សោយ",
+      "fair": "ល្មម",
+      "good": "ល្អ",
+      "strong": "ខ្លាំង"
+    }
+  },
+  "welcome": {
+    "badge": "Welcome",
+    "description": "General Affairs Management System",
+    "title": "ប្រព័ន្ធគ្រប់គ្រងរដ្ឋបាល និងការប្រើប្រាស់ក្នុងអង្គភាព",
+    "subtitle": "គ្រប់គ្រងព័ត៌មាន និងប្រតិបត្តិការនៅកន្លែងតែមួយ"
+  },
+  "metadata": {
+    "title": "ប្រព័ន្ធគ្រប់គ្រងមន្រ្តី - អ្នកគ្រប់គ្រង",
+    "description": "ផ្ទាំងគ្រប់គ្រងសម្រាប់គ្រប់គ្រងមន្រ្តី ការចូលរួម ការអញ្ជើញ និងរបាយការណ៍"
+  },
+  "dashboard": {
+    "stats": {
+      "totalOfficers": "សរុបមន្រ្តី",
+      "activeOfficers": "មន្រ្តីសកម្ម",
+      "attendanceToday": "ការចូលរួមថ្ងៃនេះ",
+      "qrSessions": "សម័យ QR"
+    },
+    "attention": {
+      "officerAvailability": "ភាពអាចរកបានរបស់មន្រ្តី",
+      "pendingLeaveRequests": "សំណើច្បាប់ព្យួររងចាំ",
+      "needsReview": "ត្រូវពិនិត្យ",
+      "pendingMissions": "បេសកកម្មរងចាំ",
+      "operationalFollowUp": "ការតាមដានប្រតិបត្តិការ",
+      "pendingAttendanceApprovals": "ការអនុម័តការចូលរួមរងចាំ",
+      "awaitingConfirmation": "រងចាំការបញ្ជាក់",
+      "activeSessions": "សម័យសកម្ម",
+      "runningToday": "ដំណើរការថ្ងៃនេះ"
+    }
+  }
+}

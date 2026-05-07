@@ -24,9 +24,9 @@ type OfficersDirectoryCardProps = {
   onStatusChange: (value: string) => void;
   onPageChange: (page: SetStateAction<number>) => void;
   onView: (officer: Officer) => void;
-  onEdit: (officer: Officer) => void;
-  onDelete: (officer: Officer) => void;
-  onUploadImage: (officer: Officer) => void;
+  onEdit?: (officer: Officer) => void;
+  onDelete?: (officer: Officer) => void;
+  onUploadImage?: (officer: Officer) => void;
 };
 
 export function OfficersDirectoryCard({

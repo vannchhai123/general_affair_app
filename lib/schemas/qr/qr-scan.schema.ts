@@ -7,13 +7,18 @@ export const qrScanResponseSchema = z.object({
   active: z.boolean().optional(),
   qr_token: z.string().trim().nullable().optional(),
   expires_at: z.string().nullable().optional(),
+  expiresAt: z.string().nullable().optional(),
   status: z.string().optional(),
   location: z.string().optional().nullable(),
   message: z.string().nullable().optional(),
   session_id: z.string().nullable().optional(),
+  sessionId: z.string().nullable().optional(),
   shift_type: z.string().nullable().optional(),
+  shiftType: z.string().nullable().optional(),
   starts_at: z.string().nullable().optional(),
+  startsAt: z.string().nullable().optional(),
   ends_at: z.string().nullable().optional(),
+  endsAt: z.string().nullable().optional(),
 });
 
 export type QrScanResponse = z.infer<typeof qrScanResponseSchema>;

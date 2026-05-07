@@ -2,7 +2,7 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/api/auth';
 
-const DEFAULT_CHANGE_PASSWORD_PATH = '/auth/change-password';
+const DEFAULT_CHANGE_PASSWORD_PATH = '/api/v1/auth/change-password';
 
 export async function POST(request: Request) {
   const session = await getSession();
@@ -51,7 +51,12 @@ export async function POST(request: Request) {
   }
 
   try {
-    const response = await fetch(`${apiBaseUrl}${changePasswordPath}`, {
+    const normalizedBaseUrl = apiBaseUrl.replace(/\/$/, '');
+    const normalizedPath = changePasswordPath.startsWith('/')
+      ? changePasswordPath
+      : `/${changePasswordPath}`;
+
+    const response = await fetch(`${normalizedBaseUrl}${normalizedPath}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

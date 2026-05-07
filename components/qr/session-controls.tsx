@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { RefreshCw, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { SessionStatus } from '@/app/dashboard/qr-attendance/page';
@@ -20,6 +21,19 @@ export function SessionControls({
   onRegenerateQR,
   disableRegenerate = false,
 }: SessionControlsProps) {
+  const [currentDateLabel, setCurrentDateLabel] = useState('');
+
+  useEffect(() => {
+    setCurrentDateLabel(
+      new Intl.DateTimeFormat('km-KH', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }).format(new Date()),
+    );
+  }, []);
+
   return (
     <div className="rounded-lg border bg-card p-4">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -27,14 +41,7 @@ export function SessionControls({
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">
-                {new Date().toLocaleDateString('km-KH', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </span>
+              <span className="text-sm font-medium">{currentDateLabel || '--'}</span>
             </div>
             <SessionStatusBadge status={sessionStatus} />
           </div>
