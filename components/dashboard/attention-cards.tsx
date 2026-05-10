@@ -34,21 +34,19 @@ export function AttentionSummaryCard({
 }) {
   return (
     <Card className="overflow-hidden rounded-lg border-slate-200 shadow-sm">
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            {/* <Badge className="border-0 bg-slate-900 text-white hover:bg-slate-900">{badge}</Badge>   */}
-            <h2 className="page-title mt-4 text-xl tracking-tight">
-              {prefix ? `${prefix} ` : ''}
-              <CardNumber value={total} /> {suffix}
-            </h2>
-          </div>
-          <div className="rounded-md bg-amber-50 p-3 text-amber-700">
-            <AlertCircle className="h-5 w-5" />
+      <CardHeader className="border-b bg-slate-50/80 px-4 py-3">
+        <div className="space-y-1">
+          <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{badge}</p>
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
+            <p className="text-xl font-semibold text-slate-950">
+              {prefix} <span className="text-3xl">{total}</span>
+            </p>
+            <p className="text-sm text-muted-foreground">{suffix}</p>
           </div>
         </div>
-
-        <div className="mt-5 grid grid-cols-3 gap-2">
+      </CardHeader>
+      <CardContent className="p-4">
+        <div className="grid gap-3 sm:grid-cols-3">
           {metrics.map((metric) => (
             <div key={metric.label} className="rounded-lg border bg-slate-50 p-3">
               <metric.icon className={`h-4 w-4 ${metric.tone}`} />

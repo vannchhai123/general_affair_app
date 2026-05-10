@@ -150,21 +150,6 @@ export default function LoginPage() {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
-
-                <div className="mt-2 flex gap-1">
-                  {[0, 1, 2, 3].map((index) => (
-                    <div
-                      key={index}
-                      className={`h-1.5 flex-1 rounded-full transition-colors ${strengthClasses(
-                        index,
-                      )}`}
-                    />
-                  ))}
-                </div>
-
-                <p className="min-h-[1rem] text-xs text-muted-foreground">
-                  {passwordStrength.label}
-                </p>
               </div>
 
               <div className="flex items-center justify-between gap-3">

@@ -38,7 +38,7 @@ export function RecentAttendanceCard({
     <Card className="overflow-hidden rounded-lg border-slate-200 shadow-sm">
       <CardHeader className="border-b bg-slate-50/80">
         <div className="flex items-start justify-between gap-3">
-          <CardTitle className="text-base">{labels.title}</CardTitle>
+          <CardTitle className="page-title text-base">{labels.title}</CardTitle>
           <div className="rounded-md bg-white p-2 text-slate-600 shadow-sm">
             <TrendingUp className="h-4 w-4" />
           </div>
@@ -62,7 +62,7 @@ function RecentAttendanceTable({
     <div className="overflow-hidden rounded-lg border">
       <Table>
         <TableHeader>
-          <TableRow className="bg-slate-50/80">
+          <TableRow className="font-khmer-moul-light bg-slate-50/80">
             <TableHead>{labels.officer}</TableHead>
             <TableHead>{labels.department}</TableHead>
             <TableHead>{labels.workHours}</TableHead>

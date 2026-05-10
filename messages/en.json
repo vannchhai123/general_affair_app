@@ -29,6 +29,7 @@
   },
   "dashboard": {
     "stats": {
+      "itemsTotal": "Items total",
       "totalOfficers": "Total Officers",
       "activeOfficers": "Active Officers",
       "attendanceToday": "Attendance Today",
@@ -36,6 +37,13 @@
     },
     "attention": {
       "officerAvailability": "Officer availability",
+      "attendanceRate": "Attendance rate",
+      "absentToday": "Absent today",
+      "recentRequests": "Recent requests",
+      "operationalQueue": "Operational queue",
+      "operations": "Operations",
+      "thereAre": "There are",
+      "itemsRequiringAttention": "items requiring attention",
       "pendingLeaveRequests": "Pending leave requests",
       "needsReview": "Needs review",
       "pendingMissions": "Pending missions",
@@ -44,6 +52,28 @@
       "awaitingConfirmation": "Awaiting confirmation",
       "activeSessions": "Active sessions",
       "runningToday": "Running today"
+    },
+    "recentRequests": {
+      "pendingLabel": "Pending leave requests",
+      "type": "Type",
+      "date": "Date",
+      "actions": "Actions",
+      "approve": "Approve",
+      "reject": "Reject",
+      "emptyTitle": "No recent requests",
+      "emptyDescription": "Recent requests will appear here when there are pending approvals."
+    },
+    "recentAttendance": {
+      "title": "Recent Attendance",
+      "officer": "Officer",
+      "department": "Department",
+      "workHours": "Work Hours",
+      "status": "Status",
+      "noCode": "No Code",
+      "emptyTitle": "No recent attendance",
+      "emptyDescription": "New attendance activity will appear here once officers start checking in.",
+      "present": "Present",
+      "absent": "Absent"
     }
   }
 }

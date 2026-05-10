@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import {
+  BarChart3,
   Building2,
   ClipboardCheck,
   KeyRound,
@@ -11,7 +12,7 @@ import {
   Users,
   Workflow,
 } from 'lucide-react';
-import { hasPermission, isAdminRole, isSuperAdminRole } from '@/lib/auth/permissions';
+import { hasPermission, isSuperAdminRole } from '@/lib/auth/permissions';
 import type { SessionUser } from '@/lib/auth/session';
 
 export type NavItem = {
@@ -41,6 +42,20 @@ export const appNavigation: NavItem[] = [
     href: '/dashboard/attendance',
     icon: ClipboardCheck,
     permission: 'ATTENDANCE_VIEW',
+    children: [
+      {
+        title: 'វត្តមាន',
+        href: '/dashboard/attendance',
+        icon: ClipboardCheck,
+        permission: 'ATTENDANCE_VIEW',
+      },
+      {
+        title: 'សង្ខេបវត្តមាន',
+        href: '/dashboard/attendance-summary',
+        icon: BarChart3,
+        permission: 'ATTENDANCE_VIEW',
+      },
+    ],
   },
   {
     title: 'សម័យ QR',
@@ -67,18 +82,21 @@ export const appNavigation: NavItem[] = [
     title: 'អង្គភាព',
     href: '/dashboard/organization/departments',
     icon: Building2,
+    roles: ['ROLE_SUPER_ADMIN'],
     permission: 'ORGANIZATION_VIEW',
     children: [
       {
         title: 'នាយកដ្ឋាន',
         href: '/dashboard/organization/departments',
         icon: Building2,
+        roles: ['ROLE_SUPER_ADMIN'],
         permission: 'ORGANIZATION_VIEW',
       },
       {
         title: 'តួនាទី',
         href: '/dashboard/organization/positions',
         icon: Building2,
+        roles: ['ROLE_SUPER_ADMIN'],
         permission: 'ORGANIZATION_VIEW',
       },
     ],
@@ -108,16 +126,10 @@ export const appNavigation: NavItem[] = [
         title: 'សិទ្ធិមន្រ្តី',
         href: '/dashboard/access-control/officer-permissions',
         icon: KeyRound,
+        roles: ['ROLE_SUPER_ADMIN'],
         permission: 'OFFICER_VIEW_PERMISSION',
       },
     ],
-  },
-  {
-    title: 'សិទ្ធិមន្រ្តី',
-    href: '/dashboard/access-control/officer-permissions',
-    icon: KeyRound,
-    roles: ['ROLE_ADMIN'],
-    permission: 'OFFICER_VIEW_PERMISSION',
   },
   {
     title: 'ប្រវត្តិរូប / ការកំណត់',
@@ -166,13 +178,6 @@ export function getPageDescription(pathname: string, user: SessionUser | null) {
     return isSuperAdminRole(user?.role)
       ? 'System-wide operational overview, access control, and shift administration.'
       : 'Daily operations overview for officers, attendance, QR sessions, and organization data.';
-  }
-
-  if (
-    pathname.startsWith('/dashboard/access-control/officer-permissions') &&
-    isAdminRole(user?.role)
-  ) {
-    return 'Read-only officer permission assignments available to daily operations administrators.';
   }
 
   return 'Operational workspace for the General Affair System.';

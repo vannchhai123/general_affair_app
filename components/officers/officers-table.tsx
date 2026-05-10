@@ -81,9 +81,9 @@ export function OfficersTable({
         <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
           <Eye className="h-6 w-6 text-muted-foreground" />
         </div>
-        <h3 className="text-sm font-medium">No officers found</h3>
+        <h3 className="text-sm font-medium">មិនប្រទាក់មន្រ្តីណាឡើយ</h3>
         <p className="mt-1 text-sm text-muted-foreground">
-          Adjust filters or create an officer to populate this directory.
+          សូមកែសម្រួលតម្រង ឬបង្កើតមន្រ្តីដើម្បីបំពេញបញ្ជីនេះ។
         </p>
       </div>
     );
@@ -94,14 +94,14 @@ export function OfficersTable({
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
-            <TableHead className="px-4 py-2">Officer Code</TableHead>
-            <TableHead className="px-4 py-2">First Name</TableHead>
-            <TableHead className="px-4 py-2">Last Name</TableHead>
-            <TableHead className="px-4 py-2">Position</TableHead>
-            <TableHead className="hidden px-4 py-2 lg:table-cell">Department</TableHead>
-            <TableHead className="hidden px-4 py-2 md:table-cell">Phone</TableHead>
-            <TableHead className="px-4 py-2">Status</TableHead>
-            <TableHead className="w-12 px-4 py-2 text-center">Actions</TableHead>
+            <TableHead className="px-4 py-2">កូដមន្រ្តី</TableHead>
+            <TableHead className="px-4 py-2">នាមខ្លួន</TableHead>
+            <TableHead className="px-4 py-2">នាមត្រកូល</TableHead>
+            <TableHead className="px-4 py-2">តួនាទី</TableHead>
+            <TableHead className="hidden px-4 py-2 lg:table-cell">នាយកដ្ឋាន</TableHead>
+            <TableHead className="hidden px-4 py-2 md:table-cell">ទូរស័ព្ទ</TableHead>
+            <TableHead className="px-4 py-2">ស្ថានភាព</TableHead>
+            <TableHead className="w-12 px-4 py-2 text-center">សកម្មភាព</TableHead>
           </TableRow>
         </TableHeader>
 
@@ -134,30 +134,30 @@ export function OfficersTable({
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="h-8 w-8">
                         <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Open menu</span>
+                        <span className="sr-only">បើកម៉ឺនុយ</span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="center">
                       <DropdownMenuItem onClick={() => onView?.(officer)}>
                         <Eye className="mr-2 h-4 w-4" />
-                        View
+                        មើល
                       </DropdownMenuItem>
                       {showUpload ? (
                         <DropdownMenuItem onClick={() => onUploadImage?.(officer)}>
                           <Upload className="mr-2 h-4 w-4" />
-                          Upload Image
+                          អัปឡូដរូបភាព
                         </DropdownMenuItem>
                       ) : null}
                       {showEdit ? (
                         <DropdownMenuItem onClick={() => onEdit?.(officer)}>
                           <Pencil className="mr-2 h-4 w-4" />
-                          Edit
+                          កែសម្រួល
                         </DropdownMenuItem>
                       ) : null}
                       {showDelete ? (
                         <DropdownMenuItem variant="destructive" onClick={() => onDelete?.(officer)}>
                           <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
+                          លុប
                         </DropdownMenuItem>
                       ) : null}
                     </DropdownMenuContent>
