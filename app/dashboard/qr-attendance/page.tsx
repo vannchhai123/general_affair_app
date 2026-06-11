@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { QrCode, Shield, UserCheck, UserX, Clock, Copy, ExternalLink } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
@@ -65,6 +66,7 @@ export default function QRAttendancePage() {
     error: currentSessionErrorData,
     refetch: refetchCurrentSession,
   } = useCurrentQrSession();
+  const t = useTranslations('qrAttendance');
   const qrScanDisplay = useQrScanDisplay();
   const sessionId = currentSession?.id || qrScanDisplay.sessionId;
 
@@ -95,10 +97,10 @@ export default function QRAttendancePage() {
       qrScanDisplay.refetchQr();
       void refetchCurrentSession();
       setIsRefreshing(false);
-      toast.success('QR regenerated successfully');
+      toast.success(t('qrRegeneratedSuccess'));
     } catch {
       setIsRefreshing(false);
-      toast.error('Unable to regenerate QR');
+      toast.error(t('unableToRegenerateQr'));
     }
   };
 
@@ -111,7 +113,7 @@ export default function QRAttendancePage() {
           checkIn.officer_name ??
           checkIn.employeeName ??
           checkIn.employee_name ??
-          'Unknown officer',
+          t('unknownOfficer'),
         employeeCode:
           checkIn.officerCode ??
           checkIn.officer_code ??
@@ -164,11 +166,11 @@ export default function QRAttendancePage() {
 
     try {
       await navigator.clipboard.writeText(displayUrl);
-      toast.success('Display URL copied');
+      toast.success(t('displayUrlCopied'));
     } catch {
-      toast.error('Unable to copy display URL');
+      toast.error(t('unableToCopyDisplayUrl'));
     }
-  }, [displayUrl]);
+  }, [displayUrl, t]);
 
   const openDisplayPage = useCallback(() => {
     if (!displayUrl) return;
@@ -179,28 +181,19 @@ export default function QRAttendancePage() {
     <RequireAccess
       permission="QR_SESSION_VIEW"
       roles={['ROLE_SUPER_ADMIN']}
-      title="QR attendance is restricted"
-      description="Only super-admins can access QR attendance tools."
+      title={t('restrictedTitle')}
+      description={t('restrictedDescription')}
     >
       <div className="flex flex-col gap-6">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="page-title text-2xl tracking-tight">QR Attendance</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Manage the live QR session for officer check-in and check-out.
-            </p>
+            <h1 className="page-title text-2xl tracking-tight">{t('pageTitle')}</h1>
           </div>
 
           <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Badge variant="outline" className="flex items-center gap-1.5 px-3 py-1.5">
-                  <Shield className="h-3.5 w-3.5 text-emerald-600" />
-                  <span className="text-xs">Secure rotating QR</span>
-                </Badge>
-              </TooltipTrigger>
               <TooltipContent>
-                <p>QR availability and timing are now driven by the active backend shift.</p>
+                <p>{t('secureBadgeTooltip')}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -220,7 +213,7 @@ export default function QRAttendancePage() {
               <span>
                 {currentSessionErrorData instanceof Error
                   ? currentSessionErrorData.message
-                  : 'Unable to load the current QR session.'}
+                  : t('unableToLoadCurrentSession')}
               </span>
               <Button
                 size="sm"
@@ -228,7 +221,7 @@ export default function QRAttendancePage() {
                 className="h-7"
                 onClick={() => void refetchCurrentSession()}
               >
-                Retry
+                {t('retryLabel')}
               </Button>
             </AlertDescription>
           </Alert>
@@ -239,10 +232,8 @@ export default function QRAttendancePage() {
             <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-muted">
               <QrCode className="h-10 w-10 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-medium">No active QR session</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Session availability now follows the backend&apos;s dynamic shift schedule.
-            </p>
+            <h3 className="text-lg font-medium">{t('sessionIdleTitle')}</h3>
+            <p className="mt-2 text-sm text-muted-foreground">{t('sessionIdleDescription')}</p>
           </div>
         ) : (
           <>
@@ -272,7 +263,7 @@ export default function QRAttendancePage() {
                       <span>
                         {checkInsErrorData instanceof Error
                           ? checkInsErrorData.message
-                          : 'Unable to load live check-ins.'}
+                          : t('unableToLoadCheckIns')}
                       </span>
                       <Button
                         size="sm"
@@ -282,7 +273,7 @@ export default function QRAttendancePage() {
                           void refetchCheckIns();
                         }}
                       >
-                        Retry
+                        {t('retryLabel')}
                       </Button>
                     </AlertDescription>
                   </Alert>
@@ -291,63 +282,62 @@ export default function QRAttendancePage() {
               </div>
             </div>
 
-            <div className="rounded-lg border bg-card p-5">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div className="space-y-1">
-                  <h3 className="text-base font-semibold text-foreground">Kiosk Display</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Open the public display on a kiosk or secondary screen for QR attendance.
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" onClick={copyDisplayUrl} disabled={!displayUrl}>
-                    <Copy className="mr-2 h-4 w-4" />
-                    Copy URL
-                  </Button>
-                  <Button onClick={openDisplayPage} disabled={!displayUrl}>
-                    <ExternalLink className="mr-2 h-4 w-4" />
-                    Open Display
-                  </Button>
-                </div>
-              </div>
-
-              <div className="mt-4 rounded-md bg-muted/60 px-4 py-3">
-                <p className="break-all font-mono text-sm text-foreground">
-                  {displayUrl || 'Unable to generate the display URL.'}
-                </p>
-              </div>
-            </div>
-
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
               <SummaryCard
-                label="Total scans"
+                label={t('totalScans')}
                 value={stats.totalScans}
                 icon={QrCode}
                 color="text-slate-700"
                 bg="bg-slate-50"
               />
               <SummaryCard
-                label="Checked in"
+                label={t('checkedIn')}
                 value={stats.checkedIn}
                 icon={UserCheck}
                 color="text-emerald-700"
                 bg="bg-emerald-50"
               />
               <SummaryCard
-                label="Checked out"
+                label={t('checkedOut')}
                 value={stats.checkedOut}
                 icon={UserX}
                 color="text-blue-700"
                 bg="bg-blue-50"
               />
               <SummaryCard
-                label="Late"
+                label={t('late')}
                 value={stats.late}
                 icon={Clock}
                 color="text-amber-700"
                 bg="bg-amber-50"
               />
+            </div>
+
+            <div className="rounded-lg border bg-card p-5">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="space-y-1">
+                  <h3 className="font-khmer-moul-light text-base font-semibold text-foreground">
+                    {t('kioskDisplayTitle')}
+                  </h3>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" onClick={copyDisplayUrl} disabled={!displayUrl}>
+                    <Copy className="mr-2 h-4 w-4" />
+                    {t('copyUrl')}
+                  </Button>
+                  <Button onClick={openDisplayPage} disabled={!displayUrl}>
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    {t('openDisplay')}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="mt-4 rounded-md bg-muted/60 px-4 py-3">
+                <p className="break-all font-mono text-sm text-foreground">
+                  {displayUrl || t('displayUrlFallback')}
+                </p>
+              </div>
             </div>
           </>
         )}

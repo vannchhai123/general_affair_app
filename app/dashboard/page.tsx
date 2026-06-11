@@ -1,32 +1,77 @@
 'use client';
 
-import { QrCode } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { RequireAccess } from '@/components/auth/require-access';
-import { useAuth } from '@/components/auth/auth-provider';
-import {
-  AttentionListCard,
-  type AttentionItemData,
-  type AttentionMetric,
-} from '@/components/dashboard/attention-cards';
-import { DashboardError, DashboardLoading } from '@/components/dashboard/dashboard-states';
+import { DashboardLoading } from '@/components/dashboard/dashboard-states';
 import { RecentAttendanceCard } from '@/components/dashboard/recent-attendance-card';
 import { RecentRequestsCard } from '@/components/dashboard/recent-requests-card';
+import { DashboardAnalyticsCards } from '@/components/dashboard/dashboard-analytics-cards';
 import { DashboardStatCard, type DashboardStatCardProps } from '@/components/dashboard/stat-card';
 import { useDashboard } from '@/hooks/dashboard/use-dashboard';
-import { percent } from '@/lib/dashboard/utils';
 import type { DashboardStats } from '@/lib/schemas';
-import {
-  CalendarOff,
-  CheckCircle2,
-  ClipboardCheck,
-  Clock,
-  ShieldCheck,
-  Target,
-  UserCheck,
-  UserX,
-  Users,
-} from 'lucide-react';
+import { CheckCircle2, ClipboardCheck, QrCode, UserCheck, UserX, Users } from 'lucide-react';
+
+const mockDashboardData: DashboardStats = {
+  officers: { total: 120, active: 98, on_leave: 12, inactive: 10 },
+  attendance: { total: 102, approved: 95, pending: 5, absent: 3 },
+  invitations: { total: 15, active: 8, completed: 7 },
+  missions: { total: 9, approved: 5, pending: 4 },
+  leave_requests: { total: 24, approved: 18, pending: 6 },
+  recent_attendance: [
+    {
+      id: 1,
+      officerId: 101,
+      imageUrl: null,
+      date: '09/06/2026',
+      checkIn: '08:09',
+      checkOut: '17:05',
+      totalWorkMin: 536,
+      totalLateMin: 9,
+      status: 'មាន',
+      firstName: 'សុខា',
+      lastName: 'បុត្រា',
+      department: 'ការិយាល័យគ្រប់គ្រង',
+      officerCode: 'OF-101',
+      sessions: [
+        { id: 1001, shiftName: 'ព្រឹក', checkIn: '08:09', checkOut: '17:05', status: 'សម្រេច' },
+      ],
+    },
+    {
+      id: 2,
+      officerId: 102,
+      imageUrl: null,
+      date: '09/06/2026',
+      checkIn: '08:22',
+      checkOut: '17:00',
+      totalWorkMin: 518,
+      totalLateMin: 22,
+      status: 'មាន',
+      firstName: 'តារា',
+      lastName: 'ស្រី',
+      department: 'ការិយាល័យធនធានមនុស្ស',
+      officerCode: 'OF-102',
+      sessions: [
+        { id: 1002, shiftName: 'ព្រឹក', checkIn: '08:22', checkOut: '17:00', status: 'សម្រេច' },
+      ],
+    },
+    {
+      id: 3,
+      officerId: 103,
+      imageUrl: null,
+      date: '09/06/2026',
+      checkIn: null,
+      checkOut: null,
+      totalWorkMin: 0,
+      totalLateMin: 0,
+      status: 'អវត្តមាន',
+      firstName: 'ព្រី',
+      lastName: 'ទូច',
+      department: 'សេវាកម្មពហុ',
+      officerCode: 'OF-103',
+      sessions: null,
+    },
+  ],
+};
 
 function buildStatCards(
   data: DashboardStats,
@@ -79,20 +124,17 @@ function buildStatCards(
   ];
 }
 
-function buildAttentionMetrics(
-  data: DashboardStats,
-  t: (key: string) => string,
-): AttentionMetric[] {
+function buildAttentionMetrics(data: DashboardStats, t: (key: string) => string) {
   return [
     {
       label: t('attention.officerAvailability'),
-      value: `${percent(data.officers?.active ?? 0, data.officers?.total ?? 0)}%`,
-      icon: ShieldCheck,
+      value: `${Math.round(((data.officers?.active ?? 0) / (data.officers?.total ?? 1)) * 100)}%`,
+      icon: CheckCircle2,
       tone: 'text-emerald-700',
     },
     {
       label: t('attention.attendanceRate'),
-      value: `${percent(data.attendance?.approved ?? 0, data.attendance?.total ?? 0)}%`,
+      value: `${Math.round(((data.attendance?.approved ?? 0) / (data.attendance?.total ?? 1)) * 100)}%`,
       icon: CheckCircle2,
       tone: 'text-blue-700',
     },
@@ -105,106 +147,61 @@ function buildAttentionMetrics(
   ];
 }
 
-function buildAttentionItems(
-  data: DashboardStats,
-  t: (key: string) => string,
-): AttentionItemData[] {
-  return [
-    {
-      icon: CalendarOff,
-      title: t('attention.pendingLeaveRequests'),
-      helper: t('attention.needsReview'),
-      value: data.leave_requests?.pending ?? 0,
-      tone: 'bg-amber-50 text-amber-700',
-    },
-    {
-      icon: Target,
-      title: t('attention.pendingMissions'),
-      helper: t('attention.operationalFollowUp'),
-      value: data.missions?.pending ?? 0,
-      tone: 'bg-blue-50 text-blue-700',
-    },
-    {
-      icon: ClipboardCheck,
-      title: t('attention.pendingAttendanceApprovals'),
-      helper: t('attention.awaitingConfirmation'),
-      value: data.attendance?.pending ?? 0,
-      tone: 'bg-red-50 text-red-700',
-    },
-    {
-      icon: Clock,
-      title: t('attention.activeSessions'),
-      helper: t('attention.runningToday'),
-      value: data.invitations?.active ?? 0,
-      tone: 'bg-emerald-50 text-emerald-700',
-    },
-  ];
-}
-
 export default function DashboardPage() {
-  const { data, isLoading, isError, error, refetch, isFetching } = useDashboard();
-  const { hasPermission, isSuperAdmin } = useAuth();
+  const { data, isLoading, isError, refetch, isFetching } = useDashboard();
   const t = useTranslations('dashboard');
+  const usingMockData = isError || !data;
+  const dataToShow = data ?? mockDashboardData;
 
   if (isLoading) return <DashboardLoading />;
 
-  if (isError || !data) {
-    return (
-      <DashboardError
-        message={error instanceof Error ? error.message : undefined}
-        onRetry={() => void refetch()}
-        isFetching={isFetching}
-        title="Unable to load dashboard data"
-        description="The operational summary endpoint is unavailable."
-        responseLabel="Expected response"
-        retryLabel="Retry"
-      />
-    );
-  }
-
   return (
     <RequireAccess permission="DASHBOARD_VIEW">
-      <div className="space-y-5">
+      <div className="space-y-6">
+        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="page-title mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+                {t('pageSubtitle')}
+              </h1>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              {usingMockData ? (
+                <span className="rounded-full bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700">
+                  {t('mockDataBadge')}
+                </span>
+              ) : null}
+              <span className="rounded-full bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700">
+                {t('metricsBadge')}
+              </span>
+            </div>
+          </div>
+        </section>
+
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {buildStatCards(data, t).map((stat) => (
+          {buildStatCards(dataToShow, t).map((stat) => (
             <DashboardStatCard key={stat.title} {...stat} />
           ))}
         </div>
 
-        <div className="grid gap-5 xl:grid-cols-2">
-          <RecentRequestsCard
-            title={t('attention.recentRequests')}
-            pendingLabel={t('recentRequests.pendingLabel')}
-            typeLabel={t('recentRequests.type')}
-            dateLabel={t('recentRequests.date')}
-            actionsLabel={t('recentRequests.actions')}
-            approveLabel={t('recentRequests.approve')}
-            rejectLabel={t('recentRequests.reject')}
-            emptyTitle={t('recentRequests.emptyTitle')}
-            emptyDescription={t('recentRequests.emptyDescription')}
-            summaryMetrics={buildAttentionMetrics(data, t)}
-          />
-          <AttentionListCard
-            title={t('attention.operationalQueue')}
-            items={buildAttentionItems(data, t)}
-          />
-        </div>
+        <DashboardAnalyticsCards stats={dataToShow} records={dataToShow.recent_attendance ?? []} />
 
-        <RecentAttendanceCard
-          records={data.recent_attendance ?? []}
-          labels={{
-            title: t('recentAttendance.title'),
-            officer: t('recentAttendance.officer'),
-            department: t('recentAttendance.department'),
-            workHours: t('recentAttendance.workHours'),
-            status: t('recentAttendance.status'),
-            noCode: t('recentAttendance.noCode'),
-            emptyTitle: t('recentAttendance.emptyTitle'),
-            emptyDescription: t('recentAttendance.emptyDescription'),
-            present: t('recentAttendance.present'),
-            absent: t('recentAttendance.absent'),
-          }}
-        />
+        <div className="grid gap-5 xl:grid-cols-2">
+          <div className="xl:col-span-2">
+            <RecentRequestsCard
+              title={t('attention.recentRequests')}
+              pendingLabel={t('recentRequests.pendingLabel')}
+              typeLabel={t('recentRequests.type')}
+              dateLabel={t('recentRequests.date')}
+              actionsLabel={t('recentRequests.actions')}
+              approveLabel={t('recentRequests.approve')}
+              rejectLabel={t('recentRequests.reject')}
+              emptyTitle={t('recentRequests.emptyTitle')}
+              emptyDescription={t('recentRequests.emptyDescription')}
+              summaryMetrics={buildAttentionMetrics(dataToShow, t)}
+            />
+          </div>
+        </div>
       </div>
     </RequireAccess>
   );

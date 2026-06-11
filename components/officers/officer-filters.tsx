@@ -31,7 +31,7 @@ export function OfficerFilters({
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="ស្វែងរកតាមឈ្មោះ ឬអ៊ីមែល..."
+          placeholder="ស្វែងរក..."
           className="pl-9"
         />
       </div>
@@ -41,7 +41,7 @@ export function OfficerFilters({
           <SelectValue placeholder="នាយកដ្ឋាន" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">នាយកដ្ឋានទាំងអស់</SelectItem>
+          <SelectItem value="all">ការិយាល័យ</SelectItem>
           {departments.map((item) => (
             <SelectItem key={item.id} value={item.name}>
               {item.name}
@@ -55,7 +55,7 @@ export function OfficerFilters({
           <SelectValue placeholder="ស្ថានភាព" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">ស្ថានភាពទាំងអស់</SelectItem>
+          <SelectItem value="all">ស្ថានភាព</SelectItem>
           <SelectItem value="active">សកម្ម</SelectItem>
           <SelectItem value="on_leave">ច្បាប់ឈប់សម្រាក</SelectItem>
           <SelectItem value="inactive">មិនសកម្ម</SelectItem>

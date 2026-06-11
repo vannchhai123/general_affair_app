@@ -39,11 +39,10 @@ export function CheckInList({ checkIns, isLoading = false }: CheckInListProps) {
   return (
     <div className="rounded-lg border bg-card">
       <div className="border-b p-4">
-        <h3 className="flex items-center gap-2 text-base font-semibold">
+        <h3 className="font-khmer-moul-light flex items-center gap-2 text-base font-semibold">
           <Users className="h-4 w-4 text-muted-foreground" />
           ការឆែកចូលផ្ទាល់
         </h3>
-        <p className="mt-1 text-sm text-muted-foreground">ការស្កេនវត្តមានបច្ចុប្បន្នភាពភ្លាមៗ</p>
       </div>
       <ScrollArea className="h-[400px] p-4">
         {isLoading ? (

@@ -4,6 +4,7 @@ import type { OfficerFormData } from '@/components/officers/officer-dialog';
 export const OFFICERS_PAGE_SIZE = 10;
 export const MAX_OFFICER_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 export const ACCEPTED_OFFICER_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const OFFICER_CONTRACT_TYPES = ['FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP'] as const;
 
 export type OfficerStats = {
   total: number;
@@ -44,17 +45,32 @@ export function normalizeOfficerStatus(status?: string | null) {
 }
 
 export function getOfficerFormData(officer: Officer): OfficerFormData & { id: number } {
+  const contractType = OFFICER_CONTRACT_TYPES.includes(
+    officer.contract_type as (typeof OFFICER_CONTRACT_TYPES)[number],
+  )
+    ? (officer.contract_type as (typeof OFFICER_CONTRACT_TYPES)[number])
+    : 'FULL_TIME';
+
   return {
     id: officer.id,
-    first_name: officer.first_name,
-    last_name: officer.last_name,
-    sex: officer.sex || 'male',
-    email: officer.email || '',
-    position: officer.position,
-    department: officer.department,
-    phone: officer.phone || '',
-    status: officer.status,
     officerCode: officer.officerCode || '',
+    first_name_en: officer.first_name_en || officer.first_name || '',
+    last_name_en: officer.last_name_en || officer.last_name || '',
+    first_name_kh: officer.first_name_kh || '',
+    last_name_kh: officer.last_name_kh || '',
+    sex: officer.sex || 'male',
+    date_of_birth: officer.date_of_birth || '',
+    national_id: officer.national_id || '',
+    nationality: officer.nationality || '',
+    ethnicity: officer.ethnicity || '',
+    email: officer.email || '',
+    position_id: officer.position_id || 0,
+    office_id: officer.office_id || 0,
+    education_level_id: officer.education_level_id || 0,
+    hire_date: officer.hire_date || '',
+    contract_type: contractType,
+    phone: officer.phone || '',
+    status: normalizeOfficerStatus(officer.status) || 'active',
   };
 }
 
@@ -129,5 +145,5 @@ export function getDepartmentChartData(officers: Officer[]): DepartmentChartItem
       officers: officersCount,
     }))
     .sort((left, right) => right.officers - left.officers)
-    .slice(0, 6);
+    .slice(0, 11);
 }

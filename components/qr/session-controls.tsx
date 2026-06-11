@@ -40,17 +40,11 @@ export function SessionControls({
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
             <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">{currentDateLabel || '--'}</span>
+              <span className="text-md font-medium">{currentDateLabel || '--'}</span>
             </div>
             <SessionStatusBadge status={sessionStatus} />
           </div>
-          <div className="space-y-1">
-            <p className="text-sm font-medium text-foreground">{message}</p>
-            <p className="text-sm text-muted-foreground">
-              {timeRange || 'ភាពអាចប្រើបានរបស់សម័យ QR ត្រូវបានគ្រប់គ្រងដោយ backend។'}
-            </p>
-          </div>
+          <div className="space-y-1"></div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">

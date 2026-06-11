@@ -42,20 +42,12 @@ export const appNavigation: NavItem[] = [
     href: '/dashboard/attendance',
     icon: ClipboardCheck,
     permission: 'ATTENDANCE_VIEW',
-    children: [
-      {
-        title: 'វត្តមាន',
-        href: '/dashboard/attendance',
-        icon: ClipboardCheck,
-        permission: 'ATTENDANCE_VIEW',
-      },
-      {
-        title: 'សង្ខេបវត្តមាន',
-        href: '/dashboard/attendance-summary',
-        icon: BarChart3,
-        permission: 'ATTENDANCE_VIEW',
-      },
-    ],
+  },
+  {
+    title: 'សង្ខេបវត្តមាន',
+    href: '/dashboard/attendance-summary',
+    icon: BarChart3,
+    permission: 'ATTENDANCE_VIEW',
   },
   {
     title: 'សម័យ QR',
@@ -72,67 +64,42 @@ export const appNavigation: NavItem[] = [
     permission: 'SHIFT_VIEW',
   },
   {
-    title: 'ចាត់តាំងវេន',
-    href: '/dashboard/shift-assignments',
-    icon: Workflow,
-    roles: ['ROLE_SUPER_ADMIN'],
-    permission: 'SHIFT_ASSIGN',
-  },
-  {
-    title: 'អង្គភាព',
+    title: 'នាយកដ្ឋាន',
     href: '/dashboard/organization/departments',
     icon: Building2,
     roles: ['ROLE_SUPER_ADMIN'],
     permission: 'ORGANIZATION_VIEW',
-    children: [
-      {
-        title: 'នាយកដ្ឋាន',
-        href: '/dashboard/organization/departments',
-        icon: Building2,
-        roles: ['ROLE_SUPER_ADMIN'],
-        permission: 'ORGANIZATION_VIEW',
-      },
-      {
-        title: 'តួនាទី',
-        href: '/dashboard/organization/positions',
-        icon: Building2,
-        roles: ['ROLE_SUPER_ADMIN'],
-        permission: 'ORGANIZATION_VIEW',
-      },
-    ],
   },
   {
-    title: 'សិទ្ធិប្រើប្រាស់',
+    title: 'តួនាទី',
+    href: '/dashboard/organization/positions',
+    icon: Building2,
+    roles: ['ROLE_SUPER_ADMIN'],
+    permission: 'ORGANIZATION_VIEW',
+  },
+  {
+    title: 'សិទ្ធិ',
     href: '/dashboard/access-control/permissions',
     icon: Shield,
     roles: ['ROLE_SUPER_ADMIN'],
     permission: 'PERMISSION_VIEW',
-    children: [
-      {
-        title: 'សិទ្ធិ',
-        href: '/dashboard/access-control/permissions',
-        icon: Shield,
-        roles: ['ROLE_SUPER_ADMIN'],
-        permission: 'PERMISSION_VIEW',
-      },
-      {
-        title: 'សិទ្ធិតាមតួនាទី',
-        href: '/dashboard/access-control/role-permissions',
-        icon: ShieldCheck,
-        roles: ['ROLE_SUPER_ADMIN'],
-        permission: 'ROLE_ASSIGN_PERMISSION',
-      },
-      {
-        title: 'សិទ្ធិមន្រ្តី',
-        href: '/dashboard/access-control/officer-permissions',
-        icon: KeyRound,
-        roles: ['ROLE_SUPER_ADMIN'],
-        permission: 'OFFICER_VIEW_PERMISSION',
-      },
-    ],
   },
   {
-    title: 'ប្រវត្តិរូប / ការកំណត់',
+    title: 'សិទ្ធិតាមតួនាទី',
+    href: '/dashboard/access-control/role-permissions',
+    icon: ShieldCheck,
+    roles: ['ROLE_SUPER_ADMIN'],
+    permission: 'ROLE_ASSIGN_PERMISSION',
+  },
+  {
+    title: 'សិទ្ធិមន្រ្តី',
+    href: '/dashboard/access-control/officer-permissions',
+    icon: KeyRound,
+    roles: ['ROLE_SUPER_ADMIN'],
+    permission: 'OFFICER_VIEW_PERMISSION',
+  },
+  {
+    title: 'ប្រវត្តិរូប',
     href: '/dashboard/settings',
     icon: Settings,
   },
@@ -165,7 +132,6 @@ export function getPageTitle(pathname: string) {
   if (pathname.startsWith('/dashboard/attendance')) return 'វត្តមាន';
   if (pathname.startsWith('/dashboard/qr-sessions')) return 'សម័យ QR';
   if (pathname.startsWith('/dashboard/shift-management')) return 'គ្រប់គ្រងវេន';
-  if (pathname.startsWith('/dashboard/shift-assignments')) return 'ចាត់តាំងវេន';
   if (pathname.startsWith('/dashboard/organization')) return 'អង្គភាព';
   if (pathname.startsWith('/dashboard/access-control')) return 'សិទ្ធិប្រើប្រាស់';
   if (pathname.startsWith('/dashboard/settings')) return 'ប្រវត្តិរូប / ការកំណត់';

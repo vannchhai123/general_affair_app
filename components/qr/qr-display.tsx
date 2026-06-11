@@ -92,9 +92,7 @@ export function QRDisplay({
             <p className="text-sm font-medium text-foreground">{sessionMessage}</p>
           )}
           {timeRange && <p className="text-xs text-muted-foreground">{timeRange}</p>}
-          <p className="text-sm text-muted-foreground">
-            មន្ត្រីស្កេន QR នេះដើម្បីកត់ត្រាវត្តមាន។ ប្រព័ន្ធនឹងធ្វើបច្ចុប្បន្នភាពដោយស្វ័យប្រវត្តិ។
-          </p>
+          <p className="text-sm text-muted-foreground">មន្ត្រីស្កេន QR នេះដើម្បីកត់ត្រាវត្តមាន</p>
         </div>
       </div>
     </div>

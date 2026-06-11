@@ -4,7 +4,7 @@ import Cookies from 'js-cookie';
 
 const API_BASE_URL = buildApiBaseUrl(process.env.NEXT_PUBLIC_API_URL as string);
 
-function buildApiBaseUrl(baseUrl: string) {
+export function buildApiBaseUrl(baseUrl: string) {
   const normalized = baseUrl?.replace(/\/$/, '') ?? '';
 
   if (normalized.endsWith('/api/v1')) {

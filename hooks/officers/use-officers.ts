@@ -1,24 +1,19 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { z } from 'zod';
 import { queryKeys, fetchApi } from '@/lib/api/fetcher';
-import { officerSchema } from '@/lib/schemas';
-import type { Officer } from '@/lib/schemas';
-
-const paginatedOfficersResponseSchema = z.object({
-  content: z.array(officerSchema),
-  page: z.number(),
-  size: z.number(),
-  totalElements: z.number(),
-  totalPages: z.number(),
-  last: z.boolean(),
-});
-
-type PaginatedOfficers = z.infer<typeof paginatedOfficersResponseSchema>;
+import {
+  paginatedOfficersResponseSchema,
+  type Officer,
+  type PaginatedOfficersResponse,
+} from '@/lib/schemas';
 type OfficersQueryData = {
   officers: Officer[];
   total: number;
+  page: number;
+  size: number;
+  totalPages: number;
+  last: boolean;
 };
 
 export function useOfficers(filters?: {
@@ -37,6 +32,7 @@ export function useOfficers(filters?: {
     queryParams.set('page', String(filters.page - 1));
   }
   if (filters?.pageSize !== undefined) queryParams.set('size', String(filters.pageSize));
+  queryParams.set('sort', 'id,asc');
 
   const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
 
@@ -53,14 +49,18 @@ export function useOfficers(filters?: {
       ) as Record<string, string>,
     ),
     queryFn: async () => {
-      const data = await fetchApi<PaginatedOfficers, typeof paginatedOfficersResponseSchema>(
-        `/officer${queryString}`,
-        paginatedOfficersResponseSchema,
-      );
+      const data = await fetchApi<
+        PaginatedOfficersResponse,
+        typeof paginatedOfficersResponseSchema
+      >(`/officer${queryString}`, paginatedOfficersResponseSchema);
 
       return {
         officers: data.content ?? [],
         total: data.totalElements ?? 0,
+        page: data.page ?? 0,
+        size: data.size ?? filters?.pageSize ?? 10,
+        totalPages: data.totalPages ?? 0,
+        last: data.last ?? true,
       };
     },
   });
@@ -69,6 +69,12 @@ export function useOfficers(filters?: {
     ...query,
     officers: query.data?.officers ?? [],
     total: query.data?.total ?? 0,
+    pagination: {
+      page: query.data?.page ?? (filters?.page ?? 1) - 1,
+      size: query.data?.size ?? filters?.pageSize ?? 10,
+      totalPages: query.data?.totalPages ?? 0,
+      last: query.data?.last ?? true,
+    },
     mutate: query.refetch,
   };
 }

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ApiError } from '@/lib/api/fetcher';
+import { buildApiBaseUrl } from '@/lib/client';
 import { qrScanResponseSchema, type QrScanResponse } from '@/lib/schemas';
 
 export type QrScanSessionStatus = 'active' | 'inactive' | 'error' | 'loading';
@@ -31,7 +32,7 @@ const FALLBACK_EXPIRES_IN = 3600;
 const MIN_REFRESH_SECONDS = 1;
 const MAX_REFRESH_SECONDS = 86400;
 const HARD_RELOAD_MINUTES = 45;
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL as string;
+const API_BASE_URL = buildApiBaseUrl(process.env.NEXT_PUBLIC_API_URL as string);
 
 function clampRefreshSeconds(value?: number) {
   if (!value || Number.isNaN(value)) return FALLBACK_EXPIRES_IN;

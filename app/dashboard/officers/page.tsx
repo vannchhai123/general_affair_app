@@ -31,8 +31,8 @@ import {
   getDepartmentChartData,
   getOfficerFormData,
   getOfficerPagination,
-  getOfficerStatusChartData,
   normalizeOfficerStatus,
+  type DepartmentChartItem,
 } from '@/lib/officers/page-utils';
 import type { Officer } from '@/lib/schemas';
 import { Users } from 'lucide-react';
@@ -67,7 +67,6 @@ export default function OfficersPage() {
   const updateOfficer = useUpdateOfficer();
   const deleteOfficer = useDeleteOfficer();
   const uploadOfficerImage = useUploadOfficerImage();
-  const statusChartData = useMemo(() => getOfficerStatusChartData(stats), [stats]);
   const filteredOfficers = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
 
@@ -77,16 +76,20 @@ export default function OfficersPage() {
         [
           officer.first_name,
           officer.last_name,
+          officer.first_name_kh,
+          officer.last_name_kh,
           officer.email,
           officer.officerCode,
           officer.phone,
           officer.position,
           officer.department,
+          officer.office,
         ]
           .filter((value): value is string => Boolean(value))
           .some((value: string) => value.toLowerCase().includes(normalizedSearch));
 
-      const matchesDepartment = department === 'all' || officer.department === department;
+      const matchesDepartment =
+        department === 'all' || officer.department === department || officer.office === department;
       const normalizedStatus = normalizeOfficerStatus(officer.status);
       const matchesStatus = status === 'all' || normalizedStatus === status;
 
@@ -102,10 +105,47 @@ export default function OfficersPage() {
     const startIndex = (pagination.currentPage - 1) * OFFICERS_PAGE_SIZE;
     return filteredOfficers.slice(startIndex, startIndex + OFFICERS_PAGE_SIZE);
   }, [filteredOfficers, pagination.currentPage]);
+
   const departmentChartData = useMemo(
     () => getDepartmentChartData(filteredOfficers),
     [filteredOfficers],
   );
+
+  const { maleCount, femaleCount, permanentChartData, contractChartData } = useMemo(() => {
+    let maleCount = 0;
+    let femaleCount = 0;
+
+    const permanentChartData = [
+      { key: 'male', label: 'ប្រុស', value: 0, fill: '#0088FE' },
+      { key: 'female', label: 'ស្រី', value: 0, fill: '#800080' },
+    ];
+
+    const contractChartData = [
+      { key: 'male', label: 'ប្រុស', value: 0, fill: '#0088FE' },
+      { key: 'female', label: 'ស្រី', value: 0, fill: '#800080' },
+    ];
+
+    for (const officer of filteredOfficers) {
+      const isFemale = officer.sex === 'female';
+      const sexKey = isFemale ? 'female' : 'male';
+
+      if (isFemale) {
+        femaleCount += 1;
+      } else {
+        maleCount += 1;
+      }
+
+      const isContract =
+        officer.contract_type === 'CONTRACT' || officer.contract_type === 'INTERNSHIP';
+      const targetChart = isContract ? contractChartData : permanentChartData;
+      const slice = targetChart.find((entry) => entry.key === sexKey);
+      if (slice) {
+        slice.value += 1;
+      }
+    }
+
+    return { maleCount, femaleCount, permanentChartData, contractChartData };
+  }, [filteredOfficers]);
   const canCreate = hasPermission('OFFICER_CREATE');
   const canUpdate = hasPermission('OFFICER_UPDATE');
   const canUploadImage = hasPermission('OFFICER_UPDATE');
@@ -205,8 +245,11 @@ export default function OfficersPage() {
 
         <div className="flex flex-col gap-5">
           <OfficersAnalyticsCard
-            statusChartData={statusChartData}
             departmentChartData={departmentChartData}
+            permanentChartData={permanentChartData}
+            contractChartData={contractChartData}
+            maleCount={maleCount}
+            femaleCount={femaleCount}
           />
 
           <OfficersDirectoryCard

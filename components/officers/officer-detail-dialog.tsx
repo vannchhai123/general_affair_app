@@ -1,17 +1,20 @@
 'use client';
 
 import type { ElementType } from 'react';
-import { BriefcaseBusiness, Hash, Mail, Phone, UserRound, Users } from 'lucide-react';
+import {
+  BriefcaseBusiness,
+  Calendar,
+  Hash,
+  IdCard,
+  Mail,
+  Phone,
+  UserRound,
+  Users,
+} from 'lucide-react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { normalizeOfficerStatus } from '@/lib/officers/page-utils';
 import type { Officer } from '@/lib/schemas';
 
@@ -48,7 +51,7 @@ function getStatusStyle(status: string) {
   }
 }
 
-function getSexLabel(sex?: string) {
+function getSexLabel(sex?: string | null) {
   switch (sex) {
     case 'male':
       return 'ប្រុស';
@@ -108,7 +111,9 @@ function DetailItem({
 export function OfficerDetailDialog({ open, onOpenChange, officer }: OfficerDetailDialogProps) {
   if (!officer) return null;
 
-  const fullName = `${officer.first_name} ${officer.last_name}`.trim();
+  const fullName =
+    `${officer.first_name_en || officer.first_name} ${officer.last_name_en || officer.last_name}`.trim();
+  const fullNameKh = `${officer.first_name_kh || ''} ${officer.last_name_kh || ''}`.trim();
   const imageUrl = getOfficerImageUrl(officer);
 
   return (
@@ -146,10 +151,17 @@ export function OfficerDetailDialog({ open, onOpenChange, officer }: OfficerDeta
           <div className="grid gap-2.5 sm:grid-cols-2">
             <DetailItem icon={Hash} label="កូដមន្រ្តី" value={officer.officerCode} />
             <DetailItem icon={Users} label="ភេទ" value={getSexLabel(officer.sex)} />
-            <DetailItem icon={UserRound} label="នាមខ្លួន" value={officer.first_name} />
-            <DetailItem icon={UserRound} label="នាមត្រកូល" value={officer.last_name} />
+            <DetailItem icon={UserRound} label="ឈ្មោះ (EN)" value={fullName} />
+            <DetailItem icon={UserRound} label="ឈ្មោះ (KH)" value={fullNameKh} />
             <DetailItem icon={BriefcaseBusiness} label="តួនាទី" value={officer.position} />
-            <DetailItem icon={BriefcaseBusiness} label="នាយកដ្ឋាន" value={officer.department} />
+            <DetailItem icon={BriefcaseBusiness} label="Office" value={officer.office} />
+            <DetailItem icon={BriefcaseBusiness} label="Department" value={officer.department} />
+            <DetailItem icon={Calendar} label="Date of Birth" value={officer.date_of_birth} />
+            <DetailItem icon={Calendar} label="Hire Date" value={officer.hire_date} />
+            <DetailItem icon={IdCard} label="National ID" value={officer.national_id} />
+            <DetailItem icon={IdCard} label="Contract Type" value={officer.contract_type} />
+            <DetailItem icon={IdCard} label="Nationality" value={officer.nationality} />
+            <DetailItem icon={IdCard} label="Ethnicity" value={officer.ethnicity} />
             <DetailItem
               icon={Mail}
               label="អ៊ីមែល"

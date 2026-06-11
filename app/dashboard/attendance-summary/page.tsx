@@ -18,10 +18,6 @@ export default function AttendanceSummaryPage() {
         <div className="space-y-2">
           <div>
             <h1 className="page-title text-2xl tracking-tight">សង្ខេបវត្តមាន</h1>
-            {/* <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-              ផ្ទាំងគ្រប់គ្រងសម្រាប់អ្នកគ្រប់គ្រង ដើម្បីមើលសមត្ថភាពវត្តមាន ការមកទាន់ពេល
-              ស្ថានភាពតាមនាយកដ្ឋាន និងសកម្មភាពវេន។
-            </p> */}
           </div>
         </div>
 

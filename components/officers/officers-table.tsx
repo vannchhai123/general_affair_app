@@ -12,6 +12,14 @@ import { Skeleton } from '../ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { StatusBadge } from './status-badge';
 
+// Helper function to truncate long text
+const truncateText = (text: string, maxLength: number = 25) => {
+  if (text && text.length > maxLength) {
+    return `${text.slice(0, maxLength)}...`;
+  }
+  return text;
+};
+
 interface OfficersTableProps {
   officers?: Officer[];
   onView?: (officer: Officer) => void;
@@ -23,7 +31,10 @@ interface OfficersTableProps {
 }
 
 function getOfficerInitials(officer: Officer) {
-  const initials = [officer.first_name, officer.last_name]
+  const initials = [
+    officer.first_name_kh || officer.first_name,
+    officer.last_name_kh || officer.last_name,
+  ]
     .filter(Boolean)
     .map((name) => name[0])
     .join('');
@@ -93,15 +104,17 @@ export function OfficersTable({
     <div className="flex flex-col gap-4">
       <Table>
         <TableHeader>
-          <TableRow className="hover:bg-transparent">
-            <TableHead className="px-4 py-2">កូដមន្រ្តី</TableHead>
-            <TableHead className="px-4 py-2">នាមខ្លួន</TableHead>
-            <TableHead className="px-4 py-2">នាមត្រកូល</TableHead>
-            <TableHead className="px-4 py-2">តួនាទី</TableHead>
-            <TableHead className="hidden px-4 py-2 lg:table-cell">នាយកដ្ឋាន</TableHead>
-            <TableHead className="hidden px-4 py-2 md:table-cell">ទូរស័ព្ទ</TableHead>
-            <TableHead className="px-4 py-2">ស្ថានភាព</TableHead>
-            <TableHead className="w-12 px-4 py-2 text-center">សកម្មភាព</TableHead>
+          <TableRow className="hover:bg-transparent font-khmer-moul-light">
+            <TableHead className="px-4 py-2 text-blue-900">កូដមន្រ្តី</TableHead>
+            <TableHead className="px-4 py-2 text-blue-900">នាមខ្លួន</TableHead>
+            <TableHead className="px-4 py-2 text-blue-900">នាមត្រកូល</TableHead>
+            <TableHead className="px-4 py-2 text-blue-900">តួនាទី</TableHead>
+            <TableHead className="hidden px-4 py-2 lg:table-cell text-blue-900">
+              ការិយាល័យ
+            </TableHead>
+            <TableHead className="hidden px-4 py-2 md:table-cell text-blue-900">ទូរស័ព្ទ</TableHead>
+            <TableHead className="px-4 py-2 text-blue-900">ស្ថានភាព</TableHead>
+            <TableHead className="w-12 px-4 py-2 text-center text-blue-900">សកម្មភាព</TableHead>
           </TableRow>
         </TableHeader>
 
@@ -114,11 +127,18 @@ export function OfficersTable({
                 <TableCell className="px-4 py-2 font-mono text-sm text-muted-foreground">
                   {officer.officerCode || '-'}
                 </TableCell>
-                <TableCell className="px-4 py-2 font-medium">{officer.first_name}</TableCell>
-                <TableCell className="px-4 py-2 font-medium">{officer.last_name}</TableCell>
+                <TableCell className="px-4 py-2 font-medium">
+                  {officer.first_name_kh || officer.first_name}
+                </TableCell>
+                <TableCell className="px-4 py-2 font-medium">
+                  {officer.last_name_kh || officer.last_name}
+                </TableCell>
                 <TableCell className="px-4 py-2 text-sm">{officer.position}</TableCell>
-                <TableCell className="hidden px-4 py-2 text-sm lg:table-cell">
-                  {officer.department}
+                <TableCell
+                  className="hidden px-4 py-2 text-sm lg:table-cell"
+                  title={officer.department}
+                >
+                  {truncateText(officer.department, 25)}
                 </TableCell>
                 <TableCell className="hidden px-4 py-2 text-sm md:table-cell">
                   <div className="flex items-center gap-1.5 text-muted-foreground">
@@ -145,7 +165,7 @@ export function OfficersTable({
                       {showUpload ? (
                         <DropdownMenuItem onClick={() => onUploadImage?.(officer)}>
                           <Upload className="mr-2 h-4 w-4" />
-                          អัปឡូដរូបភាព
+                          បញ្ចូលរូបភាព
                         </DropdownMenuItem>
                       ) : null}
                       {showEdit ? (
