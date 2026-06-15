@@ -185,7 +185,6 @@ export default function DashboardPage() {
         </div>
 
         <DashboardAnalyticsCards stats={dataToShow} records={dataToShow.recent_attendance ?? []} />
-
         <div className="grid gap-5 xl:grid-cols-2">
           <div className="xl:col-span-2">
             <RecentRequestsCard
