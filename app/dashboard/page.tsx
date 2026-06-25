@@ -86,7 +86,7 @@ function buildAttentionMetrics(data: DashboardStats, t: (key: string) => string)
 }
 
 export default function DashboardPage() {
-  const { data, isLoading, isError, refetch, isFetching } = useDashboard();
+  const { data, isLoading, isError, error, refetch, isFetching } = useDashboard();
   const t = useTranslations('dashboard');
 
   if (isLoading) return <DashboardLoading />;
@@ -97,7 +97,7 @@ export default function DashboardPage() {
         <DashboardError
           title={t('errors.dashboardTitle')}
           description={t('errors.dashboardDescription')}
-          message={isError?.message}
+          message={error?.message}
           responseLabel={t('errors.dashboardResponseLabel')}
           retryLabel={t('errors.retryLabel')}
           onRetry={() => refetch()}
