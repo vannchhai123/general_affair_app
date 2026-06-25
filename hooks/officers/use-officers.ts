@@ -32,7 +32,8 @@ export function useOfficers(filters?: {
     queryParams.set('page', String(filters.page - 1));
   }
   if (filters?.pageSize !== undefined) queryParams.set('size', String(filters.pageSize));
-  queryParams.set('sort', 'id,asc');
+  // Default to newest first so recently created officers appear at the top
+  queryParams.set('sort', 'id,desc');
 
   const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
 

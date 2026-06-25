@@ -30,6 +30,7 @@ export function useDepartments(filters: DepartmentListParams = {}) {
   const query = useQuery<DepartmentsListResponse, ApiError>({
     queryKey: queryKeys.organization.departments.list(toFilterRecord(filters)),
     queryFn: () => organizationApi.getDepartments(filters),
+    retry: false,
   });
 
   return {

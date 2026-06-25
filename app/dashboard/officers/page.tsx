@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { RequireAccess } from '@/components/auth/require-access';
 import { useAuth } from '@/components/auth/auth-provider';
@@ -154,9 +155,10 @@ export default function OfficersPage() {
     setPage(1);
   }
 
+  const router = useRouter();
+
   function handleAdd() {
-    setEditingOfficer(undefined);
-    setDialogOpen(true);
+    router.push('/dashboard/officers/add');
   }
 
   function handleEdit(officer: Officer) {

@@ -456,10 +456,6 @@ export default function OrganizationPage() {
           </Badge> */}
           <div>
             <h1 className="page-title text-2xl tracking-tight">នាយកដ្ឋាន និងតួនាទីការងារ</h1>
-            {/* <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              គ្រប់គ្រងរចនាសម្ព័ន្ធអង្គភាព ធ្វើឱ្យតួនាទីការងារស្របតាមនាយកដ្ឋាន
-              និងរក្សាទិន្នន័យឱ្យសមកាលកម្មជាមួយ API ខាងក្រោយ។
-            </p> */}
           </div>
         </div>
 

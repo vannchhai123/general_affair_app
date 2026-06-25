@@ -18,9 +18,9 @@ const optionalTrimmedString = (maxLength: number) =>
 
 export const departmentApiSchema = z.object({
   id: z.number(),
-  uuid: z.string(),
-  name: z.string(),
-  code: z.string(),
+  uuid: z.string().nullable(),
+  name: z.string().nullable(),
+  code: z.string().nullable(),
   manager: z.string().nullable(),
   officer_count: z.number(),
   status: organizationStatusSchema,
@@ -29,11 +29,11 @@ export const departmentApiSchema = z.object({
 
 export const positionApiSchema = z.object({
   id: z.number(),
-  uuid: z.string(),
-  title: z.string(),
-  code: z.string(),
+  uuid: z.string().nullable(),
+  title: z.string().nullable(),
+  code: z.string().nullable(),
   department_id: z.number(),
-  department_name: z.string(),
+  department_name: z.string().nullable(),
   officer_count: z.number(),
   status: organizationStatusSchema,
   description: z.string().nullable(),
@@ -41,9 +41,9 @@ export const positionApiSchema = z.object({
 
 export const departmentSchema = departmentApiSchema.transform((department) => ({
   id: department.id,
-  uuid: department.uuid,
-  name: department.name,
-  code: department.code,
+  uuid: department.uuid ?? '',
+  name: department.name ?? '',
+  code: department.code ?? '',
   manager: department.manager,
   officerCount: department.officer_count,
   status: department.status,
@@ -52,11 +52,11 @@ export const departmentSchema = departmentApiSchema.transform((department) => ({
 
 export const positionSchema = positionApiSchema.transform((position) => ({
   id: position.id,
-  uuid: position.uuid,
-  title: position.title,
-  code: position.code,
+  uuid: position.uuid ?? '',
+  title: position.title ?? '',
+  code: position.code ?? '',
   departmentId: position.department_id,
-  departmentName: position.department_name,
+  departmentName: position.department_name ?? '',
   officerCount: position.officer_count,
   status: position.status,
   description: position.description,

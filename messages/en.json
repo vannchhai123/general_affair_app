@@ -88,6 +88,12 @@
     "errorDescription": "The operational summary endpoint is unavailable.",
     "expectedResponse": "Expected response",
     "retry": "Retry",
+    "errors": {
+      "dashboardTitle": "Unable to load dashboard data",
+      "dashboardDescription": "The operational summary endpoint is unavailable.",
+      "dashboardResponseLabel": "Response",
+      "retryLabel": "Retry"
+    },
     "recentAttendance": {
       "title": "Recent Attendance",
       "officer": "Officer",

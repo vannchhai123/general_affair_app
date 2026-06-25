@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { RequireAccess } from '@/components/auth/require-access';
-import { DashboardLoading } from '@/components/dashboard/dashboard-states';
+import { DashboardError, DashboardLoading } from '@/components/dashboard/dashboard-states';
 import { RecentAttendanceCard } from '@/components/dashboard/recent-attendance-card';
 import { RecentRequestsCard } from '@/components/dashboard/recent-requests-card';
 import { DashboardAnalyticsCards } from '@/components/dashboard/dashboard-analytics-cards';
@@ -10,68 +10,6 @@ import { DashboardStatCard, type DashboardStatCardProps } from '@/components/das
 import { useDashboard } from '@/hooks/dashboard/use-dashboard';
 import type { DashboardStats } from '@/lib/schemas';
 import { CheckCircle2, ClipboardCheck, QrCode, UserCheck, UserX, Users } from 'lucide-react';
-
-const mockDashboardData: DashboardStats = {
-  officers: { total: 120, active: 98, on_leave: 12, inactive: 10 },
-  attendance: { total: 102, approved: 95, pending: 5, absent: 3 },
-  invitations: { total: 15, active: 8, completed: 7 },
-  missions: { total: 9, approved: 5, pending: 4 },
-  leave_requests: { total: 24, approved: 18, pending: 6 },
-  recent_attendance: [
-    {
-      id: 1,
-      officerId: 101,
-      imageUrl: null,
-      date: '09/06/2026',
-      checkIn: '08:09',
-      checkOut: '17:05',
-      totalWorkMin: 536,
-      totalLateMin: 9,
-      status: 'មាន',
-      firstName: 'សុខា',
-      lastName: 'បុត្រា',
-      department: 'ការិយាល័យគ្រប់គ្រង',
-      officerCode: 'OF-101',
-      sessions: [
-        { id: 1001, shiftName: 'ព្រឹក', checkIn: '08:09', checkOut: '17:05', status: 'សម្រេច' },
-      ],
-    },
-    {
-      id: 2,
-      officerId: 102,
-      imageUrl: null,
-      date: '09/06/2026',
-      checkIn: '08:22',
-      checkOut: '17:00',
-      totalWorkMin: 518,
-      totalLateMin: 22,
-      status: 'មាន',
-      firstName: 'តារា',
-      lastName: 'ស្រី',
-      department: 'ការិយាល័យធនធានមនុស្ស',
-      officerCode: 'OF-102',
-      sessions: [
-        { id: 1002, shiftName: 'ព្រឹក', checkIn: '08:22', checkOut: '17:00', status: 'សម្រេច' },
-      ],
-    },
-    {
-      id: 3,
-      officerId: 103,
-      imageUrl: null,
-      date: '09/06/2026',
-      checkIn: null,
-      checkOut: null,
-      totalWorkMin: 0,
-      totalLateMin: 0,
-      status: 'អវត្តមាន',
-      firstName: 'ព្រី',
-      lastName: 'ទូច',
-      department: 'សេវាកម្មពហុ',
-      officerCode: 'OF-103',
-      sessions: null,
-    },
-  ],
-};
 
 function buildStatCards(
   data: DashboardStats,
@@ -150,10 +88,24 @@ function buildAttentionMetrics(data: DashboardStats, t: (key: string) => string)
 export default function DashboardPage() {
   const { data, isLoading, isError, refetch, isFetching } = useDashboard();
   const t = useTranslations('dashboard');
-  const usingMockData = isError || !data;
-  const dataToShow = data ?? mockDashboardData;
 
   if (isLoading) return <DashboardLoading />;
+
+  if (isError || !data) {
+    return (
+      <RequireAccess permission="DASHBOARD_VIEW">
+        <DashboardError
+          title={t('errors.dashboardTitle')}
+          description={t('errors.dashboardDescription')}
+          message={isError?.message}
+          responseLabel={t('errors.dashboardResponseLabel')}
+          retryLabel={t('errors.retryLabel')}
+          onRetry={() => refetch()}
+          isFetching={isFetching}
+        />
+      </RequireAccess>
+    );
+  }
 
   return (
     <RequireAccess permission="DASHBOARD_VIEW">
@@ -166,11 +118,6 @@ export default function DashboardPage() {
               </h1>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              {usingMockData ? (
-                <span className="rounded-full bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700">
-                  {t('mockDataBadge')}
-                </span>
-              ) : null}
               <span className="rounded-full bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700">
                 {t('metricsBadge')}
               </span>
@@ -179,12 +126,12 @@ export default function DashboardPage() {
         </section>
 
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {buildStatCards(dataToShow, t).map((stat) => (
+          {buildStatCards(data, t).map((stat) => (
             <DashboardStatCard key={stat.title} {...stat} />
           ))}
         </div>
 
-        <DashboardAnalyticsCards stats={dataToShow} records={dataToShow.recent_attendance ?? []} />
+        <DashboardAnalyticsCards stats={data} records={data.recent_attendance ?? []} />
         <div className="grid gap-5 xl:grid-cols-2">
           <div className="xl:col-span-2">
             <RecentRequestsCard
@@ -197,7 +144,7 @@ export default function DashboardPage() {
               rejectLabel={t('recentRequests.reject')}
               emptyTitle={t('recentRequests.emptyTitle')}
               emptyDescription={t('recentRequests.emptyDescription')}
-              summaryMetrics={buildAttentionMetrics(dataToShow, t)}
+              summaryMetrics={buildAttentionMetrics(data, t)}
             />
           </div>
         </div>

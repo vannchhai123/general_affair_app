@@ -62,6 +62,12 @@
     "errorDescription": "មិនមាន API សង្ខេបប្រតិបត្តិការ។",
     "expectedResponse": "ការឆ្លើយតបដែលរំពឹងទុក",
     "retry": "ព្យាយាមម្តងទៀត",
+    "errors": {
+      "dashboardTitle": "មិនអាចទាញទិន្ន័យផ្ទាំងគ្រប់គ្រង",
+      "dashboardDescription": "មិនមាន API សង្ខេបប្រតិបត្តិការ។",
+      "dashboardResponseLabel": "ចម្លើយ",
+      "retryLabel": "ព្យាយាមម្ដងទៀត"
+    },
     "recentRequests": {
       "pendingLabel": "សំណើច្បាប់ព្យួររងចាំ",
       "type": "ប្រភេទ",

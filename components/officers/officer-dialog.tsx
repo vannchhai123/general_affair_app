@@ -38,7 +38,7 @@ export interface OfficerFormData {
   email: string;
   position_id: number;
   office_id: number;
-  education_level_id: number;
+  education_level: string;
   hire_date: string;
   contract_type: 'FULL_TIME' | 'PART_TIME' | 'CONTRACT' | 'INTERNSHIP';
   phone: string;
@@ -66,7 +66,7 @@ const emptyForm: OfficerFormData = {
   email: '',
   position_id: 0,
   office_id: 0,
-  education_level_id: 0,
+  education_level: '',
   hire_date: '',
   contract_type: 'FULL_TIME',
   phone: '',
@@ -106,7 +106,7 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
         email: officer.email || '',
         position_id: officer.position_id || 0,
         office_id: officer.office_id || 0,
-        education_level_id: officer.education_level_id || 0,
+        education_level: officer.education_level ?? '',
         hire_date: officer.hire_date || '',
         contract_type: officer.contract_type || 'FULL_TIME',
         phone: officer.phone || '',
@@ -190,7 +190,7 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="first_name_en">First Name (EN)</Label>
+                  <Label htmlFor="first_name_en">នាមខ្លួន (អង់គ្លេស)</Label>
                   <Input
                     id="first_name_en"
                     value={form.first_name_en}
@@ -200,7 +200,7 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="last_name_en">Last Name (EN)</Label>
+                  <Label htmlFor="last_name_en">នាមត្រកូល (អង់គ្លេស)</Label>
                   <Input
                     id="last_name_en"
                     value={form.last_name_en}
@@ -269,7 +269,7 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="date_of_birth">Date of Birth</Label>
+                  <Label htmlFor="date_of_birth">ថ្ងៃ ខែ ឆ្នាំកំណើត</Label>
                   <Input
                     id="date_of_birth"
                     type="date"
@@ -318,7 +318,7 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="office_id">Office</Label>
+                  <Label htmlFor="office_id">អង្គភាព</Label>
                   <Select
                     value={form.office_id > 0 ? String(form.office_id) : undefined}
                     onValueChange={(value) =>
@@ -329,8 +329,12 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
                       }))
                     }
                   >
-                    <SelectTrigger id="office_id">
-                      <SelectValue placeholder="Select office">
+                    <SelectTrigger id="office_id" className="w-full">
+                      <SelectValue
+                        placeholder="ជ្រើសរើសអង្គភាព"
+                        className="truncate max-w-full"
+                        title={selectedDepartmentName}
+                      >
                         {selectedDepartmentName}
                       </SelectValue>
                     </SelectTrigger>
@@ -345,17 +349,19 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="position_id">Position</Label>
+                  <Label htmlFor="position_id">តំណែង</Label>
                   <Select
                     value={form.position_id > 0 ? String(form.position_id) : undefined}
                     onValueChange={(value) => setForm({ ...form, position_id: Number(value) })}
                     disabled={!selectedDepartmentId}
                   >
-                    <SelectTrigger id="position_id">
+                    <SelectTrigger id="position_id" className="w-full">
                       <SelectValue
                         placeholder={
-                          selectedDepartmentId ? 'Select position' : 'Select office first'
+                          selectedDepartmentId ? 'ជ្រើសរើសតំណែង' : 'ជ្រើសរើសអង្គភាពជាមុន'
                         }
+                        className="truncate max-w-full"
+                        title={selectedPositionTitle}
                       >
                         {selectedPositionTitle}
                       </SelectValue>
@@ -371,16 +377,15 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="education_level_id">Education Level ID</Label>
+                  <Label htmlFor="education_level">កម្រិតការអប់រំ</Label>
                   <Input
-                    id="education_level_id"
-                    type="number"
-                    min={1}
-                    value={form.education_level_id > 0 ? String(form.education_level_id) : ''}
+                    id="education_level"
+                    type="text"
+                    value={form.education_level}
                     onChange={(e) =>
                       setForm({
                         ...form,
-                        education_level_id: e.target.value ? Number(e.target.value) : 0,
+                        education_level: e.target.value,
                       })
                     }
                     required
@@ -399,7 +404,7 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
                 </div>
 
                 <div className="flex flex-col gap-2 sm:col-span-2">
-                  <Label htmlFor="contract_type">Contract Type</Label>
+                  <Label htmlFor="contract_type">ប្រភេទកិច្ចសន្យា</Label>
                   <Select
                     value={form.contract_type}
                     onValueChange={(value) =>
@@ -407,13 +412,13 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
                     }
                   >
                     <SelectTrigger id="contract_type">
-                      <SelectValue placeholder="Select contract type" />
+                      <SelectValue placeholder="ជ្រើសរើសប្រភេទកិច្ចសន្យា" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="FULL_TIME">Full Time</SelectItem>
-                      <SelectItem value="PART_TIME">Part Time</SelectItem>
-                      <SelectItem value="CONTRACT">Contract</SelectItem>
-                      <SelectItem value="INTERNSHIP">Internship</SelectItem>
+                      <SelectItem value="FULL_TIME">ពេញម៉ោង</SelectItem>
+                      <SelectItem value="PART_TIME">ម៉ោងខ្លះ</SelectItem>
+                      <SelectItem value="CONTRACT">កិច្ចសន្យា</SelectItem>
+                      <SelectItem value="INTERNSHIP">ហាត់ការ</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

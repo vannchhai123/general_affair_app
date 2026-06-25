@@ -73,8 +73,8 @@ function SidebarNavigation({ mounted }: { mounted: boolean }) {
                       href={item.href}
                       className="flex min-w-0 items-center gap-3 group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:h-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:gap-0"
                     >
-                      <item.icon className="h-[1.1rem] w-[1.1rem] shrink-0 text-current" />
-                      <span className="truncate text-[1.05rem] font-medium leading-[1.7]">
+                      <item.icon className="h-5 w-5 shrink-0 text-current" />
+                      <span className="truncate text-sm font-medium leading-[1.4]">
                         {item.title}
                       </span>
                     </Link>
@@ -98,7 +98,7 @@ function SidebarNavigation({ mounted }: { mounted: boolean }) {
                               )}
                             >
                               <Link href={child.href} className="block w-full truncate">
-                                <span className="text-[0.98rem] leading-[1.65]">{child.title}</span>
+                                <span className="text-sm leading-[1.45]">{child.title}</span>
                               </Link>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>

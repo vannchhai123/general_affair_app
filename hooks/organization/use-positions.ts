@@ -31,6 +31,7 @@ export function usePositions(filters: PositionListParams = {}) {
   const query = useQuery<PositionsListResponse, ApiError>({
     queryKey: queryKeys.organization.positions.list(toFilterRecord(filters)),
     queryFn: () => organizationApi.getPositions(filters),
+    retry: false,
   });
 
   return {

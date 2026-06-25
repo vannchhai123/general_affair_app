@@ -66,7 +66,7 @@ export function getOfficerFormData(officer: Officer): OfficerFormData & { id: nu
     email: officer.email || '',
     position_id: officer.position_id || 0,
     office_id: officer.office_id || 0,
-    education_level_id: officer.education_level_id || 0,
+    education_level: officer.education_level_id ? String(officer.education_level_id) : '',
     hire_date: officer.hire_date || '',
     contract_type: contractType,
     phone: officer.phone || '',

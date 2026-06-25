@@ -78,7 +78,7 @@ export const createOfficerSchema = z.object({
   email: z.string().trim().email('Invalid email'),
   position_id: z.number().int().positive('Position is required'),
   office_id: z.number().int().positive('Office is required'),
-  education_level_id: z.number().int().positive('Education level is required'),
+  education_level: z.string().trim().min(1, 'Education level is required'),
   hire_date: z.string().trim().min(1, 'Hire date is required'),
   contract_type: z.enum(['FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP']),
   phone: z.string().trim().min(1, 'Phone is required'),
