@@ -72,9 +72,9 @@ export function useCreateDepartment() {
       const validation = organizationApi.validateDepartment(values);
 
       if (!validation.success) {
-        throw new ApiError('សូមកែតម្រូវវាលនាយកដ្ឋានដែលបានបន្លិច។', 400, 'Bad Request', {
+        throw new ApiError('សូមកែតម្រូវវាលការិយាល័យដែលបានបន្លិច។', 400, 'Bad Request', {
           status: 400,
-          message: 'សូមកែតម្រូវវាលនាយកដ្ឋានដែលបានបន្លិច។',
+          message: 'សូមកែតម្រូវវាលការិយាល័យដែលបានបន្លិច។',
           error: 'Validation Error',
           path: '/organizations/department',
           timestamp: new Date().toISOString(),
@@ -86,7 +86,7 @@ export function useCreateDepartment() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.organization.departments.all });
-      toast.success('បានរក្សាទុកនាយកដ្ឋានដោយជោគជ័យ។');
+      toast.success('បានរក្សាទុកការិយាល័យដោយជោគជ័យ។');
     },
     onError: (error: ApiError) => {
       toast.error(error.message);
@@ -102,9 +102,9 @@ export function useUpdateDepartment() {
       const validation = organizationApi.validateDepartment(values);
 
       if (!validation.success) {
-        throw new ApiError('សូមកែតម្រូវវាលនាយកដ្ឋានដែលបានបន្លិច។', 400, 'Bad Request', {
+        throw new ApiError('សូមកែតម្រូវវាលការិយាល័យដែលបានបន្លិច។', 400, 'Bad Request', {
           status: 400,
-          message: 'សូមកែតម្រូវវាលនាយកដ្ឋានដែលបានបន្លិច។',
+          message: 'សូមកែតម្រូវវាលការិយាល័យដែលបានបន្លិច។',
           error: 'Validation Error',
           path: `/organizations/department/${id}`,
           timestamp: new Date().toISOString(),
@@ -117,7 +117,7 @@ export function useUpdateDepartment() {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.organization.departments.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.organization.departments.detail(id) });
-      toast.success('បានកែប្រែនាយកដ្ឋានដោយជោគជ័យ។');
+      toast.success('បានកែប្រែការិយាល័យដោយជោគជ័យ។');
     },
     onError: (error: ApiError) => {
       toast.error(error.message);
@@ -132,7 +132,7 @@ export function useDeleteDepartment() {
     mutationFn: (id: number) => organizationApi.deleteDepartment(id),
     onSuccess: (response: DeleteMessageResponse) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.organization.departments.all });
-      toast.success(response.message || 'បានលុបនាយកដ្ឋានដោយជោគជ័យ។');
+      toast.success(response.message || 'បានលុបការិយាល័យដោយជោគជ័យ។');
     },
     onError: (error: ApiError) => {
       toast.error(error.message);

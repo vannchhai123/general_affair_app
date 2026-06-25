@@ -441,7 +441,7 @@ export default function OrganizationPage() {
   const departmentQueryError =
     departmentQuery.error instanceof ApiError
       ? departmentQuery.error.message
-      : 'មិនអាចផ្ទុកនាយកដ្ឋានបានទេ។';
+      : 'មិនអាចផ្ទុកការិយាល័យបានទេ។';
   const positionQueryError =
     positionQuery.error instanceof ApiError
       ? positionQuery.error.message
@@ -455,7 +455,7 @@ export default function OrganizationPage() {
             ការរៀបចំរចនាសម្ព័ន្ធអង្គភាព
           </Badge> */}
           <div>
-            <h1 className="page-title text-2xl tracking-tight">នាយកដ្ឋាន និងតួនាទីការងារ</h1>
+            <h1 className="page-title text-2xl tracking-tight">ការិយាល័យ និងតួនាទីការងារ</h1>
           </div>
         </div>
 
@@ -466,16 +466,16 @@ export default function OrganizationPage() {
           </Button>
           <Button onClick={() => openCreateDialog('department')}>
             <Plus className="mr-2 h-4 w-4" />
-            បន្ថែមនាយកដ្ឋាន
+            បន្ថែមការិយាល័យ
           </Button>
         </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
         <MetricCard
-          title="នាយកដ្ឋានសកម្មដែលកំពុងបង្ហាញ"
+          title="ការិយាល័យសកម្មដែលកំពុងបង្ហាញ"
           value={activeDepartmentCount}
-          description={`សរុប ${departmentQuery.total} នាយកដ្ឋានពី API`}
+          description={`សរុប ${departmentQuery.total} ការិយាល័យពី API`}
           icon={Building2}
         />
         <MetricCard
@@ -487,7 +487,7 @@ export default function OrganizationPage() {
         <MetricCard
           title="មន្ត្រីដែលបានចាត់តាំង"
           value={visibleOfficerCount}
-          description="គណនាពីលទ្ធផលនាយកដ្ឋានបច្ចុប្បន្ន"
+          description="គណនាពីលទ្ធផលការិយាល័យបច្ចុប្បន្ន"
           icon={Users}
         />
       </div>
@@ -533,7 +533,7 @@ export default function OrganizationPage() {
           >
             <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center sm:justify-between">
               <TabsList className="grid w-full grid-cols-2 sm:w-fit">
-                <TabsTrigger value="departments">នាយកដ្ឋាន</TabsTrigger>
+                <TabsTrigger value="departments">ការិយាល័យ</TabsTrigger>
                 <TabsTrigger value="positions">តួនាទី</TabsTrigger>
               </TabsList>
               <div className="flex gap-2">
@@ -543,13 +543,13 @@ export default function OrganizationPage() {
                 </Button>
                 <Button size="sm" onClick={() => openCreateDialog('department')}>
                   <Plus className="mr-2 h-4 w-4" />
-                  នាយកដ្ឋាន
+                  ការិយាល័យ
                 </Button>
               </div>
             </div>
 
             <TabsContent value="departments" className="m-0">
-              {departmentQuery.isLoading ? <LoadingState label="កំពុងផ្ទុកនាយកដ្ឋាន..." /> : null}
+              {departmentQuery.isLoading ? <LoadingState label="កំពុងផ្ទុកការិយាល័យ..." /> : null}
 
               {!departmentQuery.isLoading && departmentQuery.isError ? (
                 <ErrorState
@@ -578,7 +578,7 @@ export default function OrganizationPage() {
                             <StatusBadge status={department.status} />
                           </div>
                           <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
-                            {department.description || 'មិនមានការពិពណ៌នានាយកដ្ឋានទេ។'}
+                            {department.description || 'មិនមានការពិពណ៌នាការិយាល័យទេ។'}
                           </p>
                         </div>
 
@@ -626,7 +626,7 @@ export default function OrganizationPage() {
                     ))}
 
                     {departments.length === 0 ? (
-                      <EmptyState message="មិនមាននាយកដ្ឋានត្រូវនឹងលក្ខខណ្ឌតម្រងបច្ចុប្បន្នទេ។" />
+                      <EmptyState message="មិនមានការិយាល័យត្រូវនឹងលក្ខខណ្ឌតម្រងបច្ចុប្បន្នទេ។" />
                     ) : null}
                   </div>
 
@@ -677,7 +677,7 @@ export default function OrganizationPage() {
                         </div>
 
                         <div>
-                          <p className="text-xs text-muted-foreground">នាយកដ្ឋាន</p>
+                          <p className="text-xs text-muted-foreground">ការិយាល័យ</p>
                           <p className="mt-1 text-sm font-medium">
                             {position.departmentName || '-'}
                           </p>
@@ -747,8 +747,8 @@ export default function OrganizationPage() {
             <DialogTitle>
               {dialogMode === 'department'
                 ? editingDepartment
-                  ? 'កែប្រែនាយកដ្ឋាន'
-                  : 'បង្កើតនាយកដ្ឋាន'
+                  ? 'កែប្រែការិយាល័យ'
+                  : 'បង្កើតិការិយាល័យ'
                 : editingPosition
                   ? 'កែប្រែតួនាទី'
                   : 'បង្កើតតួនាទី'}
@@ -760,7 +760,7 @@ export default function OrganizationPage() {
               <div className="grid gap-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="department-name">ឈ្មោះនាយកដ្ឋាន</Label>
+                    <Label htmlFor="department-name">ឈ្មោះការិយាល័យ</Label>
                     <Input
                       id="department-name"
                       value={departmentForm.name}
@@ -860,7 +860,7 @@ export default function OrganizationPage() {
                         setPositionForm((form) => ({ ...form, title }));
                         setPositionErrors((errors) => ({ ...errors, title: undefined }));
                       }}
-                      placeholder="ប្រធាននាយកដ្ឋាន"
+                      placeholder="ប្រធានការិយាល័យ"
                       className={cn(positionErrors.title && 'border-destructive')}
                     />
                     <FieldError message={positionErrors.title} />
@@ -885,7 +885,7 @@ export default function OrganizationPage() {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label>នាយកដ្ឋាន</Label>
+                    <Label>ការិយាល័យ</Label>
                     <Select
                       value={
                         positionForm.departmentId ? String(positionForm.departmentId) : undefined
@@ -898,7 +898,7 @@ export default function OrganizationPage() {
                       <SelectTrigger
                         className={cn(positionErrors.departmentId && 'border-destructive')}
                       >
-                        <SelectValue placeholder="ជ្រើសរើសនាយកដ្ឋាន" />
+                        <SelectValue placeholder="ជ្រើសរើសការិយាល័យ" />
                       </SelectTrigger>
                       <SelectContent>
                         {departmentOptions.map((department: Department) => (
@@ -971,7 +971,7 @@ export default function OrganizationPage() {
                   កំពុងរក្សាទុក...
                 </>
               ) : null}
-              {!isDepartmentSaving && dialogMode === 'department' ? 'រក្សាទុកនាយកដ្ឋាន' : null}
+              {!isDepartmentSaving && dialogMode === 'department' ? 'រក្សាទុកការិយាល័យ' : null}
               {!isPositionSaving && dialogMode === 'position' ? 'រក្សាទុកតួនាទី' : null}
             </Button>
           </DialogFooter>

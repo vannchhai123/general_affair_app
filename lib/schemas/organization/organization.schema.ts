@@ -39,6 +39,20 @@ export const positionApiSchema = z.object({
   description: z.string().nullable(),
 });
 
+export const officeApiSchema = z.object({
+  id: z.number(),
+  uuid: z.string().nullable(),
+  name: z.string().nullable(),
+  code: z.string().nullable(),
+  manager: z.string().nullable(),
+  adminId: z.number().nullable(),
+  adminName: z.string().nullable(),
+  adminUsername: z.string().nullable(),
+  officer_count: z.number(),
+  status: organizationStatusSchema,
+  description: z.string().nullable(),
+});
+
 export const departmentSchema = departmentApiSchema.transform((department) => ({
   id: department.id,
   uuid: department.uuid ?? '',
@@ -62,12 +76,30 @@ export const positionSchema = positionApiSchema.transform((position) => ({
   description: position.description,
 }));
 
+export const officeSchema = officeApiSchema.transform((office) => ({
+  id: office.id,
+  uuid: office.uuid ?? '',
+  name: office.name ?? '',
+  code: office.code ?? '',
+  manager: office.manager,
+  adminId: office.adminId,
+  adminName: office.adminName,
+  adminUsername: office.adminUsername,
+  officerCount: office.officer_count,
+  status: office.status,
+  description: office.description,
+}));
+
 export const departmentsListResponseSchema = paginationSchema.extend({
   content: z.array(departmentSchema),
 });
 
 export const positionsListResponseSchema = paginationSchema.extend({
   content: z.array(positionSchema),
+});
+
+export const officesListResponseSchema = paginationSchema.extend({
+  content: z.array(officeSchema),
 });
 
 export const departmentFormSchema = z.object({
@@ -109,10 +141,13 @@ export const deleteMessageResponseSchema = z.object({
 export type OrganizationStatus = z.infer<typeof organizationStatusSchema>;
 export type DepartmentApi = z.infer<typeof departmentApiSchema>;
 export type PositionApi = z.infer<typeof positionApiSchema>;
+export type OfficeApi = z.infer<typeof officeApiSchema>;
 export type Department = z.infer<typeof departmentSchema>;
 export type Position = z.infer<typeof positionSchema>;
+export type Office = z.infer<typeof officeSchema>;
 export type DepartmentsListResponse = z.infer<typeof departmentsListResponseSchema>;
 export type PositionsListResponse = z.infer<typeof positionsListResponseSchema>;
+export type OfficesListResponse = z.infer<typeof officesListResponseSchema>;
 export type DepartmentFormValues = z.output<typeof departmentFormSchema>;
 export type PositionFormValues = z.output<typeof positionFormSchema>;
 export type DepartmentRequest = z.infer<typeof departmentRequestSchema>;

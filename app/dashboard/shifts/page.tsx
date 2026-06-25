@@ -428,7 +428,7 @@ export default function ShiftsPage() {
                               <TableHead>យឺតក្រោយ</TableHead>
                               <TableHead>ស្ថានភាព</TableHead>
                               <TableHead>កាលបរិច្ឆេទមានប្រសិទ្ធភាព</TableHead>
-                              <TableHead>នាយកដ្ឋាន</TableHead>
+                              <TableHead>ការិយាល័យ</TableHead>
                               <TableHead className="text-right">សកម្មភាព</TableHead>
                             </TableRow>
                           </TableHeader>
@@ -685,7 +685,7 @@ export default function ShiftsPage() {
                         </p>
                       </div>
                       <div className="rounded-2xl bg-white/10 p-3">
-                        <p className="text-xs text-white/60">នាយកដ្ឋាន</p>
+                        <p className="text-xs text-white/60">ការិយាល័យ</p>
                         <p className="mt-1 text-sm font-medium">
                           {selectedShiftDetails.assignedDepartmentsCount} កន្លែង
                         </p>
@@ -734,7 +734,7 @@ export default function ShiftsPage() {
                       <p className="text-sm font-medium text-slate-900">ផលប៉ះពាល់បច្ចុប្បន្ន</p>
                       <p className="mt-2 text-sm text-muted-foreground">
                         បច្ចុប្បន្នកំពុងភ្ជាប់ទៅនឹង {selectedShiftDetails.assignedDepartmentsCount}{' '}
-                        នាយកដ្ឋាន និង {selectedShiftDetails.assignedEmployeesCount} បុគ្គលិក។
+                        ការិយាល័យ និង {selectedShiftDetails.assignedEmployeesCount} បុគ្គលិក។
                       </p>
                     </div>
                   </div>

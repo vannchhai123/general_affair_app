@@ -142,7 +142,7 @@ export function OfficerDetailDialog({ open, onOpenChange, officer }: OfficerDeta
                   <Badge className={getStatusStyle(officer.status)}>
                     {getStatusLabel(officer.status)}
                   </Badge>
-                  <Badge variant="outline">{officer.department || 'មិនទាន់កំណត់នាយកដ្ឋាន'}</Badge>
+                  <Badge variant="outline">{officer.department || 'មិនទាន់កំណត់ការិយាល័យ'}</Badge>
                 </div>
               </div>
             </div>

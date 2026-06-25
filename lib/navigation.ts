@@ -64,7 +64,7 @@ export const appNavigation: NavItem[] = [
     permission: 'SHIFT_VIEW',
   },
   {
-    title: 'នាយកដ្ឋាន',
+    title: 'ការិយាល័យ',
     href: '/dashboard/organization/departments',
     icon: Building2,
     roles: ['ROLE_SUPER_ADMIN'],

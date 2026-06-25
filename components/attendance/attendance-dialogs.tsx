@@ -278,7 +278,7 @@ export function AttendanceDetailsDialog({
             <div className="space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-muted/20 px-3 py-2">
                 <div>
-                  <p className="text-xs text-muted-foreground">នាយកដ្ឋាន</p>
+                  <p className="text-xs text-muted-foreground">ការិយាល័យ</p>
                   <p className="text-sm font-medium">{attendance.department || '--'}</p>
                 </div>
                 <AttendanceStatusBadge status={attendance.status} />

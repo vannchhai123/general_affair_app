@@ -38,7 +38,7 @@ export function OfficerFilters({
 
       <Select value={department} onValueChange={setDepartment}>
         <SelectTrigger className="w-full sm:w-[220px]">
-          <SelectValue placeholder="នាយកដ្ឋាន" />
+          <SelectValue placeholder="ការិយាល័យ" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">ការិយាល័យ</SelectItem>

@@ -7,6 +7,8 @@ import {
   departmentsListResponseSchema,
   departmentRequestSchema,
   departmentSchema,
+  officesListResponseSchema,
+  officeSchema,
   positionFormSchema,
   positionsListResponseSchema,
   positionRequestSchema,
@@ -15,6 +17,8 @@ import {
   type DepartmentFormValues,
   type DepartmentRequest,
   type DepartmentsListResponse,
+  type Office,
+  type OfficesListResponse,
   type OrganizationStatus,
   type PositionField,
   type PositionFormValues,
@@ -184,6 +188,15 @@ export const organizationApi = {
     return organizationFetch(`/position/${id}`, deleteMessageResponseSchema, {
       method: 'DELETE',
     });
+  },
+  getOffices(params: DepartmentListParams = {}): Promise<OfficesListResponse> {
+    return organizationFetch(
+      `/office${buildDepartmentListQuery(params)}`,
+      officesListResponseSchema,
+    );
+  },
+  getOffice(id: number) {
+    return organizationFetch(`/office/${id}`, officeSchema);
   },
 };
 

@@ -89,5 +89,13 @@ export const queryKeys = {
       details: () => [...queryKeys.organization.positions.all, 'detail'] as const,
       detail: (id: number) => [...queryKeys.organization.positions.details(), id] as const,
     },
+    offices: {
+      all: ['organization', 'offices'] as const,
+      lists: () => [...queryKeys.organization.offices.all, 'list'] as const,
+      list: (filters?: Record<string, string>) =>
+        [...queryKeys.organization.offices.lists(), { filters }] as const,
+      details: () => [...queryKeys.organization.offices.all, 'detail'] as const,
+      detail: (id: number) => [...queryKeys.organization.offices.details(), id] as const,
+    },
   },
 } as const;
