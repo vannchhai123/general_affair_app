@@ -1,20 +1,17 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { RequireAccess } from '@/components/auth/require-access';
 import { useAuth } from '@/components/auth/auth-provider';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  OfficerDetailDialog,
-  OfficerDialog,
   OfficersAnalyticsCard,
   OfficersDeleteDialog,
   OfficersDirectoryCard,
   OfficersPageHeader,
   OfficersSummaryCards,
-  type OfficerFormData,
 } from '@/components/officers';
 import {
   useCreateOfficer,
@@ -44,11 +41,6 @@ export default function OfficersPage() {
   const [department, setDepartment] = useState('all');
   const [status, setStatus] = useState('all');
   const [page, setPage] = useState(1);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingOfficer, setEditingOfficer] = useState<
-    (OfficerFormData & { id: number }) | undefined
-  >();
-  const [viewingOfficer, setViewingOfficer] = useState<Officer | null>(null);
   const [deleteOfficerData, setDeleteOfficerData] = useState<Officer | null>(null);
 
   const { data: stats, isLoading: statsLoading } = useOfficerStats();
@@ -64,8 +56,6 @@ export default function OfficersPage() {
     pageSize: 1000,
   });
 
-  const createOfficer = useCreateOfficer();
-  const updateOfficer = useUpdateOfficer();
   const deleteOfficer = useDeleteOfficer();
   const uploadOfficerImage = useUploadOfficerImage();
   const filteredOfficers = useMemo(() => {
@@ -157,13 +147,22 @@ export default function OfficersPage() {
 
   const router = useRouter();
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const editId = params.get('edit');
+      if (editId) {
+        router.replace(`/dashboard/officers/${editId}/edit`);
+      }
+    }
+  }, [router]);
+
   function handleAdd() {
     router.push('/dashboard/officers/add');
   }
 
   function handleEdit(officer: Officer) {
-    setEditingOfficer(getOfficerFormData(officer));
-    setDialogOpen(true);
+    router.push(`/dashboard/officers/${officer.id}/edit`);
   }
 
   async function confirmDelete() {
@@ -172,16 +171,6 @@ export default function OfficersPage() {
     await deleteOfficer.mutateAsync(deleteOfficerData.id);
     mutate();
     setDeleteOfficerData(null);
-  }
-
-  async function handleSubmit(data: OfficerFormData) {
-    if (editingOfficer) {
-      await updateOfficer.mutateAsync({ id: editingOfficer.id, data });
-    } else {
-      await createOfficer.mutateAsync(data);
-    }
-
-    mutate();
   }
 
   function handleUploadImage(officer: Officer) {
@@ -279,28 +268,12 @@ export default function OfficersPage() {
               resetPage();
             }}
             onPageChange={setPage}
-            onView={setViewingOfficer}
+            onView={(officer) => router.push(`/dashboard/officers/${officer.id}`)}
             onEdit={canUpdate ? handleEdit : undefined}
             onDelete={undefined}
             onUploadImage={canUploadImage ? handleUploadImage : undefined}
           />
         </div>
-
-        <OfficerDialog
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          officer={editingOfficer}
-          onSubmit={handleSubmit}
-        />
-
-        <OfficerDetailDialog
-          open={!!viewingOfficer}
-          onOpenChange={(open) => {
-            if (!open) setViewingOfficer(null);
-          }}
-          officer={viewingOfficer}
-          onUploadImage={canUploadImage ? handleUploadImage : undefined}
-        />
 
         <OfficersDeleteDialog
           officer={deleteOfficerData}

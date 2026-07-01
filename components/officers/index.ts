@@ -1,5 +1,4 @@
 export * from './officer-detail-dialog';
-export * from './officer-dialog';
 export * from './officer-form';
 export * from './officer-filters';
 export * from './officers-analytics-card';

@@ -100,7 +100,6 @@ export function AttendanceFormDialog({
       <DialogContent className="flex max-h-[92dvh] flex-col overflow-hidden sm:max-w-[500px]">
         <DialogHeader className="shrink-0">
           <DialogTitle>{isEditing ? 'កែសម្រួលវត្តមាន' : 'កត់ត្រាវត្តមាន'}</DialogTitle>
-          <DialogDescription>កត់ត្រាវត្តមានសម្រាប់មន្ត្រី</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">

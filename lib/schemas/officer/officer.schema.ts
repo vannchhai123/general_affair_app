@@ -14,12 +14,12 @@ export const officerApiSchema = z.object({
   last_name_en: z.string(),
   first_name_kh: nullableDisplayString,
   last_name_kh: nullableDisplayString,
-  sex: z.enum(['male', 'female']).nullable().optional(),
+  sex: z.enum(['male', 'female', 'MALE', 'FEMALE']).nullable().optional(),
   date_of_birth: nullableDisplayString,
   national_id: nullableDisplayString,
   nationality: nullableDisplayString,
   ethnicity: nullableDisplayString,
-  email: z.string(),
+  email: z.string().nullable().optional(),
   position: nullableDisplayString,
   department: nullableDisplayString,
   office: nullableDisplayString,
@@ -35,6 +35,8 @@ export const officerApiSchema = z.object({
   profile_image: z.string().nullable().optional(),
   photoUrl: z.string().nullable().optional(),
   photo_url: z.string().nullable().optional(),
+  invitation_priority: z.boolean().nullable().optional(),
+  education_level: z.string().nullable().optional(),
 });
 
 export const officerSchema = officerApiSchema.transform((officer) => ({
@@ -53,6 +55,8 @@ export const officerSchema = officerApiSchema.transform((officer) => ({
   ethnicity: officer.ethnicity ?? '',
   hire_date: officer.hire_date ?? '',
   contract_type: officer.contract_type ?? '',
+  invitation_priority: officer.invitation_priority ?? false,
+  education_level: officer.education_level ?? '',
 }));
 
 export const paginatedOfficersResponseSchema = z.object({
@@ -66,23 +70,28 @@ export const paginatedOfficersResponseSchema = z.object({
 
 export const createOfficerSchema = z.object({
   officerCode: z.string().trim().min(1, 'Officer code is required'),
+  username: z.string().trim().min(1, 'Username is required'),
   first_name_en: z.string().trim().min(1, 'English first name is required'),
   last_name_en: z.string().trim().min(1, 'English last name is required'),
   first_name_kh: z.string().trim().min(1, 'Khmer first name is required'),
   last_name_kh: z.string().trim().min(1, 'Khmer last name is required'),
-  sex: z.enum(['male', 'female']),
-  date_of_birth: z.string().trim().min(1, 'Date of birth is required'),
-  national_id: z.string().trim().min(1, 'National ID is required'),
-  nationality: z.string().trim().min(1, 'Nationality is required'),
-  ethnicity: z.string().trim().min(1, 'Ethnicity is required'),
-  email: z.string().trim().email('Invalid email'),
-  position_id: z.number().int().positive('Position is required'),
-  office_id: z.number().int().positive('Office is required'),
-  education_level: z.string().trim().min(1, 'Education level is required'),
+  sex: z.enum(['MALE', 'FEMALE', 'male', 'female']),
+  date_of_birth: z.string().trim().nullable().optional(),
+  national_id: z.string().trim().nullable().optional(),
+  nationality: z.string().trim().nullable().optional(),
+  ethnicity: z.string().trim().nullable().optional(),
+  email: z
+    .union([z.string().trim().email('Invalid email'), z.literal('')])
+    .nullable()
+    .optional(),
+  position_id: z.number().int().nullable().optional(),
+  office_id: z.number().int().nullable().optional(),
+  education_level: z.string().trim().nullable().optional(),
   hire_date: z.string().trim().min(1, 'Hire date is required'),
-  contract_type: z.enum(['FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP']),
+  contract_type: z.enum(['FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP']).nullable().optional(),
   phone: z.string().trim().min(1, 'Phone is required'),
   status: z.string().trim().min(1, 'Status is required'),
+  invitation_priority: z.boolean().nullable().optional(),
 });
 
 export const updateOfficerSchema = createOfficerSchema.partial();

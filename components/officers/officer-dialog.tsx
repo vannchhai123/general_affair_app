@@ -7,6 +7,7 @@ import { useDepartments, usePositions } from '@/hooks/organization';
 import type { Department, Position } from '@/lib/schemas';
 
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
   DialogContent,
@@ -26,11 +27,12 @@ import {
 
 export interface OfficerFormData {
   officerCode: string;
+  username: string;
   first_name_en: string;
   last_name_en: string;
   first_name_kh: string;
   last_name_kh: string;
-  sex: 'male' | 'female';
+  sex: 'MALE' | 'FEMALE';
   date_of_birth: string;
   national_id: string;
   nationality: string;
@@ -43,6 +45,7 @@ export interface OfficerFormData {
   contract_type: 'FULL_TIME' | 'PART_TIME' | 'CONTRACT' | 'INTERNSHIP';
   phone: string;
   status: string;
+  invitation_priority: boolean;
 }
 
 interface OfficerDialogProps {
@@ -54,11 +57,12 @@ interface OfficerDialogProps {
 
 const emptyForm: OfficerFormData = {
   officerCode: '',
+  username: '',
   first_name_en: '',
   last_name_en: '',
   first_name_kh: '',
   last_name_kh: '',
-  sex: 'male',
+  sex: 'MALE',
   date_of_birth: '',
   national_id: '',
   nationality: 'Cambodian',
@@ -70,7 +74,8 @@ const emptyForm: OfficerFormData = {
   hire_date: '',
   contract_type: 'FULL_TIME',
   phone: '',
-  status: 'active',
+  status: 'ACTIVE',
+  invitation_priority: false,
 };
 
 function SectionTitle({ children }: { children: ReactNode }) {
@@ -94,11 +99,12 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
     if (officer) {
       setForm({
         officerCode: officer.officerCode || '',
+        username: officer.username || '',
         first_name_en: officer.first_name_en || '',
         last_name_en: officer.last_name_en || '',
         first_name_kh: officer.first_name_kh || '',
         last_name_kh: officer.last_name_kh || '',
-        sex: officer.sex || 'male',
+        sex: (officer.sex || 'MALE').toUpperCase() as OfficerFormData['sex'],
         date_of_birth: officer.date_of_birth || '',
         national_id: officer.national_id || '',
         nationality: officer.nationality || 'Cambodian',
@@ -110,7 +116,8 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
         hire_date: officer.hire_date || '',
         contract_type: officer.contract_type || 'FULL_TIME',
         phone: officer.phone || '',
-        status: officer.status || 'active',
+        status: (officer.status || 'ACTIVE').toUpperCase(),
+        invitation_priority: officer.invitation_priority ?? false,
       });
       return;
     }
@@ -152,7 +159,7 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
             <div className="rounded-2xl border bg-slate-50/60 p-3.5">
-              <div className="grid gap-4 sm:grid-cols-[1.1fr_0.9fr]">
+              <div className="grid gap-4 sm:grid-cols-3">
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="officerCode">លេខកូដមន្រ្តី</Label>
                   <Input
@@ -160,6 +167,17 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
                     value={form.officerCode}
                     onChange={(e) => setForm({ ...form, officerCode: e.target.value })}
                     placeholder="OFF001"
+                    required
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="username">ឈ្មោះអ្នកប្រើប្រាស់</Label>
+                  <Input
+                    id="username"
+                    value={form.username}
+                    onChange={(e) => setForm({ ...form, username: e.target.value })}
+                    placeholder="username.dev"
                     required
                   />
                 </div>
@@ -174,9 +192,9 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
                       <SelectValue placeholder="ជ្រើសរើសស្ថានភាព" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="active">សកម្ម</SelectItem>
-                      <SelectItem value="on_leave">ច្បាប់ឈប់សម្រាក</SelectItem>
-                      <SelectItem value="inactive">មិនសកម្ម</SelectItem>
+                      <SelectItem value="ACTIVE">សកម្ម</SelectItem>
+                      <SelectItem value="ON_LEAVE">ច្បាប់ឈប់សម្រាក</SelectItem>
+                      <SelectItem value="INACTIVE">មិនសកម្ម</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -236,7 +254,6 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
                     type="email"
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    required
                   />
                 </div>
 
@@ -252,8 +269,8 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
                       <SelectValue placeholder="ជ្រើសរើសភេទ" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="male">ប្រុស</SelectItem>
-                      <SelectItem value="female">ស្រី</SelectItem>
+                      <SelectItem value="MALE">ប្រុស</SelectItem>
+                      <SelectItem value="FEMALE">ស្រី</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -275,7 +292,6 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
                     type="date"
                     value={form.date_of_birth}
                     onChange={(e) => setForm({ ...form, date_of_birth: e.target.value })}
-                    required
                   />
                 </div>
 
@@ -285,7 +301,6 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
                     id="national_id"
                     value={form.national_id}
                     onChange={(e) => setForm({ ...form, national_id: e.target.value })}
-                    required
                   />
                 </div>
 
@@ -295,7 +310,6 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
                     id="nationality"
                     value={form.nationality}
                     onChange={(e) => setForm({ ...form, nationality: e.target.value })}
-                    required
                   />
                 </div>
 
@@ -305,7 +319,6 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
                     id="ethnicity"
                     value={form.ethnicity}
                     onChange={(e) => setForm({ ...form, ethnicity: e.target.value })}
-                    required
                   />
                 </div>
               </div>
@@ -388,7 +401,6 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
                         education_level: e.target.value,
                       })
                     }
-                    required
                   />
                 </div>
 
@@ -421,6 +433,24 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
                       <SelectItem value="INTERNSHIP">ហាត់ការ</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/30 p-3 sm:col-span-2">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="invitation_priority">
+                      អទិភាពនៃការអញ្ជើញ (Invitation Priority)
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      កំណត់ជាអទិភាពសម្រាប់ការផ្ញើលិខិតអញ្ជើញ
+                    </p>
+                  </div>
+                  <Switch
+                    id="invitation_priority"
+                    checked={form.invitation_priority}
+                    onCheckedChange={(checked) =>
+                      setForm({ ...form, invitation_priority: checked })
+                    }
+                  />
                 </div>
               </div>
             </div>

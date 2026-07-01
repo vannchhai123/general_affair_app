@@ -5,6 +5,41 @@ import { apiFetch } from '@/lib/client';
 import { officerSchema, successResponseSchema } from '@/lib/schemas';
 import { type CreateOfficer, type UpdateOfficer } from '@/lib/schemas';
 
+function sanitizeOfficerPayload(data: any) {
+  const sanitized = { ...data };
+
+  const optionalFields = [
+    'email',
+    'date_of_birth',
+    'national_id',
+    'nationality',
+    'ethnicity',
+    'education_level',
+    'contract_type',
+  ];
+  for (const field of optionalFields) {
+    if (sanitized[field] === '') {
+      sanitized[field] = null;
+    }
+  }
+
+  if (sanitized.office_id === 0 || !sanitized.office_id) {
+    sanitized.office_id = null;
+  }
+  if (sanitized.position_id === 0 || !sanitized.position_id) {
+    sanitized.position_id = null;
+  }
+
+  if (typeof sanitized.sex === 'string') {
+    sanitized.sex = sanitized.sex.toUpperCase();
+  }
+  if (typeof sanitized.status === 'string') {
+    sanitized.status = sanitized.status.toUpperCase();
+  }
+
+  return sanitized;
+}
+
 export function useCreateOfficer() {
   const queryClient = useQueryClient();
 
@@ -12,7 +47,7 @@ export function useCreateOfficer() {
     mutationFn: (data: CreateOfficer) =>
       fetchApi('/officer', officerSchema, {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: JSON.stringify(sanitizeOfficerPayload(data)),
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.officers.all });
@@ -31,7 +66,7 @@ export function useUpdateOfficer() {
     mutationFn: ({ id, data }: { id: number; data: UpdateOfficer }) =>
       fetchApi(`/officer/${id}`, officerSchema, {
         method: 'PUT',
-        body: JSON.stringify(data),
+        body: JSON.stringify(sanitizeOfficerPayload(data)),
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.officers.all });

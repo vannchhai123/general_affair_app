@@ -51,14 +51,20 @@ export function getOfficerFormData(officer: Officer): OfficerFormData & { id: nu
     ? (officer.contract_type as (typeof OFFICER_CONTRACT_TYPES)[number])
     : 'FULL_TIME';
 
+  const rawSex = officer.sex || 'MALE';
+  const mappedSex = (rawSex === 'male' || rawSex === 'MALE' ? 'MALE' : 'FEMALE') as
+    | 'MALE'
+    | 'FEMALE';
+
   return {
     id: officer.id,
     officerCode: officer.officerCode || '',
+    username: officer.username || '',
     first_name_en: officer.first_name_en || officer.first_name || '',
     last_name_en: officer.last_name_en || officer.last_name || '',
     first_name_kh: officer.first_name_kh || '',
     last_name_kh: officer.last_name_kh || '',
-    sex: officer.sex || 'male',
+    sex: mappedSex,
     date_of_birth: officer.date_of_birth || '',
     national_id: officer.national_id || '',
     nationality: officer.nationality || '',
@@ -66,11 +72,14 @@ export function getOfficerFormData(officer: Officer): OfficerFormData & { id: nu
     email: officer.email || '',
     position_id: officer.position_id || 0,
     office_id: officer.office_id || 0,
-    education_level: officer.education_level_id ? String(officer.education_level_id) : '',
+    education_level:
+      officer.education_level ||
+      (officer.education_level_id ? String(officer.education_level_id) : ''),
     hire_date: officer.hire_date || '',
     contract_type: contractType,
     phone: officer.phone || '',
-    status: normalizeOfficerStatus(officer.status) || 'active',
+    status: (normalizeOfficerStatus(officer.status) || 'ACTIVE').toUpperCase(),
+    invitation_priority: officer.invitation_priority ?? false,
   };
 }
 
