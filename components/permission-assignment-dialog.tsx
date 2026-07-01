@@ -16,34 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-
-interface Officer {
-  id: number;
-  first_name: string;
-  last_name: string;
-  email: string;
-  position: string;
-  department: string;
-  status: string;
-}
-
-interface Permission {
-  id: number;
-  permission_name: string;
-  description?: string | null;
-  category?: string | null;
-}
-
-interface OfficerPermission {
-  id: number;
-  officer_id: number;
-  permission_id: number;
-  granted_at: string;
-  officer_name: string;
-  officer_department: string;
-  permission_name: string;
-  permission_category: string;
-}
+import type { Officer, OfficerPermission, Permission } from '@/lib/schemas';
 
 interface PermissionCategory {
   name: string;
