@@ -20,6 +20,8 @@ export const invitationSchema = z.object({
       department: z.string(),
       position: z.string(),
       officerCode: z.string().optional(),
+      first_name_kh: z.string().optional().nullable(),
+      last_name_kh: z.string().optional().nullable(),
     }),
   ),
   created_at: z.string(),

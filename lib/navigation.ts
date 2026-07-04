@@ -5,6 +5,7 @@ import {
   ClipboardCheck,
   KeyRound,
   LayoutDashboard,
+  Mail,
   QrCode,
   Settings,
   Shield,
@@ -48,6 +49,11 @@ export const appNavigation: NavItem[] = [
     href: '/dashboard/attendance-summary',
     icon: BarChart3,
     permission: 'ATTENDANCE_VIEW',
+  },
+  {
+    title: 'ការអញ្ជើញ',
+    href: '/dashboard/invitations',
+    icon: Mail,
   },
   {
     title: 'សម័យ QR',
@@ -129,6 +135,7 @@ export function getPageTitle(pathname: string) {
   }
 
   if (pathname.startsWith('/dashboard/officers')) return 'មន្រ្តី';
+  if (pathname.startsWith('/dashboard/invitations')) return 'ការអញ្ជើញ';
   if (pathname.startsWith('/dashboard/attendance')) return 'វត្តមាន';
   if (pathname.startsWith('/dashboard/qr-sessions')) return 'សម័យ QR';
   if (pathname.startsWith('/dashboard/shift-management')) return 'គ្រប់គ្រងវេន';

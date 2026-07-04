@@ -11,10 +11,19 @@ const statusStyles: Record<Invitation['status'], string> = {
   completed: 'border-sky-200 bg-sky-50 text-sky-700',
 };
 
+const statusLabels: Record<Invitation['status'], string> = {
+  pending: 'កំពុងរង់ចាំ',
+  accepted: 'បានទទួលយក',
+  rejected: 'បានបដិសេធ',
+  completed: 'បានបញ្ចប់',
+};
+
 export function InvitationStatusBadge({ status }: { status: Invitation['status'] }) {
   return (
-    <Badge className={cn('rounded-full border px-2.5 py-1 capitalize', statusStyles[status])}>
-      {status}
+    <Badge
+      className={cn('rounded-full border px-2.5 py-1 font-medium text-xs', statusStyles[status])}
+    >
+      {statusLabels[status]}
     </Badge>
   );
 }

@@ -5,9 +5,11 @@ import { RequireAccess } from '@/components/auth/require-access';
 import { DashboardError, DashboardLoading } from '@/components/dashboard/dashboard-states';
 import { RecentAttendanceCard } from '@/components/dashboard/recent-attendance-card';
 import { RecentRequestsCard } from '@/components/dashboard/recent-requests-card';
+import { RecentInvitationsCard } from '@/components/dashboard/recent-invitations-card';
 import { DashboardAnalyticsCards } from '@/components/dashboard/dashboard-analytics-cards';
 import { DashboardStatCard, type DashboardStatCardProps } from '@/components/dashboard/stat-card';
 import { useDashboard } from '@/hooks/dashboard/use-dashboard';
+import { useInvitations } from '@/hooks/invitations/use-invitations';
 import type { DashboardStats } from '@/lib/schemas';
 import { CheckCircle2, ClipboardCheck, QrCode, UserCheck, UserX, Users } from 'lucide-react';
 
@@ -51,7 +53,7 @@ function buildStatCards(
     },
     {
       title: t('stats.qrSessions'),
-      value: data.invitations?.total ?? 0,
+      value: data.qr_sessions?.total ?? 0,
       icon: QrCode,
       tone: {
         chip: 'border-amber-100 bg-amber-50',
@@ -87,9 +89,10 @@ function buildAttentionMetrics(data: DashboardStats, t: (key: string) => string)
 
 export default function DashboardPage() {
   const { data, isLoading, isError, error, refetch, isFetching } = useDashboard();
+  const { data: invitationsData, isLoading: isInvitationsLoading } = useInvitations();
   const t = useTranslations('dashboard');
 
-  if (isLoading) return <DashboardLoading />;
+  if (isLoading || isInvitationsLoading) return <DashboardLoading />;
 
   if (isError || !data) {
     return (
@@ -133,7 +136,7 @@ export default function DashboardPage() {
 
         <DashboardAnalyticsCards stats={data} records={data.recent_attendance ?? []} />
         <div className="grid gap-5 xl:grid-cols-2">
-          <div className="xl:col-span-2">
+          <div className="xl:col-span-1">
             <RecentRequestsCard
               title={t('attention.recentRequests')}
               pendingLabel={t('recentRequests.pendingLabel')}
@@ -145,6 +148,20 @@ export default function DashboardPage() {
               emptyTitle={t('recentRequests.emptyTitle')}
               emptyDescription={t('recentRequests.emptyDescription')}
               summaryMetrics={buildAttentionMetrics(data, t)}
+            />
+          </div>
+          <div className="xl:col-span-1">
+            <RecentInvitationsCard
+              invitations={invitationsData ?? []}
+              labels={{
+                title: t('recentInvitations.title'),
+                subject: t('recentInvitations.subject'),
+                organization: t('recentInvitations.organization'),
+                dateTime: t('recentInvitations.dateTime'),
+                status: t('recentInvitations.status'),
+                emptyTitle: t('recentInvitations.emptyTitle'),
+                emptyDescription: t('recentInvitations.emptyDescription'),
+              }}
             />
           </div>
         </div>

@@ -105,6 +105,15 @@
       "emptyDescription": "New attendance activity will appear here once officers start checking in.",
       "present": "Present",
       "absent": "Absent"
+    },
+    "recentInvitations": {
+      "title": "Recent Invitations",
+      "subject": "Subject",
+      "organization": "Organization",
+      "dateTime": "Date & Time",
+      "status": "Status",
+      "emptyTitle": "No recent invitations",
+      "emptyDescription": "Pending and upcoming invitations will appear here."
     }
   },
   "qrAttendance": {

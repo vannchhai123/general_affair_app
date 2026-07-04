@@ -238,13 +238,15 @@ export default function InvitationsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="page-title text-3xl tracking-tight">Invitation Management</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Manage and track all invitations</p>
+          <h1 className="page-title text-3xl tracking-tight">ការគ្រប់គ្រងការអញ្ជើញ</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            គ្រប់គ្រង និងតាមដានរាល់លិខិតអញ្ជើញទាំងអស់
+          </p>
         </div>
 
         <Button className="rounded-lg shadow-sm" onClick={openCreateDialog}>
           <Plus className="mr-2 h-4 w-4" />
-          Create Invitation
+          បង្កើតលិខិតអញ្ជើញ
         </Button>
       </div>
 
@@ -306,37 +308,37 @@ export default function InvitationsPage() {
       <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Change Status</DialogTitle>
+            <DialogTitle className="font-khmer-moul-light text-base">កែសម្រួលស្ថានភាព</DialogTitle>
             <DialogDescription>
-              Update the workflow state for{' '}
+              ធ្វើបច្ចុប្បន្នភាពស្ថានភាពការងារសម្រាប់លិខិត៖{' '}
               <span className="font-medium text-foreground">{selectedInvitation?.subject}</span>.
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-2">
-            <Label htmlFor="status">Status</Label>
+            <Label htmlFor="status">ស្ថានភាព</Label>
             <Select
               value={statusValue}
               onValueChange={(value) => setStatusValue(value as Invitation['status'])}
             >
               <SelectTrigger id="status">
-                <SelectValue placeholder="Select a status" />
+                <SelectValue placeholder="ជ្រើសរើសស្ថានភាព" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="accepted">Accepted</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="pending">កំពុងរង់ចាំ</SelectItem>
+                <SelectItem value="accepted">បានទទួលយក</SelectItem>
+                <SelectItem value="rejected">បានបដិសេធ</SelectItem>
+                <SelectItem value="completed">បានបញ្ចប់</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setStatusDialogOpen(false)}>
-              Cancel
+              បោះបង់
             </Button>
             <Button onClick={handleStatusSubmit} disabled={updateInvitation.isPending}>
-              {updateInvitation.isPending ? 'Updating...' : 'Update Status'}
+              {updateInvitation.isPending ? 'កំពុងរក្សាទុក...' : 'រក្សាទុក'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -348,20 +350,23 @@ export default function InvitationsPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete invitation</AlertDialogTitle>
+            <AlertDialogTitle className="font-khmer-moul-light text-base text-destructive">
+              លុបលិខិតអញ្ជើញ
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently remove{' '}
-              <span className="font-medium text-foreground">{deleteTarget?.subject}</span> and its
-              officer assignments.
+              តើអ្នកពិតជាចង់លុបលិខិតអញ្ជើញ «
+              <span className="font-medium text-foreground">{deleteTarget?.subject}</span>»
+              នេះមែនទេ?
+              សកម្មភាពនេះនឹងលុបគណនីចាត់តាំងមន្ត្រីដែលពាក់ព័ន្ធទាំងអស់ដោយមិនអាចសង្គ្រោះវិញបានឡើយ។
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>បោះបង់</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={handleDelete}
             >
-              Delete
+              លុប
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

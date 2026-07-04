@@ -18,7 +18,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import type { Attendance, DashboardStats } from '@/lib/schemas';
+import type { DashboardRecentAttendance, DashboardStats } from '@/lib/schemas';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const ATTENDANCE_COLORS = {
@@ -39,7 +39,7 @@ function formatTrendDate(date: string): string {
   return format(parsed, 'MMM d');
 }
 
-function buildTrendData(records: Attendance[]) {
+function buildTrendData(records: DashboardRecentAttendance[]) {
   const trendMap = new Map<
     string,
     { date: string; present: number; late: number; absent: number }
@@ -74,12 +74,31 @@ function buildTrendData(records: Attendance[]) {
   return result;
 }
 
-function buildGenderBreakdown(t: (key: string) => string) {
+function buildGenderBreakdown(
+  genderBreakdown: DashboardStats['gender_breakdown'],
+  t: (key: string) => string,
+) {
   return [
-    { name: t('analytics.genderMalePresent'), value: 18, fill: '#2563eb' },
-    { name: t('analytics.genderFemalePresent'), value: 14, fill: '#059669' },
-    { name: t('analytics.genderMaleLate'), value: 4, fill: '#d97706' },
-    { name: t('analytics.genderFemaleLate'), value: 2, fill: '#dc2626' },
+    {
+      name: t('analytics.genderMalePresent'),
+      value: genderBreakdown?.male_present ?? 0,
+      fill: '#2563eb',
+    },
+    {
+      name: t('analytics.genderFemalePresent'),
+      value: genderBreakdown?.female_present ?? 0,
+      fill: '#059669',
+    },
+    {
+      name: t('analytics.genderMaleLate'),
+      value: genderBreakdown?.male_late ?? 0,
+      fill: '#d97706',
+    },
+    {
+      name: t('analytics.genderFemaleLate'),
+      value: genderBreakdown?.female_late ?? 0,
+      fill: '#dc2626',
+    },
   ];
 }
 
@@ -128,14 +147,17 @@ export function DashboardAnalyticsCards({
   records,
 }: {
   stats: DashboardStats;
-  records: Attendance[];
+  records: DashboardRecentAttendance[];
 }) {
   const t = useTranslations('dashboard');
   const trendData = useMemo(() => buildTrendData(records), [records]);
   const requestData = useMemo(() => buildRequestBreakdown(stats, t), [stats, t]);
   const statusCards = useMemo(() => buildStatusCards(stats, t), [stats, t]);
 
-  const genderData = useMemo(() => buildGenderBreakdown(t), [t]);
+  const genderData = useMemo(
+    () => buildGenderBreakdown(stats.gender_breakdown, t),
+    [stats.gender_breakdown, t],
+  );
 
   return (
     <div className="grid gap-5 xl:grid-cols-[1.8fr_1fr] items-start">

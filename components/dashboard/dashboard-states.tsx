@@ -95,6 +95,13 @@ export function DashboardError({
   "invitations": { "total": 0, "active": 0, "completed": 0 },
   "missions": { "total": 0, "approved": 0, "pending": 0 },
   "leave_requests": { "total": 0, "approved": 0, "pending": 0 },
+  "qr_sessions": { "total": 0, "active": 0 },
+  "gender_breakdown": {
+    "male_present": 0,
+    "female_present": 0,
+    "male_late": 0,
+    "female_late": 0
+  },
   "recent_attendance": []
 }`)}
             </pre>

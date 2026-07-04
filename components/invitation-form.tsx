@@ -61,8 +61,8 @@ function OfficerMultiSelect({
   const selectedOfficers = officers.filter((officer) => value.includes(officer.id));
   const label =
     selectedOfficers.length > 0
-      ? `${selectedOfficers.length} officer${selectedOfficers.length > 1 ? 's' : ''} selected`
-      : 'Assign officers';
+      ? `បានជ្រើសរើសមន្ត្រីចំនួន ${selectedOfficers.length} រូប`
+      : 'ចាត់តាំងមន្ត្រី';
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -77,12 +77,16 @@ function OfficerMultiSelect({
       </PopoverTrigger>
       <PopoverContent className="w-[340px] p-0" align="start">
         <Command>
-          <CommandInput placeholder="Search officers..." />
+          <CommandInput placeholder="ស្វែងរកមន្ត្រី..." />
           <CommandList>
-            <CommandEmpty>No officers found.</CommandEmpty>
+            <CommandEmpty>រកមិនឃើញមន្ត្រីឡើយ។</CommandEmpty>
             <CommandGroup>
               {officers.map((officer) => {
                 const checked = value.includes(officer.id);
+                const fullNameKh =
+                  `${officer.first_name_kh || ''} ${officer.last_name_kh || ''}`.trim();
+                const fullNameEn = `${officer.first_name} ${officer.last_name}`.trim();
+                const displayName = fullNameKh ? `${fullNameKh} (${fullNameEn})` : fullNameEn;
 
                 return (
                   <CommandItem
@@ -95,10 +99,8 @@ function OfficerMultiSelect({
                     className="items-start gap-3 py-3"
                   >
                     <Checkbox checked={checked} className="mt-0.5" />
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">
-                        {officer.first_name} {officer.last_name}
-                      </p>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{displayName}</p>
                       <p className="truncate text-xs text-muted-foreground">
                         {officer.position} · {officer.department}
                       </p>
@@ -176,20 +178,20 @@ export function InvitationForm({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="page-title font-khmer-moul-light text-base">
             {mode === 'create'
-              ? 'Create Invitation'
+              ? 'បង្កើតលិខិតអញ្ជើញថ្មី'
               : mode === 'assign'
-                ? 'Assign Officers'
-                : 'Edit Invitation'}
+                ? 'ចាត់តាំងមន្ត្រី'
+                : 'កែសម្រួលព័ត៌មានលិខិតអញ្ជើញ'}
           </DialogTitle>
-          <DialogDescription>
+          {/* <DialogDescription>
             {mode === 'create'
-              ? 'Capture invitation details, assign officers, and define the current workflow state.'
+              ? 'សូមបំពេញព័ត៌មានលម្អិតលិខិតអញ្ជើញខាងក្រោម ចាត់តាំងមន្ត្រីទទួលខុសត្រូវ និងកំណត់ស្ថានភាពការងារ។'
               : mode === 'assign'
-                ? 'Update the assigned officers for this invitation.'
-                : 'Adjust the invitation details and keep stakeholders aligned.'}
-          </DialogDescription>
+                ? 'ធ្វើបច្ចុប្បន្នភាពបញ្ជីមន្ត្រីដែលត្រូវចាត់តាំងសម្រាប់លិខិតអញ្ជើញនេះ។'
+                : 'កែសម្រួលព័ត៌មានលម្អិតនៃលិខិតអញ្ជើញនេះឱ្យស្របតាមព័ត៌មានចុងក្រោយបំផុត។'}
+          </DialogDescription> */}
         </DialogHeader>
 
         <Form {...form}>
@@ -207,9 +209,9 @@ export function InvitationForm({
                   name="subject"
                   render={({ field }) => (
                     <FormItem className="md:col-span-2">
-                      <FormLabel>Subject</FormLabel>
+                      <FormLabel>កម្មវត្ថុ / ប្រធានបទ</FormLabel>
                       <FormControl>
-                        <Input placeholder="Quarterly strategy briefing" {...field} />
+                        <Input placeholder="ឧ. កិច្ចប្រជុំបូកសរុបការងារប្រចាំត្រីមាស" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -221,9 +223,9 @@ export function InvitationForm({
                   name="organization"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Organization</FormLabel>
+                      <FormLabel>អង្គភាព / ស្ថាប័នផ្ញើមក</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ministry of Public Works" {...field} />
+                        <Input placeholder="ឧ. ក្រសួងសាធារណការ និងដឹកជញ្ជូន" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -235,16 +237,16 @@ export function InvitationForm({
                   name="type"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Type</FormLabel>
+                      <FormLabel>ប្រភេទលិខិត</FormLabel>
                       <Select value={field.value} onValueChange={field.onChange}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select type" />
+                            <SelectValue placeholder="ជ្រើសរើសប្រភេទ" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="incoming">Incoming</SelectItem>
-                          <SelectItem value="outgoing">Outgoing</SelectItem>
+                          <SelectItem value="incoming">លិខិតចូល (Incoming)</SelectItem>
+                          <SelectItem value="outgoing">លិខិតចេញ (Outgoing)</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -257,7 +259,7 @@ export function InvitationForm({
                   name="date"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Date</FormLabel>
+                      <FormLabel>កាលបរិច្ឆេទ</FormLabel>
                       <FormControl>
                         <Input type="date" {...field} />
                       </FormControl>
@@ -271,7 +273,7 @@ export function InvitationForm({
                   name="time"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Time</FormLabel>
+                      <FormLabel>ម៉ោង</FormLabel>
                       <FormControl>
                         <Input type="time" {...field} value={field.value ?? ''} />
                       </FormControl>
@@ -285,9 +287,9 @@ export function InvitationForm({
                   name="location"
                   render={({ field }) => (
                     <FormItem className="md:col-span-2">
-                      <FormLabel>Location</FormLabel>
+                      <FormLabel>ទីតាំង</FormLabel>
                       <FormControl>
-                        <Input placeholder="National Convention Center" {...field} />
+                        <Input placeholder="ឧ. សាលប្រជុំកោះពេជ្រ អគារ A" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -299,10 +301,10 @@ export function InvitationForm({
                   name="description"
                   render={({ field }) => (
                     <FormItem className="md:col-span-2">
-                      <FormLabel>Description</FormLabel>
+                      <FormLabel>ពិពណ៌នាបន្ថែម</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Outline the purpose, agenda, and attendance expectations."
+                          placeholder="សូមបញ្ជាក់អំពីខ្លឹមសារ កម្មវិធីការងារ ឬតម្រូវការផ្សេងៗ..."
                           rows={4}
                           {...field}
                           value={field.value ?? ''}
@@ -318,18 +320,18 @@ export function InvitationForm({
                   name="status"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Status</FormLabel>
+                      <FormLabel>ស្ថានភាព</FormLabel>
                       <Select value={field.value} onValueChange={field.onChange}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select status" />
+                            <SelectValue placeholder="ជ្រើសរើសស្ថានភាព" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="accepted">Accepted</SelectItem>
-                          <SelectItem value="rejected">Rejected</SelectItem>
-                          <SelectItem value="completed">Completed</SelectItem>
+                          <SelectItem value="pending">កំពុងរង់ចាំ (Pending)</SelectItem>
+                          <SelectItem value="accepted">បានទទួលយក (Accepted)</SelectItem>
+                          <SelectItem value="rejected">បានបដិសេធ (Rejected)</SelectItem>
+                          <SelectItem value="completed">បានបញ្ចប់ (Completed)</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -344,7 +346,7 @@ export function InvitationForm({
               name="officers"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Assigned Officers</FormLabel>
+                  <FormLabel>មន្ត្រីដែលចាត់តាំង</FormLabel>
                   <FormControl>
                     <OfficerMultiSelect
                       officers={officers}
@@ -359,16 +361,16 @@ export function InvitationForm({
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
+                បោះបង់
               </Button>
               <Button type="submit" disabled={isPending}>
                 {isPending
-                  ? 'Saving...'
+                  ? 'កំពុងរក្សាទុក...'
                   : mode === 'create'
-                    ? 'Create Invitation'
+                    ? 'បង្កើតលិខិតអញ្ជើញ'
                     : mode === 'assign'
-                      ? 'Save Assignments'
-                      : 'Save Changes'}
+                      ? 'រក្សាទុកការចាត់តាំង'
+                      : 'រក្សាទុក'}
               </Button>
             </DialogFooter>
           </form>

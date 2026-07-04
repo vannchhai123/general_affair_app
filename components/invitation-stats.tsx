@@ -1,6 +1,6 @@
 'use client';
 
-import { CalendarRange, CircleCheckBig, CircleDashed, CircleX } from 'lucide-react';
+import { CalendarRange, CircleCheckBig, CircleDashed, CircleX, CheckSquare } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { CardNumber } from '@/components/ui/card-number';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -9,7 +9,7 @@ import type { Invitation } from '@/lib/schemas';
 const statsConfig = [
   {
     key: 'total',
-    label: 'Total Invitations',
+    label: 'លិខិតអញ្ជើញសរុប',
     icon: CalendarRange,
     accent: 'bg-slate-500',
     iconColor: 'text-slate-700',
@@ -17,7 +17,7 @@ const statsConfig = [
   },
   {
     key: 'pending',
-    label: 'Pending',
+    label: 'កំពុងរង់ចាំ',
     icon: CircleDashed,
     accent: 'bg-amber-500',
     iconColor: 'text-amber-700',
@@ -25,7 +25,7 @@ const statsConfig = [
   },
   {
     key: 'accepted',
-    label: 'Accepted',
+    label: 'បានទទួលយក',
     icon: CircleCheckBig,
     accent: 'bg-emerald-500',
     iconColor: 'text-emerald-700',
@@ -33,11 +33,19 @@ const statsConfig = [
   },
   {
     key: 'rejected',
-    label: 'Rejected',
+    label: 'បានបដិសេធ',
     icon: CircleX,
     accent: 'bg-rose-500',
     iconColor: 'text-rose-700',
     iconBg: 'bg-rose-100',
+  },
+  {
+    key: 'completed',
+    label: 'បានបញ្ចប់',
+    icon: CheckSquare,
+    accent: 'bg-sky-500',
+    iconColor: 'text-sky-700',
+    iconBg: 'bg-sky-100',
   },
 ] as const;
 
@@ -53,10 +61,11 @@ export function InvitationStats({
     pending: invitations.filter((invitation) => invitation.status === 'pending').length,
     accepted: invitations.filter((invitation) => invitation.status === 'accepted').length,
     rejected: invitations.filter((invitation) => invitation.status === 'rejected').length,
+    completed: invitations.filter((invitation) => invitation.status === 'completed').length,
   };
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
       {statsConfig.map((item) => (
         <Card key={item.key} className="overflow-hidden rounded-xl border shadow-sm">
           <CardContent className="relative p-0">
