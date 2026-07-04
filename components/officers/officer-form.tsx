@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Department, Position } from '@/lib/schemas';
+import type { Department, Position, Officer } from '@/lib/schemas';
 
 export interface OfficerFormData {
   officerCode: string;
@@ -38,7 +39,7 @@ export interface OfficerFormData {
 }
 
 interface OfficerFormProps {
-  officer?: OfficerFormData & { id: number };
+  officer?: Officer;
   onSubmit: (data: OfficerFormData) => Promise<void>;
   onCancel?: () => void;
   submitLabel?: string;
@@ -90,24 +91,57 @@ export function OfficerForm({
 
   useEffect(() => {
     if (officer) {
+      // Find office_id from office name if it is not set as an ID
+      let matchedOfficeId = officer.office_id || 0;
+      if (!matchedOfficeId && (officer.office || officer.department)) {
+        const nameToLook = (officer.office || officer.department).trim().toLowerCase();
+        const found = departments.find((d) => d.name.trim().toLowerCase() === nameToLook);
+        if (found) {
+          matchedOfficeId = found.id;
+        }
+      }
+
+      // Find position_id from position title if it is not set as an ID
+      let matchedPositionId = officer.position_id || 0;
+      if (!matchedPositionId && officer.position) {
+        const titleToLook = officer.position.trim().toLowerCase();
+        const found = positions.find((p) => p.title.trim().toLowerCase() === titleToLook);
+        if (found) {
+          matchedPositionId = found.id;
+        }
+      }
+
+      const contractType =
+        officer.contract_type === 'FULL_TIME' ||
+        officer.contract_type === 'PART_TIME' ||
+        officer.contract_type === 'CONTRACT' ||
+        officer.contract_type === 'INTERNSHIP'
+          ? officer.contract_type
+          : 'FULL_TIME';
+
+      const rawSex = officer.sex || 'MALE';
+      const mappedSex = (rawSex === 'male' || rawSex === 'MALE' ? 'MALE' : 'FEMALE') as
+        | 'MALE'
+        | 'FEMALE';
+
       setForm({
         officerCode: officer.officerCode || '',
         username: officer.username || '',
-        first_name_en: officer.first_name_en || '',
-        last_name_en: officer.last_name_en || '',
+        first_name_en: officer.first_name_en || officer.first_name || '',
+        last_name_en: officer.last_name_en || officer.last_name || '',
         first_name_kh: officer.first_name_kh || '',
         last_name_kh: officer.last_name_kh || '',
-        sex: (officer.sex || 'MALE').toUpperCase() as OfficerFormData['sex'],
+        sex: mappedSex,
         date_of_birth: officer.date_of_birth || '',
         national_id: officer.national_id || '',
         nationality: officer.nationality || 'Cambodian',
         ethnicity: officer.ethnicity || 'Cambodian',
         email: officer.email || '',
-        position_id: officer.position_id || 0,
-        office_id: officer.office_id || 0,
+        position_id: matchedPositionId,
+        office_id: matchedOfficeId,
         education_level: officer.education_level ?? '',
         hire_date: officer.hire_date || '',
-        contract_type: officer.contract_type || 'FULL_TIME',
+        contract_type: contractType,
         phone: officer.phone || '',
         status: (officer.status || 'ACTIVE').toUpperCase(),
         invitation_priority: officer.invitation_priority ?? false,
@@ -116,7 +150,7 @@ export function OfficerForm({
     }
 
     setForm(emptyForm);
-  }, [officer]);
+  }, [officer, departments, positions]);
 
   const selectedDepartmentName = useMemo(
     () =>
@@ -127,13 +161,26 @@ export function OfficerForm({
     () => positions.find((position: Position) => position.id === form.position_id)?.title ?? '',
     [positions, form.position_id],
   );
-  const filteredPositions = useMemo(
-    () => positions.filter((position: Position) => position.departmentId === form.office_id),
-    [positions, form.office_id],
-  );
+  const filteredPositions = useMemo(() => {
+    return positions.filter((position: Position) => {
+      if (position.id === form.position_id) return true;
+      return position.departmentId === form.office_id;
+    });
+  }, [positions, form.office_id, form.position_id]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    if (!form.office_id || form.office_id === 0) {
+      toast.error('សូមជ្រើសរើសការិយាល័យ');
+      return;
+    }
+
+    if (!form.position_id || form.position_id === 0) {
+      toast.error('សូមជ្រើសរើសតំណែង');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -331,7 +378,7 @@ export function OfficerForm({
                 }
               >
                 <SelectTrigger id="office_id">
-                  <SelectValue placeholder="ការិយាល័យ">{selectedDepartmentName}</SelectValue>
+                  <SelectValue placeholder="ជ្រើសរើសការិយាល័យ" />
                 </SelectTrigger>
                 <SelectContent>
                   {departments.map((department: Department) => (
@@ -352,10 +399,8 @@ export function OfficerForm({
               >
                 <SelectTrigger id="position_id">
                   <SelectValue
-                    placeholder={selectedDepartmentId ? 'ជ្រើសរើសតំណែង' : 'ជ្រើសរើសអង្គភាពជាមុន'}
-                  >
-                    {selectedPositionTitle}
-                  </SelectValue>
+                    placeholder={selectedDepartmentId ? 'ជ្រើសរើសតំណែង' : 'ជ្រើសរើសការិយាល័យជាមុន'}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {filteredPositions.length === 0 ? (
@@ -374,7 +419,7 @@ export function OfficerForm({
             </div>
 
             <div className="flex flex-col gap-2">
-              <Label htmlFor="education_level">កម្រិតការអប់រំ</Label>
+              <Label htmlFor="education_level">កម្រិតវប្បធម៌/ការអប់រំ</Label>
               <Input
                 id="education_level"
                 type="text"

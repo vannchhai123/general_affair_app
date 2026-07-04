@@ -86,6 +86,25 @@ function getContractTypeLabel(type?: string | null) {
   }
 }
 
+function getEducationLevelLabel(level?: string | null) {
+  if (!level) return '-';
+
+  const normalized = level.trim().toLowerCase();
+  switch (normalized) {
+    case 'associate':
+      return 'បរិញ្ញាបត្ររង (Associate)';
+    case 'bachelor':
+      return 'បរិញ្ញាបត្រ (Bachelor)';
+    case 'master':
+      return 'បរិញ្ញាបត្រជាន់ខ្ពស់ (Master)';
+    case 'phd':
+    case 'doctor':
+      return 'បណ្ឌិត (PhD)';
+    default:
+      return level;
+  }
+}
+
 function getOfficerImageUrl(officer: Officer) {
   return (
     officer.image_url ||
@@ -319,7 +338,7 @@ export default function OfficerDetailPage({ params }: PageProps) {
               <DetailItem
                 icon={GraduationCap}
                 label="កម្រិតវប្បធម៌/ការអប់រំ"
-                value={officer.education_level}
+                value={getEducationLevelLabel(officer.education_level)}
               />
             </div>
 

@@ -11,7 +11,15 @@ export function formatAttendanceDate(date: string | null | undefined): string {
   const parsedDate = new Date(normalizedDate);
 
   if (!Number.isNaN(parsedDate.getTime())) {
-    return format(parsedDate, 'MMM d, yyyy');
+    try {
+      return parsedDate.toLocaleDateString('km-KH', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      });
+    } catch {
+      return format(parsedDate, 'dd-MM-yyyy');
+    }
   }
 
   return normalizedDate;
@@ -24,7 +32,15 @@ export function formatAttendanceTime(time: string | null | undefined): string {
   const parsedDate = new Date(normalizedTime);
 
   if (!Number.isNaN(parsedDate.getTime())) {
-    return format(parsedDate, 'h:mm a');
+    try {
+      return parsedDate.toLocaleTimeString('km-KH', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      });
+    } catch {
+      return format(parsedDate, 'hh:mm a');
+    }
   }
 
   return normalizedTime;
@@ -38,11 +54,11 @@ export function formatAttendanceMinutes(totalMinutes: number | null | undefined)
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
 
-  if (minutes === 0) {
-    return `${hours}h`;
-  }
+  if (hours === 0 && minutes === 0) return '0 នាទី';
+  if (hours === 0) return `${minutes} នាទី`;
+  if (minutes === 0) return `${hours} ម៉ោង`;
 
-  return `${hours}h ${minutes}m`;
+  return `${hours} ម៉ោង ${minutes} នាទី`;
 }
 
 export function calculateAttendanceHours(

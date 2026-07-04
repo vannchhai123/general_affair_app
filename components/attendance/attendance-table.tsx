@@ -63,15 +63,15 @@ export function AttendanceTable({
                     onCheckedChange={onToggleSelectAll}
                   />
                 </TableHead>
-                <TableHead>Officer</TableHead>
-                <TableHead>Officer Code</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Check In</TableHead>
-                <TableHead>Check Out</TableHead>
-                <TableHead>Total Work</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-[100px]">Actions</TableHead>
+                <TableHead>មន្ត្រី</TableHead>
+                <TableHead>លេខកូដមន្ត្រី</TableHead>
+                <TableHead>ការិយាល័យ</TableHead>
+                <TableHead>កាលបរិច្ឆេទ</TableHead>
+                <TableHead>ម៉ោងចូល</TableHead>
+                <TableHead>ម៉ោងចេញ</TableHead>
+                <TableHead>ម៉ោងធ្វើការសរុប</TableHead>
+                <TableHead>ស្ថានភាព</TableHead>
+                <TableHead className="w-[100px]">សកម្មភាព</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -91,7 +91,7 @@ export function AttendanceTable({
           {totalPages > 0 ? (
             <div className="flex items-center justify-end gap-2 border-t px-4 py-3">
               <p className="text-sm text-muted-foreground">
-                Page {page + 1} of {totalPages}
+                ទំព័រទី {page + 1} នៃ {totalPages}
               </p>
               <Button
                 variant="outline"
@@ -100,7 +100,7 @@ export function AttendanceTable({
                 disabled={page === 0}
               >
                 <ChevronLeft className="h-4 w-4" />
-                Previous
+                ថយក្រោយ
               </Button>
               <Button
                 variant="outline"
@@ -108,7 +108,7 @@ export function AttendanceTable({
                 onClick={() => onPageChange(Math.min(totalPages - 1, page + 1))}
                 disabled={page >= totalPages - 1}
               >
-                Next
+                បន្ទាប់
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
@@ -144,7 +144,7 @@ function AttendanceTableRow({
           <Avatar className="h-9 w-9">
             <AvatarImage
               src={record.imageUrl || undefined}
-              alt={`${record.firstName} ${record.lastName}`}
+              alt={`${record.lastName} ${record.firstName}`}
             />
             <AvatarFallback className="bg-primary/10 text-xs font-medium text-primary">
               {getAttendanceInitials(record.firstName, record.lastName)}
@@ -152,7 +152,7 @@ function AttendanceTableRow({
           </Avatar>
           <div>
             <p className="font-medium">
-              {record.firstName} {record.lastName}
+              {record.lastName} {record.firstName}
             </p>
           </div>
         </div>
@@ -165,7 +165,7 @@ function AttendanceTableRow({
       <TableCell className="text-sm">{formatAttendanceTime(record.checkIn)}</TableCell>
       <TableCell className="text-sm">{formatAttendanceTime(record.checkOut)}</TableCell>
       <TableCell className="text-sm font-medium">
-        <CardNumber value={calculateAttendanceHours(record.checkIn, record.checkOut)} />
+        {calculateAttendanceHours(record.checkIn, record.checkOut)}
       </TableCell>
       <TableCell>
         <AttendanceStatusBadge status={record.status} />
@@ -211,14 +211,12 @@ function AttendanceTableEmpty({ onAdd }: { onAdd?: () => void }) {
       <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
         <Users className="h-6 w-6 text-muted-foreground" />
       </div>
-      <h3 className="text-sm font-medium">No attendance records found</h3>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Adjust the filters or create a new attendance record.
-      </p>
+      <h3 className="text-sm font-medium">រកមិនឃើញកំណត់ត្រាវត្តមានទេ</h3>
+      <p className="mt-1 text-sm text-muted-foreground">សូមកែតម្រូវការត្រង ឬកត់ត្រាវត្តមានថ្មី។</p>
       {onAdd ? (
         <Button onClick={onAdd} className="mt-4">
           <Plus className="mr-2 h-4 w-4" />
-          Create Attendance
+          កត់ត្រាវត្តមាន
         </Button>
       ) : null}
     </div>

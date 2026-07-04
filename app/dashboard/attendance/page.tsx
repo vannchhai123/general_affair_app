@@ -1,7 +1,16 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, CalendarIcon, Download, Plus, RefreshCw, Search, Upload } from 'lucide-react';
+import {
+  AlertCircle,
+  BarChart3,
+  CalendarIcon,
+  Download,
+  Plus,
+  RefreshCw,
+  Search,
+  Upload,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { RequireAccess } from '@/components/auth/require-access';
 import { useAuth } from '@/components/auth/auth-provider';
@@ -10,6 +19,7 @@ import {
   AttendanceFormDialog,
 } from '@/components/attendance/attendance-dialogs';
 import { AttendanceTable } from '@/components/attendance/attendance-table';
+import { AttendanceSummaryDashboard } from '@/components/attendance/attendance-summary-dashboard';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +32,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAttendance } from '@/hooks/attendance/use-attendance';
+import { useOffices } from '@/hooks/organization/use-offices';
 import {
   useCreateAttendance,
   useExportAttendance,
@@ -30,7 +41,7 @@ import {
 } from '@/hooks/attendance/use-attendance-mutations';
 import type { AttendanceStatus, AttendanceViewMode } from '@/hooks/attendance/use-attendance';
 import type { AttendanceFormData } from '@/lib/attendance/types';
-import type { Attendance } from '@/lib/schemas';
+import type { Attendance, Office } from '@/lib/schemas';
 
 function getDateInputToday() {
   const date = new Date();
@@ -40,26 +51,17 @@ function getDateInputToday() {
   return `${year}-${month}-${day}`;
 }
 
-const departmentOptions = [
-  { value: 'all', label: 'All Departments' },
-  { value: 'HR', label: 'HR' },
-  { value: 'IT', label: 'IT' },
-  { value: 'Finance', label: 'Finance' },
-  { value: 'Operations', label: 'Operations' },
-  { value: 'Marketing', label: 'Marketing' },
-];
-
 const statusOptions = [
-  { value: 'all', label: 'All Statuses' },
-  { value: 'Present', label: 'Present' },
-  { value: 'Absent', label: 'Absent' },
-  { value: 'Late', label: 'Late' },
-  { value: 'Half-day', label: 'Half-day' },
+  { value: 'all', label: 'ស្ថានភាពទាំងអស់' },
+  { value: 'Present', label: 'វត្តមាន' },
+  { value: 'Absent', label: 'អវត្តមាន' },
+  { value: 'Late', label: 'មកយឺត' },
+  { value: 'Half-day', label: 'ពាក់កណ្តាលថ្ងៃ' },
 ];
 
 const viewModes = [
-  { value: 'daily', label: 'Daily' },
-  { value: 'monthly', label: 'Monthly' },
+  { value: 'daily', label: 'ប្រចាំថ្ងៃ' },
+  { value: 'monthly', label: 'ប្រចាំខែ' },
 ];
 
 export default function AttendancePage() {
@@ -75,6 +77,7 @@ export default function AttendancePage() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedAttendance, setSelectedAttendance] = useState<Attendance | null>(null);
   const [editingAttendance, setEditingAttendance] = useState<Attendance | null>(null);
+  const [showStats, setShowStats] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
 
   const canCreate = hasPermission('ATTENDANCE_CREATE');
@@ -86,19 +89,49 @@ export default function AttendancePage() {
     setDate((current) => current || getDateInputToday());
   }, []);
 
-  const normalizedFilters = {
-    search: search.trim() || undefined,
-    date: date || undefined,
-    department: department === 'all' ? undefined : department,
-    status: status === 'all' ? undefined : (status as AttendanceStatus),
-    viewMode,
-  };
+  const normalizedFilters = useMemo(
+    () => ({
+      search: search.trim() || undefined,
+      date: date || undefined,
+      department: department === 'all' ? undefined : department,
+      status: status === 'all' ? undefined : (status as AttendanceStatus),
+      viewMode,
+    }),
+    [search, date, department, status, viewMode],
+  );
 
+  // Main paginated query for the table
   const { data, isLoading, error, refetch } = useAttendance({
     page,
     size: 10,
     ...normalizedFilters,
   });
+
+  // Secondary query to fetch larger set of records for charts (filtered but up to 1000 items)
+  const {
+    data: summaryData,
+    isLoading: isSummaryLoading,
+    error: summaryError,
+    refetch: refetchSummary,
+  } = useAttendance({
+    page: 0,
+    size: 1000,
+    ...normalizedFilters,
+  });
+
+  // Dynamic offices/departments from API
+  const { offices = [] } = useOffices({ page: 0, size: 100, status: 'active' });
+
+  const departmentOptions = useMemo(() => {
+    return [
+      { value: 'all', label: 'ការិយាល័យទាំងអស់' },
+      ...offices.map((office: Office) => ({
+        value: office.name,
+        label: office.name,
+      })),
+    ];
+  }, [offices]);
+
   const createAttendance = useCreateAttendance();
   const updateAttendance = useUpdateAttendance();
   const exportAttendance = useExportAttendance();
@@ -107,6 +140,7 @@ export default function AttendancePage() {
   const records = data?.content ?? [];
   const totalPages = data?.totalPages || 0;
   const filteredRecords = useMemo<Attendance[]>(() => records, [records]);
+  const summaryRecords = summaryData?.content ?? [];
 
   function resetPage() {
     setPage(0);
@@ -122,6 +156,7 @@ export default function AttendancePage() {
     }
 
     await refetch();
+    await refetchSummary();
   }
 
   async function handleExport() {
@@ -134,35 +169,43 @@ export default function AttendancePage() {
     link.click();
     link.remove();
     window.URL.revokeObjectURL(url);
-    toast.success('Attendance export generated.');
+    toast.success('បាននាំចេញកំណត់ត្រាវត្តមានដោយជោគជ័យ។');
   }
 
   async function handleImportFile(file: File) {
     const result = await importAttendance.mutateAsync(file);
-    const summary = `Created ${result.created}, updated ${result.updated}, failed ${result.failed}`;
+    const summary = `បាននាំចូល៖ បង្កើត ${result.created}, កែប្រែ ${result.updated}, បរាជ័យ ${result.failed}`;
 
     if (result.failed > 0) {
       toast.warning(summary);
       result.errors.slice(0, 3).forEach((item) => {
-        toast.error(`Row ${item.row}: ${item.message}`);
+        toast.error(`ជួរដេកទី ${item.row}៖ ${item.message}`);
       });
     } else {
       toast.success(summary);
     }
 
     await refetch();
+    await refetchSummary();
   }
 
   return (
     <RequireAccess permission="ATTENDANCE_VIEW">
       <div className="flex flex-col gap-6">
-        <div className="border-b pb-4">
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-950">
-            Attendance Management
-          </h1>
-          <p className="mt-1 text-sm text-slate-600">
-            Filter daily records, import spreadsheets, and correct attendance entries.
-          </p>
+        <div className="flex flex-col gap-4 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="page-title text-2xl font-semibold tracking-tight text-slate-950">
+              ការគ្រប់គ្រងវត្តមាន
+            </h1>
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => setShowStats(!showStats)}
+            className="self-start sm:self-auto gap-2 border-slate-200"
+          >
+            <BarChart3 className="h-4 w-4 text-slate-500" />
+            {showStats ? 'លាក់ស្ថិតិ' : 'បង្ហាញស្ថិតិ'}
+          </Button>
         </div>
 
         <input
@@ -177,6 +220,16 @@ export default function AttendancePage() {
           }}
         />
 
+        {showStats && (
+          <div className="animate-in fade-in slide-in-from-top-4 duration-300">
+            <AttendanceSummaryDashboard
+              records={summaryRecords}
+              isLoading={isSummaryLoading}
+              error={summaryError}
+            />
+          </div>
+        )}
+
         {error ? <AttendanceErrorAlert onRetry={() => void refetch()} /> : null}
 
         <AttendanceFilters
@@ -184,6 +237,7 @@ export default function AttendancePage() {
           date={date}
           department={department}
           status={status}
+          departmentOptions={departmentOptions}
           onSearchChange={(value) => {
             setSearch(value);
             resetPage();
@@ -270,10 +324,15 @@ function AttendanceErrorAlert({ onRetry }: { onRetry: () => void }) {
     <Alert variant="destructive">
       <AlertCircle className="h-4 w-4" />
       <AlertDescription className="flex items-center justify-between">
-        <span>Unable to load attendance records.</span>
-        <Button variant="outline" size="sm" onClick={onRetry} className="ml-auto">
-          <RefreshCw className="mr-2 h-3 w-3" />
-          Retry
+        <span>មិនអាចផ្ទុកកំណត់ត្រាវត្តមានបានទេ។</span>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onRetry}
+          className="ml-auto bg-transparent hover:bg-destructive/10"
+        >
+          <RefreshCw className="mr-2 h-3 w-3 animate-spin" />
+          ព្យាយាមម្តងទៀត
         </Button>
       </AlertDescription>
     </Alert>
@@ -285,6 +344,7 @@ function AttendanceFilters({
   date,
   department,
   status,
+  departmentOptions,
   onSearchChange,
   onDateChange,
   onDepartmentChange,
@@ -297,6 +357,7 @@ function AttendanceFilters({
   date: string;
   department: string;
   status: string;
+  departmentOptions: { value: string; label: string }[];
   onSearchChange: (value: string) => void;
   onDateChange: (value: string) => void;
   onDepartmentChange: (value: string) => void;
@@ -314,7 +375,7 @@ function AttendanceFilters({
             <Input
               value={search}
               onChange={(event) => onSearchChange(event.target.value)}
-              placeholder="Search by officer name or code"
+              placeholder="ស្វែងរកតាមឈ្មោះ ឬលេខកូដមន្ត្រី"
               className="pl-9"
             />
           </div>
@@ -330,8 +391,8 @@ function AttendanceFilters({
           </div>
 
           <Select value={department} onValueChange={onDepartmentChange}>
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Department" />
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="ការិយាល័យ" />
             </SelectTrigger>
             <SelectContent>
               {departmentOptions.map((option) => (
@@ -344,7 +405,7 @@ function AttendanceFilters({
 
           <Select value={status} onValueChange={onStatusChange}>
             <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Status" />
+              <SelectValue placeholder="ស្ថានភាព" />
             </SelectTrigger>
             <SelectContent>
               {statusOptions.map((option) => (
@@ -358,21 +419,21 @@ function AttendanceFilters({
 
         <div className="flex flex-wrap items-center gap-2 border-t pt-4">
           {onAdd ? (
-            <Button onClick={onAdd}>
-              <Plus className="mr-2 h-4 w-4" />
-              Create Attendance
+            <Button onClick={onAdd} className="gap-2">
+              <Plus className="h-4 w-4" />
+              កត់ត្រាវត្តមាន
             </Button>
           ) : null}
           {onExport ? (
-            <Button variant="outline" onClick={onExport}>
-              <Download className="mr-2 h-4 w-4" />
-              Export XLSX
+            <Button variant="outline" onClick={onExport} className="gap-2 border-slate-200">
+              <Download className="h-4 w-4" />
+              នាំចេញជា XLSX
             </Button>
           ) : null}
           {onBulkUpload ? (
-            <Button variant="outline" onClick={onBulkUpload}>
-              <Upload className="mr-2 h-4 w-4" />
-              Import XLSX
+            <Button variant="outline" onClick={onBulkUpload} className="gap-2 border-slate-200">
+              <Upload className="h-4 w-4" />
+              នាំចូលពី XLSX
             </Button>
           ) : null}
         </div>
@@ -406,7 +467,7 @@ function AttendanceViewControls({
       </Tabs>
 
       {selectedCount > 0 ? (
-        <div className="text-sm text-muted-foreground">{selectedCount} selected</div>
+        <div className="text-sm text-muted-foreground">{selectedCount} បានជ្រើសរើស</div>
       ) : null}
     </div>
   );

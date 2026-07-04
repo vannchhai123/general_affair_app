@@ -92,7 +92,7 @@ export default function EditOfficerPage({ params }: EditPageProps) {
             </div>
           ) : (
             <OfficerForm
-              officer={getOfficerFormData(officer)}
+              officer={officer}
               onSubmit={handleSubmit}
               submitLabel="រក្សាទុកការកែប្រែ"
               onCancel={() => router.push(`/dashboard/officers/${id}`)}

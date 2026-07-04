@@ -29,7 +29,8 @@ import {
   formatAttendanceTime,
   getAttendanceInitials,
 } from '@/lib/attendance/utils';
-import type { Attendance } from '@/lib/schemas';
+import type { Attendance, Officer } from '@/lib/schemas';
+import { useOfficers } from '@/hooks/officers/use-officers';
 
 function getDateInputToday() {
   const date = new Date();
@@ -63,6 +64,12 @@ export function AttendanceFormDialog({
   const [loading, setLoading] = useState(false);
   const isEditing = Boolean(attendance);
 
+  const { officers = [], isLoading: isLoadingOfficers } = useOfficers({
+    page: 1,
+    pageSize: 1000,
+    status: 'ACTIVE',
+  });
+
   useEffect(() => {
     if (!open) return;
 
@@ -83,6 +90,10 @@ export function AttendanceFormDialog({
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
+    if (form.officerId === 0) {
+      toast.error('សូមជ្រើសរើសមន្ត្រី');
+      return;
+    }
     setLoading(true);
     try {
       await onSubmit(form);
@@ -108,16 +119,36 @@ export function AttendanceFormDialog({
               <Select
                 value={String(form.officerId)}
                 onValueChange={(value) => setForm({ ...form, officerId: Number(value) })}
+                disabled={isEditing}
               >
                 <SelectTrigger id="employee">
                   <SelectValue placeholder="ជ្រើសរើសមន្ត្រី" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">John Doe (OFF-001)</SelectItem>
-                  <SelectItem value="2">Jane Smith (OFF-002)</SelectItem>
-                  <SelectItem value="3">Mike Johnson (OFF-003)</SelectItem>
-                  <SelectItem value="4">Sarah Williams (OFF-004)</SelectItem>
-                  <SelectItem value="5">David Brown (OFF-005)</SelectItem>
+                  {isLoadingOfficers && (
+                    <SelectItem value="loading" disabled>
+                      កំពុងទាញយកទិន្នន័យមន្ត្រី...
+                    </SelectItem>
+                  )}
+                  {isEditing &&
+                    attendance &&
+                    !officers.some((o: Officer) => o.id === attendance.officerId) && (
+                      <SelectItem value={String(attendance.officerId)}>
+                        {attendance.lastName} {attendance.firstName} (
+                        {attendance.officerCode || '--'})
+                      </SelectItem>
+                    )}
+                  {officers.map((officer: Officer) => {
+                    const khmerName =
+                      `${officer.last_name_kh || ''} ${officer.first_name_kh || ''}`.trim();
+                    const englishName = `${officer.last_name} ${officer.first_name}`.trim();
+                    const displayName = khmerName || englishName;
+                    return (
+                      <SelectItem key={officer.id} value={String(officer.id)}>
+                        {displayName} ({officer.officerCode})
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
@@ -284,15 +315,25 @@ export function AttendanceDetailsDialog({
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <DetailMetric label="ម៉ោងចូល" value={formatAttendanceTime(attendance.checkIn)} />
-                <DetailMetric label="ម៉ោងចេញ" value={formatAttendanceTime(attendance.checkOut)} />
+                <DetailMetric
+                  label="ម៉ោងចូល"
+                  value={formatAttendanceTime(attendance.checkIn)}
+                  useNormalNumbers
+                />
+                <DetailMetric
+                  label="ម៉ោងចេញ"
+                  value={formatAttendanceTime(attendance.checkOut)}
+                  useNormalNumbers
+                />
                 <DetailMetric
                   label="ម៉ោងធ្វើការសរុប"
                   value={formatAttendanceMinutes(attendance.totalWorkMin)}
+                  useNormalNumbers
                 />
                 <DetailMetric
                   label="ម៉ោងយឺត"
                   value={formatAttendanceMinutes(attendance.totalLateMin)}
+                  useNormalNumbers
                 />
               </div>
             </div>
@@ -347,11 +388,23 @@ export function AttendanceDetailsDialog({
   );
 }
 
-function DetailMetric({ label, value }: { label: string; value: string }) {
+function DetailMetric({
+  label,
+  value,
+  useNormalNumbers,
+}: {
+  label: string;
+  value: string;
+  useNormalNumbers?: boolean;
+}) {
   return (
     <div className="rounded-md border bg-background p-3">
       <p className="text-xs text-muted-foreground">{label}</p>
-      <CardNumber value={value} className="mt-1 block text-sm font-semibold" />
+      {useNormalNumbers ? (
+        <span className="mt-1 block text-sm font-semibold text-slate-950">{value}</span>
+      ) : (
+        <CardNumber value={value} className="mt-1 block text-sm font-semibold" />
+      )}
     </div>
   );
 }
