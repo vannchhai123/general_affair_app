@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   Users,
   Workflow,
+  FolderOpen,
 } from 'lucide-react';
 import { hasPermission, isSuperAdminRole } from '@/lib/auth/permissions';
 import type { SessionUser } from '@/lib/auth/session';
@@ -56,6 +57,11 @@ export const appNavigation: NavItem[] = [
     icon: Mail,
   },
   {
+    title: 'គ្រប់គ្រងឯកសារ',
+    href: '/dashboard/document-management',
+    icon: FolderOpen,
+  },
+  {
     title: 'សម័យ QR',
     href: '/dashboard/qr-sessions',
     icon: QrCode,
@@ -75,27 +81,6 @@ export const appNavigation: NavItem[] = [
     icon: Building2,
     roles: ['ROLE_SUPER_ADMIN'],
     permission: 'ORGANIZATION_VIEW',
-  },
-  {
-    title: 'តួនាទី',
-    href: '/dashboard/organization/positions',
-    icon: Building2,
-    roles: ['ROLE_SUPER_ADMIN'],
-    permission: 'ORGANIZATION_VIEW',
-  },
-  {
-    title: 'សិទ្ធិ',
-    href: '/dashboard/access-control/permissions',
-    icon: Shield,
-    roles: ['ROLE_SUPER_ADMIN'],
-    permission: 'PERMISSION_VIEW',
-  },
-  {
-    title: 'សិទ្ធិតាមតួនាទី',
-    href: '/dashboard/access-control/role-permissions',
-    icon: ShieldCheck,
-    roles: ['ROLE_SUPER_ADMIN'],
-    permission: 'ROLE_ASSIGN_PERMISSION',
   },
   {
     title: 'សិទ្ធិមន្រ្តី',
@@ -139,6 +124,7 @@ export function getPageTitle(pathname: string) {
   if (pathname.startsWith('/dashboard/attendance')) return 'វត្តមាន';
   if (pathname.startsWith('/dashboard/qr-sessions')) return 'សម័យ QR';
   if (pathname.startsWith('/dashboard/shift-management')) return 'គ្រប់គ្រងវេន';
+  if (pathname.startsWith('/dashboard/document-management')) return 'គ្រប់គ្រងឯកសារ';
   if (pathname.startsWith('/dashboard/organization')) return 'អង្គភាព';
   if (pathname.startsWith('/dashboard/access-control')) return 'សិទ្ធិប្រើប្រាស់';
   if (pathname.startsWith('/dashboard/settings')) return 'ប្រវត្តិរូប / ការកំណត់';
