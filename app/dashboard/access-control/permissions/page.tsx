@@ -27,7 +27,7 @@ export default function AccessControlPermissionsPage() {
   return (
     <RequireAccess
       permission="PERMISSION_VIEW"
-      roles={['ROLE_SUPER_ADMIN']}
+      roles={['ROLE_ADMIN']}
       title="Access control is restricted"
       description="Only super administrators can manage system permissions."
     >

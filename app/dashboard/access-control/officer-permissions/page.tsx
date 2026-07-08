@@ -25,7 +25,7 @@ export default function OfficerPermissionsPage() {
 
   return (
     <RequireAccess
-      roles={['ROLE_SUPER_ADMIN']}
+      roles={['ROLE_ADMIN']}
       permission="OFFICER_VIEW_PERMISSION"
       title="Officer permissions are restricted"
       description="Your account does not have access to officer-specific permission assignments."

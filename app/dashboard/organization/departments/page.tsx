@@ -5,7 +5,7 @@ import { RequireAccess } from '@/components/auth/require-access';
 
 export default function DepartmentsPage() {
   return (
-    <RequireAccess roles={['ROLE_SUPER_ADMIN']} permission="ORGANIZATION_VIEW">
+    <RequireAccess roles={['ROLE_ADMIN']} permission="ORGANIZATION_VIEW">
       <OrganizationPage />
     </RequireAccess>
   );

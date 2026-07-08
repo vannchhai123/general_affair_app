@@ -42,7 +42,7 @@ export const KNOWN_PERMISSIONS = [
 ] as const;
 
 export type AppPermission = (typeof KNOWN_PERMISSIONS)[number];
-export type AppRole = 'ROLE_ADMIN' | 'ROLE_SUPER_ADMIN';
+export type AppRole = 'ROLE_ADMIN' | 'ROLE_HEAD_OFFICE';
 
 const ADMIN_PERMISSION_SET = new Set<string>(ADMIN_DEFAULT_PERMISSIONS);
 
@@ -53,11 +53,11 @@ export function normalizeRole(role?: string | null): string {
 }
 
 export function isAdminRole(role?: string | null) {
-  return normalizeRole(role) === 'ROLE_ADMIN';
+  return normalizeRole(role) === 'ROLE_HEAD_OFFICE';
 }
 
 export function isSuperAdminRole(role?: string | null) {
-  return normalizeRole(role) === 'ROLE_SUPER_ADMIN';
+  return normalizeRole(role) === 'ROLE_ADMIN';
 }
 
 export function sanitizePermissionsForRole(role?: string | null, permissions?: string[] | null) {

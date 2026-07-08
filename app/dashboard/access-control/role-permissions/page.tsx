@@ -22,10 +22,10 @@ import {
 import { usePermissions } from '@/hooks/permissions/use-permissions';
 import type { Permission } from '@/lib/schemas';
 
-const roles = ['ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_OFFICER'] as const;
+const roles = ['ROLE_ADMIN', 'ROLE_HEAD_OFFICE', 'ROLE_MANAGER', 'ROLE_OFFICER'] as const;
 
 export default function RolePermissionsPage() {
-  const [role, setRole] = useState<string>('ROLE_ADMIN');
+  const [role, setRole] = useState<string>('ROLE_HEAD_OFFICE');
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
 
   const allPermissions = usePermissions();
@@ -63,7 +63,7 @@ export default function RolePermissionsPage() {
   return (
     <RequireAccess
       permission="ROLE_ASSIGN_PERMISSION"
-      roles={['ROLE_SUPER_ADMIN']}
+      roles={['ROLE_ADMIN']}
       title="Role permission assignment is restricted"
       description="Only super administrators can assign permissions to roles."
     >

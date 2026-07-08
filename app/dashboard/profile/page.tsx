@@ -456,9 +456,9 @@ function PasswordField({
 
 function getRoleLabel(role: string) {
   switch (role) {
-    case 'ROLE_SUPER_ADMIN':
-      return 'អ្នកគ្រប់គ្រងជាន់ខ្ពស់';
     case 'ROLE_ADMIN':
+      return 'អ្នកគ្រប់គ្រងជាន់ខ្ពស់';
+    case 'ROLE_HEAD_OFFICE':
       return 'អ្នកគ្រប់គ្រង';
     case 'ROLE_MANAGER':
       return 'អ្នកគ្រប់គ្រងផ្នែក';
