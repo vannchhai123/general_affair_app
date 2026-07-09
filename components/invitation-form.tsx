@@ -87,7 +87,6 @@ function OfficerMultiSelect({
                   `${officer.first_name_kh || ''} ${officer.last_name_kh || ''}`.trim();
                 const fullNameEn = `${officer.first_name} ${officer.last_name}`.trim();
                 const displayName = fullNameKh ? `${fullNameKh} (${fullNameEn})` : fullNameEn;
-
                 return (
                   <CommandItem
                     key={officer.id}
