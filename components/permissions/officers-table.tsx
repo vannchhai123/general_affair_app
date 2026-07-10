@@ -1,6 +1,7 @@
 'use client';
 
 import { MoreHorizontal, Eye, Key, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -81,6 +82,7 @@ export default function OfficersTable({ ctx }: OfficersTableProps) {
     pageSize,
   } = ctx;
 
+  const t = useTranslations('officerPermissions');
   const totalPages = assignTotalPages;
   const showPagination = totalPages > 0 && paginatedOfficers && paginatedOfficers.length > 0;
 
@@ -90,10 +92,8 @@ export default function OfficersTable({ ctx }: OfficersTableProps) {
         <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
           <Eye className="h-6 w-6 text-muted-foreground" />
         </div>
-        <h3 className="text-sm font-medium">No officers found</h3>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Add officers to start assigning permissions.
-        </p>
+        <h3 className="text-sm font-medium">{t('table.noOfficers')}</h3>
+        <p className="mt-1 text-sm text-muted-foreground">{t('table.addOfficersHint')}</p>
       </div>
     );
   }
@@ -103,11 +103,11 @@ export default function OfficersTable({ ctx }: OfficersTableProps) {
       <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead className="px-4 py-2">Officer</TableHead>
-              <TableHead className="px-4 py-2">Department</TableHead>
-              <TableHead className="px-4 py-2 text-center">Permissions</TableHead>
-              <TableHead className="w-12 px-4 py-2 text-center">Actions</TableHead>
+            <TableRow className="font-khmer-moul-light">
+              <TableHead className="px-4 py-2">{t('table.officer')}</TableHead>
+              <TableHead className="px-4 py-2">{t('table.department')}</TableHead>
+              <TableHead className="px-4 py-2 text-center">{t('table.permissions')}</TableHead>
+              <TableHead className="w-12 px-4 py-2 text-center">{t('table.actions')}</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -152,7 +152,7 @@ export default function OfficersTable({ ctx }: OfficersTableProps) {
                         <DropdownMenuContent align="center">
                           <DropdownMenuItem onClick={() => openAssignmentDialog(o.id)}>
                             <Key className="mr-2 h-4 w-4" />
-                            Assign Permission
+                            {t('table.assignAction')}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -168,7 +168,7 @@ export default function OfficersTable({ ctx }: OfficersTableProps) {
         {showPagination && !isLoading && (
           <div className="flex justify-end items-center gap-2 px-4 py-3">
             <p className="text-sm text-muted-foreground">
-              Page {assignPage} of {totalPages}
+              {t('table.pageOf', { page: assignPage, totalPages: totalPages })}
             </p>
             <Button
               variant="outline"
@@ -180,7 +180,7 @@ export default function OfficersTable({ ctx }: OfficersTableProps) {
               disabled={assignPage === 1}
             >
               <ChevronLeft className="h-4 w-4" />
-              Previous
+              {t('table.previous')}
             </Button>
             <Button
               variant="outline"
@@ -191,7 +191,7 @@ export default function OfficersTable({ ctx }: OfficersTableProps) {
               }}
               disabled={assignPage === totalPages}
             >
-              Next
+              {t('table.next')}
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

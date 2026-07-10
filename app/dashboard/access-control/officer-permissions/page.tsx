@@ -1,6 +1,7 @@
 'use client';
 
 import { KeyRound } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { PermissionAssignmentDialog } from '@/components/permission-assignment-dialog';
 import OfficersTable from '@/components/permissions/officers-table';
 import { RequireAccess } from '@/components/auth/require-access';
@@ -22,23 +23,24 @@ import type { OfficerPermission } from '@/lib/schemas';
 export default function OfficerPermissionsPage() {
   const ctx = usePermissionsPage();
   const { isSuperAdmin } = useAuth();
+  const t = useTranslations('officerPermissions');
 
   return (
     <RequireAccess
       roles={['ROLE_ADMIN']}
       permission="OFFICER_VIEW_PERMISSION"
-      title="Officer permissions are restricted"
-      description="Your account does not have access to officer-specific permission assignments."
+      title={t('restrictedTitle')}
+      description={t('restrictedDescription')}
     >
       <div className="space-y-5">
         <PageHeader
-          eyebrow="Access Control"
-          title="Officer Permissions"
-          description={
-            isSuperAdmin
-              ? 'View and assign officer-specific permission overrides.'
-              : 'Read-only officer permission assignments available to operational administrators.'
-          }
+          // eyebrow={t('eyebrow')}
+          title={t('title')}
+          // description={
+          //   isSuperAdmin
+          //     ? t('descriptionAdmin')
+          //     : t('descriptionReadOnly')
+          // }
           actions={
             isSuperAdmin ? (
               <Button
@@ -50,7 +52,7 @@ export default function OfficerPermissionsPage() {
                 }}
               >
                 <KeyRound className="mr-2 h-4 w-4" />
-                Assign Permission
+                {t('assignButton')}
               </Button>
             ) : null
           }
@@ -80,10 +82,10 @@ export default function OfficerPermissionsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Officer</TableHead>
-                    <TableHead>Permission</TableHead>
-                    <TableHead>Granted At</TableHead>
-                    <TableHead>Granted By</TableHead>
+                    <TableHead>{t('readOnlyTable.officer')}</TableHead>
+                    <TableHead>{t('readOnlyTable.permission')}</TableHead>
+                    <TableHead>{t('readOnlyTable.grantedAt')}</TableHead>
+                    <TableHead>{t('readOnlyTable.grantedBy')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

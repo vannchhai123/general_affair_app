@@ -17,7 +17,6 @@ export function useAssignPermission() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.officerPermissions.all });
-      toast.success('Permission assigned to officer successfully');
     },
     onError: (error: ApiError) => {
       toast.error(error.message);
@@ -35,7 +34,6 @@ export function useRevokePermission() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.officerPermissions.all });
-      toast.success('Permission revoked from officer successfully');
     },
     onError: (error: ApiError) => {
       toast.error(error.message);

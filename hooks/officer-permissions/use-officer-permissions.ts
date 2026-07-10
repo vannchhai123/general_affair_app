@@ -13,7 +13,7 @@ export function useOfficerPermissions() {
   return useQuery<OfficerPermissionsResponse, ApiError>({
     queryKey: queryKeys.officerPermissions.lists(),
     queryFn: async () => {
-      const response = await apiFetch('/officer-permissions');
+      const response = await apiFetch('/officer-permissions?size=1000');
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

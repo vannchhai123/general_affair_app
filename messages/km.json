@@ -145,5 +145,43 @@
     "displayUrlFallback": "មិនអាចបង្កើត URL បង្ហាញបានទេ។",
     "displayUrlCopied": "បានចម្លង URL បង្ហាញ",
     "unableToCopyDisplayUrl": "មិនអាចចម្លង URL បានទេ"
+  },
+  "officerPermissions": {
+    "eyebrow": "ការគ្រប់គ្រងសិទ្ធិ",
+    "title": "សិទ្ធិមន្ត្រី",
+    "descriptionAdmin": "មើល និងចាត់តាំងសិទ្ធិផ្ទាល់ខ្លួនរបស់មន្ត្រី។",
+    "descriptionReadOnly": "ការចាត់តាំងសិទ្ធិមន្ត្រីសម្រាប់តែអានប៉ុណ្ណោះ។",
+    "assignButton": "ចាត់តាំងសិទ្ធិ",
+    "restrictedTitle": "សិទ្ធិមន្ត្រីត្រូវបានដាក់កម្រិត",
+    "restrictedDescription": "គណនីរបស់អ្នកមិនមានសិទ្ធិចូលទៅកាន់ការចាត់តាំងសិទ្ធិផ្ទាល់ខ្លួនរបស់មន្ត្រីឡើយ។",
+    "readOnlyTable": {
+      "officer": "មន្ត្រី",
+      "permission": "សិទ្ធិ",
+      "grantedAt": "កាលបរិច្ឆេទផ្ដល់សិទ្ធិ",
+      "grantedBy": "អ្នកផ្ដល់សិទ្ធិ"
+    },
+    "table": {
+      "officer": "មន្ត្រី",
+      "department": "ការិយាល័យ",
+      "permissions": "សិទ្ធិ",
+      "actions": "សកម្មភាព",
+      "noOfficers": "រកមិនឃើញមន្ត្រីឡើយ",
+      "addOfficersHint": "បន្ថែមមន្ត្រីដើម្បីចាប់ផ្តើមចាត់តាំងសិទ្ធិ។",
+      "assignAction": "ចាត់តាំងសិទ្ធិ",
+      "revokeAction": "ដកសិទ្ធិ",
+      "pageOf": "ទំព័រទី {page} នៃ {totalPages}",
+      "previous": "មុន",
+      "next": "បន្ទាប់"
+    },
+    "dialog": {
+      "title": "ចាត់តាំងសិទ្ធិ",
+      "searchPlaceholder": "ស្វែងរកសិទ្ធិ...",
+      "changes": "ការផ្លាស់ប្តូរ",
+      "cancel": "បោះបង់",
+      "assign": "ចាត់តាំង",
+      "saving": "កំពុងរក្សាទុក...",
+      "successToast": "បានធ្វើបច្ចុប្បន្នភាពសិទ្ធិដោយជោគជ័យ",
+      "loading": "កំពុងទាញយកព័ត៌មានមន្ត្រី..."
+    }
   }
 }

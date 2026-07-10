@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 import { ChevronRight, ChevronDown, UserCog } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,6 +44,7 @@ export function PermissionAssignmentDialog({
   onAssign,
   onRevoke,
 }: PermissionAssignmentDialogProps) {
+  const t = useTranslations('officerPermissions');
   const [search, setSearch] = useState('');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -178,6 +181,8 @@ export function PermissionAssignmentDialog({
         await onAssign(officer.id, permissionId);
       }
 
+      toast.success(t('dialog.successToast'));
+
       setPendingChanges({ toAdd: new Set(), toRemove: new Set() });
       onOpenChange(false);
     } catch {
@@ -210,7 +215,7 @@ export function PermissionAssignmentDialog({
   const totalChanges = pendingChanges.toAdd.size + pendingChanges.toRemove.size;
   const officerDisplayName = officer
     ? `${officer.first_name} ${officer.last_name} - ${officer.position}`
-    : 'Loading officer...';
+    : t('dialog.loading');
 
   return (
     <Dialog
@@ -223,14 +228,14 @@ export function PermissionAssignmentDialog({
         <DialogHeader className="shrink-0">
           <DialogTitle className="flex items-center gap-2 text-xl">
             <UserCog className="h-5 w-5" />
-            Assign Permissions
+            {t('dialog.title')}
           </DialogTitle>
           <DialogDescription>{officerDisplayName}</DialogDescription>
         </DialogHeader>
 
         {/* Search */}
         <Input
-          placeholder="Search permissions..."
+          placeholder={t('dialog.searchPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="mb-2 shrink-0"
@@ -323,16 +328,16 @@ export function PermissionAssignmentDialog({
                 {pendingChanges.toRemove.size > 0 && (
                   <span className="text-destructive">-{pendingChanges.toRemove.size}</span>
                 )}
-                <span className="text-muted-foreground ml-1">changes</span>
+                <span className="text-muted-foreground ml-1">{t('dialog.changes')}</span>
               </Badge>
             )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={handleCancel}>
-              Cancel
+              {t('dialog.cancel')}
             </Button>
             <Button onClick={handleAssign} disabled={totalChanges === 0 || isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Assign'}
+              {isSubmitting ? t('dialog.saving') : t('dialog.assign')}
             </Button>
           </DialogFooter>
         </div>

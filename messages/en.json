@@ -142,5 +142,43 @@
     "displayUrlFallback": "Unable to generate the display URL.",
     "displayUrlCopied": "Display URL copied",
     "unableToCopyDisplayUrl": "Unable to copy display URL"
+  },
+  "officerPermissions": {
+    "eyebrow": "Access Control",
+    "title": "Officer Permissions",
+    "descriptionAdmin": "View and assign officer-specific permission overrides.",
+    "descriptionReadOnly": "Read-only officer permission assignments available to operational administrators.",
+    "assignButton": "Assign Permission",
+    "restrictedTitle": "Officer permissions are restricted",
+    "restrictedDescription": "Your account does not have access to officer-specific permission assignments.",
+    "readOnlyTable": {
+      "officer": "Officer",
+      "permission": "Permission",
+      "grantedAt": "Granted At",
+      "grantedBy": "Granted By"
+    },
+    "table": {
+      "officer": "Officer",
+      "department": "Department",
+      "permissions": "Permissions",
+      "actions": "Actions",
+      "noOfficers": "No officers found",
+      "addOfficersHint": "Add officers to start assigning permissions.",
+      "assignAction": "Assign Permission",
+      "revokeAction": "Revoke",
+      "pageOf": "Page {page} of {totalPages}",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "dialog": {
+      "title": "Assign Permissions",
+      "searchPlaceholder": "Search permissions...",
+      "changes": "changes",
+      "cancel": "Cancel",
+      "assign": "Assign",
+      "saving": "Saving...",
+      "successToast": "Permissions updated successfully",
+      "loading": "Loading officer..."
+    }
   }
 }
