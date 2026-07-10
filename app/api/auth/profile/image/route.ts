@@ -1,6 +1,4 @@
-import { randomUUID } from 'crypto';
-import { mkdir, writeFile } from 'fs/promises';
-import path from 'path';
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { createSession, getSession } from '@/lib/api/auth';
 
@@ -20,29 +18,70 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Image file is required' }, { status: 400 });
   }
 
-  const extension = path.extname(file.name).toLowerCase();
+  const dotIndex = file.name.lastIndexOf('.');
+  const extension = dotIndex !== -1 ? file.name.substring(dotIndex).toLowerCase() : '';
   if (!ALLOWED_EXTENSIONS.has(extension)) {
     return NextResponse.json({ error: 'Only JPG, PNG, and WEBP are allowed' }, { status: 400 });
   }
 
-  const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'profiles');
-  await mkdir(uploadDir, { recursive: true });
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get('accessToken')?.value;
 
-  const filename = `${Date.now()}-${randomUUID()}${extension}`;
-  const destination = path.join(uploadDir, filename);
-  const buffer = Buffer.from(await file.arrayBuffer());
-  await writeFile(destination, buffer);
+  if (!accessToken) {
+    return NextResponse.json({ error: 'Missing access token' }, { status: 401 });
+  }
 
-  const avatarUrl = `/uploads/profiles/${filename}`;
-  const updatedSession = {
-    ...session,
-    avatarUrl,
-  };
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (!apiBaseUrl) {
+    return NextResponse.json({ error: 'API URL is not configured' }, { status: 500 });
+  }
 
-  await createSession(updatedSession);
+  let buildUrl = apiBaseUrl.replace(/\/$/, '');
+  if (!buildUrl.endsWith('/api/v1')) {
+    buildUrl = `${buildUrl}/api/v1`;
+  }
 
-  return NextResponse.json({
-    success: true,
-    avatar_url: avatarUrl,
-  });
+  try {
+    const backendFormData = new FormData();
+    backendFormData.append('file', file);
+
+    const response = await fetch(`${buildUrl}/officer/me/upload-image`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: backendFormData,
+    });
+
+    const responseData = (await response.json().catch(() => ({}))) as {
+      imageUrl?: string;
+      message?: string;
+      error?: string;
+    };
+
+    if (!response.ok) {
+      return NextResponse.json(
+        { error: responseData.error || responseData.message || 'Failed to upload image' },
+        { status: response.status },
+      );
+    }
+
+    const avatarUrl = responseData.imageUrl;
+    const updatedSession = {
+      ...session,
+      avatarUrl,
+    };
+
+    await createSession(updatedSession);
+
+    return NextResponse.json({
+      success: true,
+      avatar_url: avatarUrl,
+    });
+  } catch (err) {
+    return NextResponse.json(
+      { error: 'Unable to connect to the profile service' },
+      { status: 500 },
+    );
+  }
 }
