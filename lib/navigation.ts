@@ -34,7 +34,7 @@ export const appNavigation: NavItem[] = [
     permission: 'DASHBOARD_VIEW',
   },
   {
-    title: 'មន្រ្តី',
+    title: 'មន្ត្រី',
     href: '/dashboard/officers',
     icon: Users,
     permission: 'OFFICER_VIEW',
@@ -83,7 +83,7 @@ export const appNavigation: NavItem[] = [
     permission: 'ORGANIZATION_VIEW',
   },
   {
-    title: 'សិទ្ធិមន្រ្តី',
+    title: 'សិទ្ធិមន្ត្រី',
     href: '/dashboard/access-control/officer-permissions',
     icon: KeyRound,
     roles: ['ROLE_ADMIN'],
@@ -119,7 +119,7 @@ export function getPageTitle(pathname: string) {
     }
   }
 
-  if (pathname.startsWith('/dashboard/officers')) return 'មន្រ្តី';
+  if (pathname.startsWith('/dashboard/officers')) return 'មន្ត្រី';
   if (pathname.startsWith('/dashboard/invitations')) return 'ការអញ្ជើញ';
   if (pathname.startsWith('/dashboard/attendance')) return 'វត្តមាន';
   if (pathname.startsWith('/dashboard/qr-sessions')) return 'សម័យ QR';

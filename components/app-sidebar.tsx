@@ -71,10 +71,10 @@ function SidebarNavigation({ mounted }: { mounted: boolean }) {
                   >
                     <Link
                       href={item.href}
-                      className="flex min-w-0 items-center gap-3 group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:h-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:gap-0"
+                      className="flex flex-1 min-w-0 items-center gap-3 overflow-hidden group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:h-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:gap-0"
                     >
                       <item.icon className="h-5 w-5 shrink-0 text-current" />
-                      <span className="truncate text-sm font-medium leading-[1.4]">
+                      <span className="flex-1 min-w-0 truncate text-sm font-medium leading-[1.4]">
                         {item.title}
                       </span>
                     </Link>
@@ -97,8 +97,10 @@ function SidebarNavigation({ mounted }: { mounted: boolean }) {
                                 'data-[active=true]:bg-emerald-50 data-[active=true]:font-semibold data-[active=true]:text-emerald-900',
                               )}
                             >
-                              <Link href={child.href} className="block w-full truncate">
-                                <span className="text-sm leading-[1.45]">{child.title}</span>
+                              <Link href={child.href} className="block w-full min-w-0">
+                                <span className="block min-w-0 truncate text-sm leading-[1.45]">
+                                  {child.title}
+                                </span>
                               </Link>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>

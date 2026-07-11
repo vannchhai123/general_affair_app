@@ -43,7 +43,8 @@ function normalizeCheckInStatus(checkIn: any): CheckInRecord['status'] {
   const status = String(checkIn.status ?? '').toUpperCase();
 
   if (status === 'LATE') return 'late';
-  if (action === 'CHECK_OUT' || status === 'CHECKED_OUT') return 'checked-out';
+  if (action === 'CHECK_OUT' || status === 'CHECKED_OUT' || status === 'CHECKED-OUT')
+    return 'checked-out';
   return 'checked-in';
 }
 
