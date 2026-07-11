@@ -52,7 +52,7 @@ function getDateInputToday() {
 }
 
 const statusOptions = [
-  { value: 'all', label: 'ស្ថានភាពទាំងអស់' },
+  { value: 'all', label: 'ស្ថានភាព' },
   { value: 'Present', label: 'វត្តមាន' },
   { value: 'Absent', label: 'អវត្តមាន' },
   { value: 'Late', label: 'មកយឺត' },
@@ -124,7 +124,7 @@ export default function AttendancePage() {
 
   const departmentOptions = useMemo(() => {
     return [
-      { value: 'all', label: 'ការិយាល័យទាំងអស់' },
+      { value: 'all', label: 'ការិយាល័យ' },
       ...offices.map((office: Office) => ({
         value: office.name,
         label: office.name,

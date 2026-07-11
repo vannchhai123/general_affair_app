@@ -264,7 +264,7 @@ export default function DocumentManagementPage() {
                     <SelectValue placeholder="ប្រភេទលិខិត" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">ប្រភេទទាំងអស់</SelectItem>
+                    <SelectItem value="all">ប្រភេទ</SelectItem>
                     {INITIAL_TYPES.map((t) => (
                       <SelectItem key={t.id} value={t.id.toString()}>
                         {t.name.split(' ')[0]}

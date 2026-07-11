@@ -56,6 +56,11 @@ export default function InvitationsPage() {
     pageSize: 1000,
   });
 
+  const eligibleOfficers = officers.filter(
+    (officer: Officer) =>
+      officer.invitation_priority === true && officer.status?.toUpperCase() === 'ACTIVE',
+  );
+
   const createInvitation = useCreateInvitation();
   const updateInvitation = useUpdateInvitation();
   const deleteInvitation = useDeleteInvitation();
@@ -238,10 +243,7 @@ export default function InvitationsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="page-title text-3xl tracking-tight">ការគ្រប់គ្រងការអញ្ជើញ</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            គ្រប់គ្រង និងតាមដានរាល់លិខិតអញ្ជើញទាំងអស់
-          </p>
+          <h1 className="page-title text-2xl tracking-tight">ការគ្រប់គ្រងការអញ្ជើញ</h1>
         </div>
 
         <Button className="rounded-lg shadow-sm" onClick={openCreateDialog}>
@@ -299,7 +301,7 @@ export default function InvitationsPage() {
         open={formOpen}
         onOpenChange={setFormOpen}
         invitation={selectedInvitation}
-        officers={officers}
+        officers={eligibleOfficers}
         mode={formMode}
         isPending={createInvitation.isPending || updateInvitation.isPending}
         onSubmit={handleFormSubmit}

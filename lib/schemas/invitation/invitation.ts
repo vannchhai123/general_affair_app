@@ -14,6 +14,7 @@ export const invitationFormSchema = z.object({
   location: z.string().min(1, { message: 'Location is required' }),
   description: z.string().optional(),
   officers: z.array(z.number()).optional(),
+  imageIds: z.array(z.number()).optional(),
   status: z
     .enum(invitationStatusValues, {
       errorMap: () => ({

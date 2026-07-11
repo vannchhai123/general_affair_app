@@ -24,6 +24,8 @@ export const invitationSchema = z.object({
       last_name_kh: z.string().optional().nullable(),
     }),
   ),
+  imageIds: z.array(z.number()).optional().nullable(),
+  imageUrls: z.array(z.string()).optional().nullable(),
   created_at: z.string(),
   updated_at: z.string(),
 });

@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { queryKeys } from '@/lib/api/fetcher';
 import { invitationApi } from '@/lib/api/invitations';
+import { apiFetch } from '@/lib/client';
 import type { InvitationFormValues } from '@/lib/schemas/invitation/invitation';
 
 export function useCreateInvitation() {
@@ -46,6 +47,27 @@ export function useDeleteInvitation() {
     },
     onError: (error: Error) => {
       toast.error(error.message);
+    },
+  });
+}
+
+export function useUploadInvitationImage() {
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await apiFetch('/files/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to upload image');
+      }
+
+      return response.json() as Promise<{ id: number; fileName: string; url: string }>;
     },
   });
 }

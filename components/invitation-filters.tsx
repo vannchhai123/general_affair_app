@@ -64,7 +64,7 @@ export function InvitationFilters({
             <SelectValue placeholder="ស្ថានភាព" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">ស្ថានភាពទាំងអស់</SelectItem>
+            <SelectItem value="all">ស្ថានភាព</SelectItem>
             <SelectItem value="pending">កំពុងរង់ចាំ</SelectItem>
             <SelectItem value="accepted">បានទទួលយក</SelectItem>
             <SelectItem value="rejected">បានបដិសេធ</SelectItem>
@@ -77,7 +77,7 @@ export function InvitationFilters({
             <SelectValue placeholder="ប្រភេទ" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">ប្រភេទទាំងអស់</SelectItem>
+            <SelectItem value="all">ប្រភេទ</SelectItem>
             <SelectItem value="incoming">លិខិតចូល</SelectItem>
             <SelectItem value="outgoing">លិខិតចេញ</SelectItem>
           </SelectContent>

@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Check, ChevronsUpDown, Users } from 'lucide-react';
+import { Check, ChevronsUpDown, Users, Upload, Loader2, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { useUploadInvitationImage } from '@/hooks/invitations/use-invitation-mutations';
 import { useForm } from 'react-hook-form';
 import {
   Dialog,
@@ -138,6 +140,9 @@ export function InvitationForm({
   isPending: boolean;
   onSubmit: (values: InvitationFormValues) => Promise<void> | void;
 }) {
+  const uploadImageMutation = useUploadInvitationImage();
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+
   const form = useForm<InvitationFormValues>({
     resolver: zodResolver(invitationFormSchema),
     defaultValues: {
@@ -149,12 +154,14 @@ export function InvitationForm({
       location: '',
       description: '',
       officers: [],
+      imageIds: [],
       status: 'pending',
     },
   });
 
   useEffect(() => {
     if (!open) {
+      setPreviewUrls([]);
       return;
     }
 
@@ -167,8 +174,13 @@ export function InvitationForm({
       location: invitation?.location ?? '',
       description: invitation?.description ?? '',
       officers: invitation?.assigned_officer_ids ?? [],
+      imageIds: invitation?.imageIds ?? [],
       status: invitation?.status ?? 'pending',
     });
+
+    if (invitation?.imageUrls && invitation.imageUrls.length > 0) {
+      setPreviewUrls(invitation.imageUrls);
+    }
   }, [form, invitation, open]);
 
   const isAssignMode = mode === 'assign';
@@ -326,6 +338,118 @@ export function InvitationForm({
                           <SelectItem value="completed">បានបញ្ចប់ (Completed)</SelectItem>
                         </SelectContent>
                       </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="imageIds"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel>លិខិតអញ្ជើញ (រូបភាព / Image Documents)</FormLabel>
+                      <FormControl>
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              className="hidden"
+                              id="invitation-image-upload"
+                              onChange={async (e) => {
+                                const files = e.target.files;
+                                if (!files || files.length === 0) return;
+
+                                const newIds: number[] = [];
+                                const newUrls: string[] = [];
+
+                                for (let i = 0; i < files.length; i++) {
+                                  try {
+                                    const result = await uploadImageMutation.mutateAsync(files[i]);
+                                    newIds.push(result.id);
+                                    newUrls.push(result.url);
+                                  } catch (error: any) {
+                                    toast.error(
+                                      `បរាជ័យក្នុងការបញ្ចូលរូបភាព ${files[i].name}: ${error.message}`,
+                                    );
+                                  }
+                                }
+
+                                if (newIds.length > 0) {
+                                  const currentIds = field.value ?? [];
+                                  field.onChange([...currentIds, ...newIds]);
+                                  setPreviewUrls((prev) => [...prev, ...newUrls]);
+                                  toast.success(`បានបញ្ចូលរូបភាពចំនួន ${newIds.length} ជោគជ័យ`);
+                                }
+                              }}
+                              disabled={uploadImageMutation.isPending}
+                            />
+                            <label
+                              htmlFor="invitation-image-upload"
+                              className={cn(
+                                'flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-lg p-6 cursor-pointer hover:bg-slate-50 transition w-full',
+                                uploadImageMutation.isPending && 'opacity-50 pointer-events-none',
+                              )}
+                            >
+                              {uploadImageMutation.isPending ? (
+                                <div className="flex flex-col items-center gap-2">
+                                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                                  <span className="text-sm text-muted-foreground">
+                                    កំពុងបញ្ជូន...
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="flex flex-col items-center gap-2">
+                                  <Upload className="h-6 w-6 text-muted-foreground" />
+                                  <span className="text-sm font-medium text-slate-700">
+                                    ចុចទីនេះដើម្បីបញ្ចូលរូបភាពលិខិត
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">
+                                    JPEG, PNG, WebP (ទំហំអតិបរមា 5MB)
+                                  </span>
+                                </div>
+                              )}
+                            </label>
+                          </div>
+
+                          {previewUrls.length > 0 && (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
+                              {previewUrls.map((url, index) => (
+                                <div
+                                  key={url}
+                                  className="relative rounded-lg border overflow-hidden bg-slate-50 flex justify-center items-center p-2 h-[150px]"
+                                >
+                                  <img
+                                    src={url}
+                                    alt={`Invitation Document ${index + 1}`}
+                                    className="h-full object-contain rounded"
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="icon"
+                                    className="absolute top-1.5 right-1.5 h-6 w-6 rounded-full shadow hover:bg-destructive/90"
+                                    onClick={() => {
+                                      const currentIds = field.value ?? [];
+                                      const nextIds = currentIds.filter((_, idx) => idx !== index);
+                                      const nextUrls = previewUrls.filter(
+                                        (_, idx) => idx !== index,
+                                      );
+
+                                      field.onChange(nextIds);
+                                      setPreviewUrls(nextUrls);
+                                    }}
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}

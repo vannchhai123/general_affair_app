@@ -1,7 +1,15 @@
 'use client';
 
 import { format } from 'date-fns';
-import { Building2, CalendarDays, Clock3, FileText, MapPin, UserRoundCog } from 'lucide-react';
+import {
+  Building2,
+  CalendarDays,
+  Clock3,
+  FileText,
+  Image as ImageIcon,
+  MapPin,
+  UserRoundCog,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CardNumber } from '@/components/ui/card-number';
 import {
@@ -144,6 +152,32 @@ export function InvitationDetail({
                 {invitation.description || 'គ្មានការពិពណ៌នាលម្អិតសម្រាប់លិខិតអញ្ជើញនេះឡើយ។'}
               </p>
             </div>
+
+            {invitation.imageUrls && invitation.imageUrls.length > 0 && (
+              <div className="rounded-xl border p-4">
+                <p className="mb-3 flex items-center gap-2 text-sm font-semibold font-khmer-moul-light text-slate-800 text-xs">
+                  <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                  រូបភាពលិខិតអញ្ជើញ ({invitation.imageUrls.length})
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  {invitation.imageUrls.map((url, index) => (
+                    <a
+                      key={url}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group relative rounded-lg border overflow-hidden bg-slate-50 flex justify-center items-center p-2 h-[180px] hover:border-primary transition"
+                    >
+                      <img
+                        src={url}
+                        alt={`Invitation Document ${index + 1}`}
+                        className="h-full object-contain rounded group-hover:scale-[1.02] transition-transform duration-300"
+                      />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <SheetFooter className="shrink-0 border-t bg-background/95 px-4 py-4">

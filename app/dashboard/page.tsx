@@ -4,14 +4,22 @@ import { useTranslations } from 'next-intl';
 import { RequireAccess } from '@/components/auth/require-access';
 import { DashboardError, DashboardLoading } from '@/components/dashboard/dashboard-states';
 import { RecentAttendanceCard } from '@/components/dashboard/recent-attendance-card';
-import { RecentRequestsCard } from '@/components/dashboard/recent-requests-card';
 import { RecentInvitationsCard } from '@/components/dashboard/recent-invitations-card';
 import { DashboardAnalyticsCards } from '@/components/dashboard/dashboard-analytics-cards';
 import { DashboardStatCard, type DashboardStatCardProps } from '@/components/dashboard/stat-card';
 import { useDashboard } from '@/hooks/dashboard/use-dashboard';
 import { useInvitations } from '@/hooks/invitations/use-invitations';
 import type { DashboardStats } from '@/lib/schemas';
-import { CheckCircle2, ClipboardCheck, QrCode, UserCheck, UserX, Users } from 'lucide-react';
+import { ClipboardCheck, QrCode, UserCheck, Users } from 'lucide-react';
+
+function getTodayAttendanceCount(data: DashboardStats) {
+  const today = new Date();
+
+  return data.recent_attendance.filter((record) => {
+    const recordDate = new Date(record.date);
+    return recordDate.toDateString() === today.toDateString();
+  }).length;
+}
 
 function buildStatCards(
   data: DashboardStats,
@@ -43,7 +51,7 @@ function buildStatCards(
     },
     {
       title: t('stats.attendanceToday'),
-      value: data.attendance?.total ?? 0,
+      value: getTodayAttendanceCount(data),
       icon: ClipboardCheck,
       tone: {
         chip: 'border-blue-100 bg-blue-50',
@@ -60,29 +68,6 @@ function buildStatCards(
         icon: 'text-amber-700',
         value: 'text-slate-950',
       },
-    },
-  ];
-}
-
-function buildAttentionMetrics(data: DashboardStats, t: (key: string) => string) {
-  return [
-    {
-      label: t('attention.officerAvailability'),
-      value: `${Math.round(((data.officers?.active ?? 0) / (data.officers?.total ?? 1)) * 100)}%`,
-      icon: CheckCircle2,
-      tone: 'text-emerald-700',
-    },
-    {
-      label: t('attention.attendanceRate'),
-      value: `${Math.round(((data.attendance?.approved ?? 0) / (data.attendance?.total ?? 1)) * 100)}%`,
-      icon: CheckCircle2,
-      tone: 'text-blue-700',
-    },
-    {
-      label: t('attention.absentToday'),
-      value: data.attendance?.absent ?? 0,
-      icon: UserX,
-      tone: 'text-red-700',
     },
   ];
 }
@@ -135,36 +120,18 @@ export default function DashboardPage() {
         </div>
 
         <DashboardAnalyticsCards stats={data} records={data.recent_attendance ?? []} />
-        <div className="grid gap-5 xl:grid-cols-2">
-          <div className="xl:col-span-1">
-            <RecentRequestsCard
-              title={t('attention.recentRequests')}
-              pendingLabel={t('recentRequests.pendingLabel')}
-              typeLabel={t('recentRequests.type')}
-              dateLabel={t('recentRequests.date')}
-              actionsLabel={t('recentRequests.actions')}
-              approveLabel={t('recentRequests.approve')}
-              rejectLabel={t('recentRequests.reject')}
-              emptyTitle={t('recentRequests.emptyTitle')}
-              emptyDescription={t('recentRequests.emptyDescription')}
-              summaryMetrics={buildAttentionMetrics(data, t)}
-            />
-          </div>
-          <div className="xl:col-span-1">
-            <RecentInvitationsCard
-              invitations={invitationsData ?? []}
-              labels={{
-                title: t('recentInvitations.title'),
-                subject: t('recentInvitations.subject'),
-                organization: t('recentInvitations.organization'),
-                dateTime: t('recentInvitations.dateTime'),
-                status: t('recentInvitations.status'),
-                emptyTitle: t('recentInvitations.emptyTitle'),
-                emptyDescription: t('recentInvitations.emptyDescription'),
-              }}
-            />
-          </div>
-        </div>
+        <RecentInvitationsCard
+          invitations={invitationsData ?? []}
+          labels={{
+            title: t('recentInvitations.title'),
+            subject: t('recentInvitations.subject'),
+            organization: t('recentInvitations.organization'),
+            dateTime: t('recentInvitations.dateTime'),
+            status: t('recentInvitations.status'),
+            emptyTitle: t('recentInvitations.emptyTitle'),
+            emptyDescription: t('recentInvitations.emptyDescription'),
+          }}
+        />
       </div>
     </RequireAccess>
   );
