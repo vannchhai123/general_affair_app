@@ -23,6 +23,7 @@ import {
 export function usePermissionsPage() {
   const pageSize = 8;
   const [search, setSearchState] = useState('');
+  const [officerSearch, setOfficerSearchState] = useState('');
   const [category, setCategoryState] = useState('all');
   const [managePageState, setManagePageState] = useState(1);
   const [assignPageState, setAssignPageState] = useState(1);
@@ -36,7 +37,11 @@ export function usePermissionsPage() {
   const { data: permissions, isLoading: permissionsLoading } = usePermissions(
     category !== 'all' ? category : undefined,
   );
-  const { officers, isLoading: officersLoading } = useOfficers();
+  const { officers, isLoading: officersLoading, pagination: officerPagination } = useOfficers({
+    search: officerSearch || undefined,
+    page: assignPageState,
+    pageSize,
+  });
   const { data: assignments, isLoading: assignmentsLoading } = useOfficerPermissions();
 
   const createPermission = useCreatePermission();
@@ -60,14 +65,19 @@ export function usePermissionsPage() {
   const selectedOfficer = officers?.find((o: Officer) => o.id === selectedOfficerId) || null;
 
   const manageTotalPages = Math.max(1, Math.ceil((filteredPermissions?.length || 0) / pageSize));
-  const assignTotalPages = Math.max(1, Math.ceil((officers?.length || 0) / pageSize));
+  const assignTotalPages = officerPagination.totalPages;
 
   const managePage = Math.min(managePageState, manageTotalPages);
-  const assignPage = Math.min(assignPageState, assignTotalPages);
+  const assignPage = assignPageState;
 
   const setSearch = (value: string) => {
     setSearchState(value);
     setManagePageState(1);
+  };
+
+  const setOfficerSearch = (value: string) => {
+    setOfficerSearchState(value);
+    setAssignPageState(1);
   };
 
   const setCategory = (value: string) => {
@@ -88,7 +98,7 @@ export function usePermissionsPage() {
     managePage * pageSize,
   );
 
-  const paginatedOfficers = officers?.slice((assignPage - 1) * pageSize, assignPage * pageSize);
+  const paginatedOfficers = officers;
 
   const handleCreate = async (data: CreatePermission) => {
     await createPermission.mutateAsync(data);
@@ -127,6 +137,8 @@ export function usePermissionsPage() {
   return {
     search,
     setSearch,
+    officerSearch,
+    setOfficerSearch,
     category,
     setCategory,
     dialogOpen,

@@ -10,7 +10,7 @@ import { DashboardStatCard, type DashboardStatCardProps } from '@/components/das
 import { useDashboard } from '@/hooks/dashboard/use-dashboard';
 import { useInvitations } from '@/hooks/invitations/use-invitations';
 import type { DashboardStats } from '@/lib/schemas';
-import { ClipboardCheck, QrCode, UserCheck, Users } from 'lucide-react';
+import { ClipboardCheck, QrCode, UserCheck, UserMinus, Users } from 'lucide-react';
 
 function getTodayAttendanceCount(data: DashboardStats) {
   const today = new Date();
@@ -27,11 +27,8 @@ function buildStatCards(
 ): DashboardStatCardProps[] {
   return [
     {
-      title: t('stats.itemsTotal'),
-      value:
-        (data.leave_requests?.pending ?? 0) +
-        (data.missions?.pending ?? 0) +
-        (data.attendance?.pending ?? 0),
+      title: t('stats.totalOfficers'),
+      value: data.officers?.total ?? 0,
       icon: Users,
       tone: {
         chip: 'border-sky-100 bg-sky-50',
@@ -40,12 +37,12 @@ function buildStatCards(
       },
     },
     {
-      title: t('stats.activeOfficers'),
-      value: data.officers?.active ?? 0,
-      icon: UserCheck,
+      title: t('stats.officersOnLeave'),
+      value: data.officers?.on_leave ?? 0,
+      icon: UserMinus,
       tone: {
-        chip: 'border-emerald-100 bg-emerald-50',
-        icon: 'text-emerald-700',
+        chip: 'border-violet-100 bg-violet-50',
+        icon: 'text-violet-700',
         value: 'text-slate-950',
       },
     },

@@ -32,6 +32,7 @@
       "itemsTotal": "Items total",
       "totalOfficers": "Total Officers",
       "activeOfficers": "Active Officers",
+      "officersOnLeave": "Officers on Leave",
       "attendanceToday": "Attendance Today",
       "qrSessions": "QR Sessions"
     },

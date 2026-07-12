@@ -40,7 +40,7 @@ export const appNavigation: NavItem[] = [
     permission: 'OFFICER_VIEW',
   },
   {
-    title: 'វត្តមាន',
+    title: 'Download ទិន្នន័យវត្តមាន',
     href: '/dashboard/attendance',
     icon: ClipboardCheck,
     permission: 'ATTENDANCE_VIEW',
@@ -52,7 +52,7 @@ export const appNavigation: NavItem[] = [
     permission: 'ATTENDANCE_VIEW',
   },
   {
-    title: 'ការអញ្ជើញ',
+    title: 'លិខិតអញ្ជើញ គណៈអភិបាល',
     href: '/dashboard/invitations',
     icon: Mail,
   },
@@ -62,14 +62,14 @@ export const appNavigation: NavItem[] = [
     icon: FolderOpen,
   },
   {
-    title: 'សម័យ QR',
+    title: 'QR Code វត្តមាន',
     href: '/dashboard/qr-sessions',
     icon: QrCode,
     roles: ['ROLE_ADMIN'],
     permission: 'QR_SESSION_VIEW',
   },
   {
-    title: 'គ្រប់គ្រងវេន',
+    title: 'កំណត់ការចុះវត្តមាន',
     href: '/dashboard/shift-management',
     icon: Workflow,
     roles: ['ROLE_ADMIN'],
@@ -83,7 +83,7 @@ export const appNavigation: NavItem[] = [
     permission: 'ORGANIZATION_VIEW',
   },
   {
-    title: 'សិទ្ធិមន្ត្រី',
+    title: 'កំណត់សិទ្ធិប្រើប្រាស់',
     href: '/dashboard/access-control/officer-permissions',
     icon: KeyRound,
     roles: ['ROLE_ADMIN'],

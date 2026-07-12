@@ -1,8 +1,9 @@
 'use client';
 
-import { MoreHorizontal, Eye, Key, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MoreHorizontal, Eye, Key, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -33,6 +34,8 @@ interface OfficersTableProps {
     setAssignPage: (page: number) => void;
     assignTotalPages: number;
     pageSize: number;
+    officerSearch: string;
+    setOfficerSearch: (value: string) => void;
   };
 }
 
@@ -80,123 +83,136 @@ export default function OfficersTable({ ctx }: OfficersTableProps) {
     setAssignPage,
     assignTotalPages,
     pageSize,
+    officerSearch,
+    setOfficerSearch,
   } = ctx;
 
   const t = useTranslations('officerPermissions');
   const totalPages = assignTotalPages;
   const showPagination = totalPages > 0 && paginatedOfficers && paginatedOfficers.length > 0;
 
-  if (!isLoading && (!officers || officers.length === 0)) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-          <Eye className="h-6 w-6 text-muted-foreground" />
-        </div>
-        <h3 className="text-sm font-medium">{t('table.noOfficers')}</h3>
-        <p className="mt-1 text-sm text-muted-foreground">{t('table.addOfficersHint')}</p>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-4">
-      <div className="rounded-lg border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow className="font-khmer-moul-light">
-              <TableHead className="px-4 py-2">{t('table.officer')}</TableHead>
-              <TableHead className="px-4 py-2">{t('table.department')}</TableHead>
-              <TableHead className="px-4 py-2 text-center">{t('table.permissions')}</TableHead>
-              <TableHead className="w-12 px-4 py-2 text-center">{t('table.actions')}</TableHead>
-            </TableRow>
-          </TableHeader>
-
-          <TableBody>
-            {isLoading ? (
-              <TableSkeleton />
-            ) : (
-              paginatedOfficers?.map((o) => {
-                const count = assignments?.filter((a) => a.officer_id === o.id).length || 0;
-
-                return (
-                  <TableRow key={o.id}>
-                    <TableCell className="px-4 py-2">
-                      <div className="flex items-center gap-3">
-                        <Avatar>
-                          <AvatarFallback className="bg-primary/10 text-xs font-medium text-primary">
-                            {getInitials(o.first_name, o.last_name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0">
-                          <p className="truncate font-medium">
-                            {o.first_name} {o.last_name}
-                          </p>
-                          <p className="truncate text-xs text-muted-foreground">{o.email}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="px-4 py-2 text-sm">{o.department}</TableCell>
-                    <TableCell className="px-4 py-2 text-center">
-                      <Badge className="rounded-full bg-slate-100 text-slate-700 hover:bg-slate-100">
-                        {count}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="px-4 py-2 text-center">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Open menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="center">
-                          <DropdownMenuItem onClick={() => openAssignmentDialog(o.id)}>
-                            <Key className="mr-2 h-4 w-4" />
-                            {t('table.assignAction')}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
-
-        {/* Pagination */}
-        {showPagination && !isLoading && (
-          <div className="flex justify-end items-center gap-2 px-4 py-3">
-            <p className="text-sm text-muted-foreground">
-              {t('table.pageOf', { page: assignPage, totalPages: totalPages })}
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={(e) => {
-                e.preventDefault();
-                if (assignPage > 1) setAssignPage(assignPage - 1);
-              }}
-              disabled={assignPage === 1}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              {t('table.previous')}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={(e) => {
-                e.preventDefault();
-                if (assignPage < totalPages) setAssignPage(assignPage + 1);
-              }}
-              disabled={assignPage === totalPages}
-            >
-              {t('table.next')}
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
+      {/* Search Bar */}
+      <div className="relative w-full max-w-sm">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={officerSearch}
+          onChange={(e) => setOfficerSearch(e.target.value)}
+          className="pl-9 bg-white border-slate-200"
+          placeholder="ស្វែងរកឈ្មោះមន្ត្រី..."
+        />
       </div>
+
+      {!isLoading && (!officers || officers.length === 0) ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center border border-slate-200 rounded-lg bg-card">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+            <Eye className="h-6 w-6 text-muted-foreground" />
+          </div>
+          <h3 className="text-sm font-medium">{t('table.noOfficers')}</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {officerSearch ? 'សាកល្បងស្វែងរកជាមួយពាក្យគន្លឹះផ្សេងទៀត។' : t('table.addOfficersHint')}
+          </p>
+        </div>
+      ) : (
+        <div className="rounded-lg border bg-card">
+          <Table>
+            <TableHeader>
+              <TableRow className="font-khmer-moul-light">
+                <TableHead className="px-4 py-2">{t('table.officer')}</TableHead>
+                <TableHead className="px-4 py-2">{t('table.department')}</TableHead>
+                <TableHead className="px-4 py-2 text-center">{t('table.permissions')}</TableHead>
+                <TableHead className="w-12 px-4 py-2 text-center">{t('table.actions')}</TableHead>
+              </TableRow>
+            </TableHeader>
+
+            <TableBody>
+              {isLoading ? (
+                <TableSkeleton />
+              ) : (
+                paginatedOfficers?.map((o) => {
+                  const count = assignments?.filter((a) => a.officer_id === o.id).length || 0;
+
+                  return (
+                    <TableRow key={o.id}>
+                      <TableCell className="px-4 py-2">
+                        <div className="flex items-center gap-3">
+                          <Avatar>
+                            <AvatarFallback className="bg-primary/10 text-xs font-medium text-primary">
+                              {getInitials(o.first_name, o.last_name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0">
+                            <p className="truncate font-medium">
+                              {o.first_name} {o.last_name}
+                            </p>
+                            <p className="truncate text-xs text-muted-foreground">{o.email}</p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-4 py-2 text-sm">{o.department}</TableCell>
+                      <TableCell className="px-4 py-2 text-center">
+                        <Badge className="rounded-full bg-slate-100 text-slate-700 hover:bg-slate-100">
+                          {count}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="px-4 py-2 text-center">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Open menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="center">
+                            <DropdownMenuItem onClick={() => openAssignmentDialog(o.id)}>
+                              <Key className="mr-2 h-4 w-4" />
+                              {t('table.assignAction')}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+
+          {/* Pagination */}
+          {showPagination && !isLoading && (
+            <div className="flex justify-end items-center gap-2 px-4 py-3">
+              <p className="text-sm text-muted-foreground">
+                {t('table.pageOf', { page: assignPage, totalPages: totalPages })}
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (assignPage > 1) setAssignPage(assignPage - 1);
+                }}
+                disabled={assignPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                {t('table.previous')}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (assignPage < totalPages) setAssignPage(assignPage + 1);
+                }}
+                disabled={assignPage === totalPages}
+              >
+                {t('table.next')}
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

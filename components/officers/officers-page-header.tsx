@@ -19,7 +19,7 @@ export function OfficersPageHeader({ isRefreshing, onRefresh, onAdd }: OfficersP
       <div className="flex flex-col gap-2 sm:flex-row">
         <Button variant="outline" onClick={onRefresh} disabled={isRefreshing}>
           <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          បន្ទាន់សម័យ
+          បច្ចុប្បន្នភាព
         </Button>
         {onAdd ? (
           <Button onClick={onAdd}>

@@ -49,7 +49,7 @@ export interface DocumentItem {
   summary: string;
   confidentiality: 'NORMAL' | 'CONFIDENTIAL';
   priority: 'NORMAL' | 'HIGH' | 'CRITICAL';
-  status: 'DRAFT' | 'PENDING' | 'SENT' | 'RECEIVED';
+  status: 'DRAFT' | 'PENDING' | 'SENT' | 'RECEIVED' | 'LOGGED';
   remarks?: string;
   createdBy: string;
   updatedBy?: string;

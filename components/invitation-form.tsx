@@ -332,10 +332,10 @@ export function InvitationForm({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="pending">កំពុងរង់ចាំ (Pending)</SelectItem>
-                          <SelectItem value="accepted">បានទទួលយក (Accepted)</SelectItem>
-                          <SelectItem value="rejected">បានបដិសេធ (Rejected)</SelectItem>
-                          <SelectItem value="completed">បានបញ្ចប់ (Completed)</SelectItem>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="accepted">Accepted</SelectItem>
+                          <SelectItem value="rejected">Rejected</SelectItem>
+                          <SelectItem value="completed">Completed</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />

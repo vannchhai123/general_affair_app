@@ -1,12 +1,8 @@
 'use client';
 
-import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
+import { QRCodeSVG } from 'qrcode.react';
 
-// Dynamically import QRCode to avoid SSR issues
-const QRCode = dynamic(() => import('qrcode.react').then((mod) => mod.QRCodeCanvas), {
-  ssr: false,
-});
 
 interface QRDisplayProps {
   errorMessage?: string;
@@ -46,40 +42,54 @@ export function QRDisplay({
   return (
     <div className="rounded-lg border bg-card p-8">
       <div className="flex flex-col items-center gap-6">
-        {/* QR Code */}
-        <div className="relative rounded-2xl bg-white p-6 shadow-inner">
-          {/* Scanner Corners */}
-          <div className="absolute inset-0 pointer-events-none">
-            {/* Top Left */}
-            <div className="absolute top-2 left-2 w-6 h-6 border-t-4 border-l-4 border-black rounded-tl-md" />
+        {/* QR Code Wrapper with Glowing Backdrop Blur */}
+        <div className="relative group">
+          {/* Glowing blur background */}
+          <div className="absolute -inset-3 bg-gradient-to-r from-blue-500/20 via-sky-400/20 to-indigo-500/20 rounded-3xl blur-2xl opacity-100 animate-pulse pointer-events-none" />
 
-            {/* Top Right */}
-            <div className="absolute top-2 right-2 w-6 h-6 border-t-4 border-r-4 border-black rounded-tr-md" />
+          <div className="relative rounded-2xl bg-white p-6 shadow-inner border border-slate-100">
+            {/* Scanner Corners */}
+            <div className="absolute inset-0 pointer-events-none">
+              {/* Top Left */}
+              <div className="absolute top-2 left-2 w-6 h-6 border-t-4 border-l-4 border-black rounded-tl-md" />
 
-            {/* Bottom Left */}
-            <div className="absolute bottom-2 left-2 w-6 h-6 border-b-4 border-l-4 border-black rounded-bl-md" />
+              {/* Top Right */}
+              <div className="absolute top-2 right-2 w-6 h-6 border-t-4 border-r-4 border-black rounded-tr-md" />
 
-            {/* Bottom Right */}
-            <div className="absolute bottom-2 right-2 w-6 h-6 border-b-4 border-r-4 border-black rounded-br-md" />
-          </div>
-          <div
-            key={lastUpdatedAt}
-            className={`transition-all duration-500 ${
-              isRefreshing ? 'scale-95 opacity-40' : 'scale-100 opacity-100'
-            }`}
-          >
-            {qrAvailable ? (
-              <QRCode value={qrToken} size={240} level="H" includeMargin />
-            ) : (
-              <div className="flex h-[240px] w-[240px] items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-100 px-6 text-center text-slate-600">
-                <div>
-                  <p className="text-base font-semibold">មិនមាន QR</p>
-                  <p className="mt-2 text-sm">
-                    {errorMessage || 'កំពុងរង់ចាំ QR សម័យដែលមានសុពលភាព។'}
-                  </p>
+              {/* Bottom Left */}
+              <div className="absolute bottom-2 left-2 w-6 h-6 border-b-4 border-l-4 border-black rounded-bl-md" />
+
+              {/* Bottom Right */}
+              <div className="absolute bottom-2 right-2 w-6 h-6 border-b-4 border-r-4 border-black rounded-br-md" />
+            </div>
+            <div
+              key={lastUpdatedAt}
+              className={`transition-all duration-500 ${isRefreshing ? 'scale-95 opacity-40' : 'scale-100 opacity-100'
+                }`}
+            >
+              {qrAvailable ? (
+                <>
+                  <svg width="0" height="0" className="absolute">
+                    <defs>
+                      <linearGradient id="qr-gradient-display" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#6366f1" />
+                        <stop offset="100%" stopColor="#0f172a" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  <QRCodeSVG value={qrToken} size={240} level="H" includeMargin fgColor="url(#qr-gradient-display)" className="h-full w-full" />
+                </>
+              ) : (
+                <div className="flex h-[240px] w-[240px] items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-100 px-6 text-center text-slate-600">
+                  <div>
+                    <p className="text-base font-semibold">មិនមាន QR</p>
+                    <p className="mt-2 text-sm">
+                      {errorMessage || 'កំពុងរង់ចាំ QR សម័យដែលមានសុពលភាព។'}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
 

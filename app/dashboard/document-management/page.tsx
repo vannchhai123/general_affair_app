@@ -90,10 +90,11 @@ export default function DocumentManagementPage() {
 
   const [loading, setLoading] = useState(true);
 
-  const fetchDocuments = async () => {
+  const fetchDocuments = async (status?: string) => {
     try {
       setLoading(true);
-      const response = await apiFetch('/documents');
+      const queryParam = status && status !== 'all' ? `?status=${status}` : '';
+      const response = await apiFetch(`/documents${queryParam}`);
       if (response.ok) {
         const data = await response.json();
         const mappedDocs = data.map((d: any) => ({
@@ -141,13 +142,15 @@ export default function DocumentManagementPage() {
     }
   };
 
-  useEffect(() => {
-    fetchDocuments();
-  }, []);
-
   // States
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [dateFilter, setDateFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+
+  useEffect(() => {
+    fetchDocuments(statusFilter);
+  }, [statusFilter]);
 
   // Metrics calculations
   const stats = useMemo(() => {
@@ -175,9 +178,11 @@ export default function DocumentManagementPage() {
 
       const matchesType = typeFilter === 'all' || doc.documentType.id.toString() === typeFilter;
 
-      return matchesSearch && matchesType;
+      const matchesDate = !dateFilter || doc.documentDate === dateFilter;
+
+      return matchesSearch && matchesType && matchesDate;
     });
-  }, [documents, searchQuery, typeFilter]);
+  }, [documents, searchQuery, typeFilter, dateFilter]);
 
   // Pagination states & calculations
   const [currentPage, setCurrentPage] = useState(1);
@@ -185,7 +190,7 @@ export default function DocumentManagementPage() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, typeFilter]);
+  }, [searchQuery, typeFilter, dateFilter, statusFilter]);
 
   const paginatedDocs = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -332,26 +337,47 @@ export default function DocumentManagementPage() {
 
               <div className="flex items-center gap-2">
                 <Select value={typeFilter} onValueChange={setTypeFilter}>
-                  <SelectTrigger className="w-[160px] bg-white">
+                  <SelectTrigger className="w-[190px] bg-white text-slate-700">
                     <SelectValue placeholder="ប្រភេទលិខិត" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">ប្រភេទ</SelectItem>
                     {documentTypes.map((t) => (
                       <SelectItem key={t.id} value={t.id.toString()}>
-                        {t.name.split(' ')[0]}
+                        {t.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
 
-                {(searchQuery || typeFilter !== 'all') && (
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-[160px] bg-white text-slate-700">
+                    <SelectValue placeholder="ស្ថានភាព" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">ស្ថានភាព</SelectItem>
+                    <SelectItem value="PENDING">Pending</SelectItem>
+                    <SelectItem value="LOGGED">Logged</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Input
+                  type="date"
+                  value={dateFilter}
+                  onChange={(e) => setDateFilter(e.target.value)}
+                  className="w-[180px] bg-white text-slate-700"
+                  placeholder="កាលបរិច្ឆេទ"
+                />
+
+                {(searchQuery || typeFilter !== 'all' || dateFilter || statusFilter !== 'all') && (
                   <Button
                     variant="ghost"
                     className="text-indigo-600 hover:text-indigo-750 hover:bg-indigo-50"
                     onClick={() => {
                       setSearchQuery('');
                       setTypeFilter('all');
+                      setDateFilter('');
+                      setStatusFilter('all');
                     }}
                   >
                     សម្អាតតម្រង
@@ -368,7 +394,7 @@ export default function DocumentManagementPage() {
                 <TableRow>
                   <TableHead className="w-[160px] font-bold px-6 py-4">លេខឯកសារ</TableHead>
                   <TableHead className="font-bold px-6 py-4">កម្មវត្ថុឯកសារ</TableHead>
-                  <TableHead className="w-[140px] font-bold px-6 py-4">ប្រភេទ</TableHead>
+                  <TableHead className="w-[180px] font-bold px-6 py-4">ប្រភេទ</TableHead>
                   <TableHead className="w-[130px] font-bold text-center px-6 py-4">
                     ស្ថានភាព
                   </TableHead>
@@ -419,7 +445,7 @@ export default function DocumentManagementPage() {
                       </TableCell>
                       <TableCell className="px-6 py-4">
                         <Badge variant="outline" className="bg-white text-xs border-slate-200">
-                          {doc.documentType.name.split(' ')[0]}
+                          {doc.documentType.name}
                         </Badge>
                       </TableCell>
 
@@ -432,20 +458,26 @@ export default function DocumentManagementPage() {
                                 ? 'bg-blue-100 text-blue-800'
                                 : doc.status === 'PENDING'
                                   ? 'bg-amber-100 text-amber-800'
-                                  : 'bg-slate-100 text-slate-800'
+                                  : doc.status === 'LOGGED'
+                                    ? 'bg-indigo-100 text-indigo-800'
+                                    : 'bg-slate-100 text-slate-800'
                           }`}
                         >
                           {doc.status === 'RECEIVED'
-                            ? 'បានទទួល'
+                            ? 'Received'
                             : doc.status === 'SENT'
-                              ? 'បានផ្ញើ'
+                              ? 'Sent'
                               : doc.status === 'PENDING'
-                                ? 'រង់ចាំ'
-                                : 'សេចក្តីព្រាង'}
+                                ? 'Pending'
+                                : doc.status === 'LOGGED'
+                                  ? 'Logged'
+                                  : 'Draft'}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right text-slate-600 text-xs font-mono px-6 py-4">
-                        {doc.documentDate}
+                      <TableCell className="text-right px-6 py-4">
+                        <span className="inline-block text-slate-800 text-xs font-bold font-mono bg-slate-50 border border-slate-200/60 px-2.5 py-1 rounded-lg shadow-2xs">
+                          {doc.documentDate}
+                        </span>
                       </TableCell>
                       <TableCell
                         className="text-center px-6 py-4"

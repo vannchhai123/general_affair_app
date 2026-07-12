@@ -9,8 +9,10 @@ import {
 
 export function usePermissions(category?: string) {
   const filters = category ? { category } : undefined;
-  const queryParams = filters ? new URLSearchParams(filters) : null;
-  const queryString = queryParams && queryParams.toString() ? `?${queryParams.toString()}` : '';
+  const queryParams = new URLSearchParams();
+  if (category) queryParams.set('category', category);
+  queryParams.set('size', '1000');
+  const queryString = `?${queryParams.toString()}`;
 
   return useQuery<Permission[]>({
     queryKey: queryKeys.permissions.list(filters || {}),

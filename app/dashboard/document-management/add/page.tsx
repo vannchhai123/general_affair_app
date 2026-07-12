@@ -44,6 +44,7 @@ export default function AddDocumentPage() {
   );
   const [formPriority, setFormPriority] = useState<'NORMAL' | 'HIGH' | 'CRITICAL'>('NORMAL');
   const [formRemarks, setFormRemarks] = useState('');
+  const [formStatus, setFormStatus] = useState<'PENDING' | 'LOGGED'>('PENDING');
   const [uploadedFiles, setUploadedFiles] = useState<
     Array<{ id?: number; name: string; size: string; url?: string }>
   >([]);
@@ -121,6 +122,10 @@ export default function AddDocumentPage() {
       alert('សូមបំពេញលេខឯកសារ កម្មវត្ថុ និងកាលបរិច្ឆេទឱ្យបានត្រឹមត្រូវ!');
       return;
     }
+    if (uploadedFiles.length === 0) {
+      alert('សូមផ្ទុកឡើងឯកសារលិខិត (PDF / IMAGES) យ៉ាងហោចណាស់មួយ!');
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -134,7 +139,7 @@ export default function AddDocumentPage() {
         documentDate: formDate,
         subject: formSubject,
         summary: formSubject,
-        status: formDirection === 'OUTGOING' ? 'PENDING' : 'RECEIVED',
+        status: formStatus,
         remarks: formRemarks,
         fileIds: fileIds,
       };
@@ -186,7 +191,7 @@ export default function AddDocumentPage() {
         summary: formSubject,
         confidentiality: formConfidentiality,
         priority: formPriority,
-        status: formDirection === 'OUTGOING' ? 'PENDING' : 'RECEIVED',
+        status: formStatus,
         remarks: formRemarks,
         createdBy: 'ឆៃ វណ្ណ',
         createdAt: new Date().toISOString(),
@@ -318,7 +323,7 @@ export default function AddDocumentPage() {
                   <SelectContent>
                     {documentTypes.map((t) => (
                       <SelectItem key={t.id} value={t.id.toString()}>
-                        {t.name.split(' ')[0]}
+                        {t.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -339,6 +344,22 @@ export default function AddDocumentPage() {
               )}
             </div>
 
+            {/* Status Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5 col-span-1">
+                <label className="text-xs font-bold text-slate-600">ស្ថានភាព *</label>
+                <Select value={formStatus} onValueChange={(val) => setFormStatus(val as 'PENDING' | 'LOGGED')}>
+                  <SelectTrigger className="w-full bg-white border-slate-200">
+                    <SelectValue placeholder="--" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PENDING">Pending</SelectItem>
+                    <SelectItem value="LOGGED">Logged</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             {/* Subject / Summary */}
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-600">
@@ -357,7 +378,7 @@ export default function AddDocumentPage() {
             {/* File Upload Zone */}
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-600 block">
-                ផ្ទុកឡើងឯកសារលិខិត (PDF / IMAGES)
+                ផ្ទុកឡើងឯកសារលិខិត (PDF / IMAGES) *
               </label>
               <div className="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:bg-slate-50 transition-colors relative cursor-pointer">
                 <input

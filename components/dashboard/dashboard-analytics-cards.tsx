@@ -178,9 +178,9 @@ export function DashboardAnalyticsCards({
             {statusCards.map((item) => (
               <div
                 key={item.label}
-                className={`rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm font-medium ${item.tone}`}
+                className={`rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs sm:text-sm font-medium flex flex-col justify-between min-h-[5.5rem] sm:min-h-[6rem] ${item.tone}`}
               >
-                <p className="truncate">{item.label}</p>
+                <p className="leading-snug break-words">{item.label}</p>
                 <p className="mt-2 text-2xl font-semibold text-slate-950">{item.value}</p>
               </div>
             ))}

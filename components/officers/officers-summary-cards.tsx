@@ -24,7 +24,7 @@ export function OfficersSummaryCards({ stats, isLoading }: OfficersSummaryCardsP
       helper: 'មន្ត្រីដែលបានចុះបញ្ជីទាំងអស់',
     },
     {
-      label: 'សកម្ម',
+      label: 'ដំណើរការ',
       value: stats?.active ?? 0,
       progress: totalOfficers > 0 ? Math.round(((stats?.active ?? 0) / totalOfficers) * 100) : 0,
       icon: UserCheck,
@@ -34,7 +34,7 @@ export function OfficersSummaryCards({ stats, isLoading }: OfficersSummaryCardsP
       helper: 'ត្រៀមបំពេញភារកិច្ច',
     },
     {
-      label: 'ច្បាប់ឈប់សម្រាក',
+      label: 'បិទដំណើការ',
       value: stats?.onLeave ?? 0,
       progress: totalOfficers > 0 ? Math.round(((stats?.onLeave ?? 0) / totalOfficers) * 100) : 0,
       icon: Clock,
@@ -44,7 +44,7 @@ export function OfficersSummaryCards({ stats, isLoading }: OfficersSummaryCardsP
       helper: 'កំពុងសម្រាកច្បាប់',
     },
     {
-      label: 'មិនសកម្ម',
+      label: 'ផ្អាកបណ្តោះអាសន្ន',
       value: stats?.inactive ?? 0,
       progress: totalOfficers > 0 ? Math.round(((stats?.inactive ?? 0) / totalOfficers) * 100) : 0,
       icon: UserMinus,

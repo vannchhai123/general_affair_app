@@ -65,30 +65,46 @@ export function QrScanKiosk({
           </div>
 
           <div className="flex flex-col items-center justify-center gap-6">
-            <div
-              key={lastUpdatedAt}
-              className="flex h-[320px] w-[320px] items-center justify-center rounded-3xl bg-white p-5 shadow-xl transition-all duration-500 motion-safe:animate-in motion-safe:fade-in md:h-[400px] md:w-[400px]"
-            >
-              {qrAvailable ? (
-                <QRCodeSVG
-                  value={qrToken}
-                  size={340}
-                  level="M"
-                  includeMargin
-                  className="h-full w-full"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-100 px-6 text-center text-slate-600">
-                  <div>
-                    <p className="text-lg font-semibold">{helperText}</p>
-                    <p className="mt-2 text-sm">
-                      {sessionStatus === 'error'
-                        ? 'សូមទុកអេក្រង់នេះបើក ខណៈប្រព័ន្ធព្យាយាមឡើងវិញដោយស្វ័យប្រវត្តិ។'
-                        : 'ផ្ទាំងបង្ហាញនេះនឹងធ្វើបច្ចុប្បន្នភាពដោយស្វ័យប្រវត្តិ នៅពេលមានសម័យដែលមានសុពលភាព។'}
-                    </p>
+            <div className="relative group">
+              {/* Glowing blur background */}
+              <div className="absolute -inset-4 bg-gradient-to-r from-sky-400/35 via-blue-500/35 to-indigo-500/35 rounded-[2.5rem] blur-3xl opacity-100 animate-pulse pointer-events-none" />
+
+              <div
+                key={lastUpdatedAt}
+                className="relative flex h-[320px] w-[320px] items-center justify-center rounded-3xl bg-white p-5 shadow-xl transition-all duration-500 motion-safe:animate-in motion-safe:fade-in md:h-[400px] md:w-[400px]"
+              >
+                {qrAvailable ? (
+                  <>
+                    <svg width="0" height="0" className="absolute">
+                      <defs>
+                        <linearGradient id="qr-gradient-kiosk" x1="0%" y1="0%" x2="0%" y2="100%">
+                          <stop offset="0%" stopColor="#6366f1" />
+                          <stop offset="100%" stopColor="#0f172a" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                    <QRCodeSVG
+                      value={qrToken}
+                      size={340}
+                      level="M"
+                      includeMargin
+                      fgColor="url(#qr-gradient-kiosk)"
+                      className="h-full w-full"
+                    />
+                  </>
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-100 px-6 text-center text-slate-600">
+                    <div>
+                      <p className="text-lg font-semibold">{helperText}</p>
+                      <p className="mt-2 text-sm">
+                        {sessionStatus === 'error'
+                          ? 'សូមទុកអេក្រង់នេះបើក ខណៈប្រព័ន្ធព្យាយាមឡើងវិញដោយស្វ័យប្រវត្តិ។'
+                          : 'ផ្ទាំងបង្ហាញនេះនឹងធ្វើបច្ចុប្បន្នភាពដោយស្វ័យប្រវត្តិ នៅពេលមានសម័យដែលមានសុពលភាព។'}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             <div className="space-y-2 text-center">

@@ -77,6 +77,7 @@ export default function EditDocumentPage({ params }: PageProps) {
   );
   const [formPriority, setFormPriority] = useState<'NORMAL' | 'HIGH' | 'CRITICAL'>('NORMAL');
   const [formRemarks, setFormRemarks] = useState('');
+  const [formStatus, setFormStatus] = useState<'DRAFT' | 'PENDING' | 'SENT' | 'RECEIVED' | 'LOGGED'>('PENDING');
   const [uploadedFiles, setUploadedFiles] = useState<
     Array<{ id?: number; name: string; size: string; url?: string }>
   >([]);
@@ -155,6 +156,7 @@ export default function EditDocumentPage({ params }: PageProps) {
           setFormConfidentiality(mappedDoc.confidentiality);
           setFormPriority(mappedDoc.priority);
           setFormRemarks(mappedDoc.remarks || '');
+          setFormStatus(mappedDoc.status);
           setUploadedFiles(
             mappedDoc.files.map((f) => ({
               id: f.id,
@@ -217,6 +219,10 @@ export default function EditDocumentPage({ params }: PageProps) {
       alert('សូមបំពេញលេខឯកសារ កម្មវត្ថុ និងកាលបរិច្ឆេទឱ្យបានត្រឹមត្រូវ!');
       return;
     }
+    if (uploadedFiles.length === 0) {
+      alert('សូមផ្ទុកឡើងឯកសារលិខិត (PDF / IMAGES) យ៉ាងហោចណាស់មួយ!');
+      return;
+    }
 
     if (!formType) {
       alert('សូមជ្រើសរើសប្រភេទលិខិត!');
@@ -235,7 +241,7 @@ export default function EditDocumentPage({ params }: PageProps) {
         documentDate: formDate,
         subject: formSubject,
         summary: formSubject,
-        status: doc.status || 'DRAFT',
+        status: formStatus,
         remarks: formRemarks,
         fileIds: fileIds,
       };
@@ -384,7 +390,7 @@ export default function EditDocumentPage({ params }: PageProps) {
                   <SelectContent>
                     {documentTypes.map((t) => (
                       <SelectItem key={t.id} value={t.id.toString()}>
-                        {t.name.split(' ')[0]}
+                        {t.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -405,6 +411,22 @@ export default function EditDocumentPage({ params }: PageProps) {
               )}
             </div>
 
+            {/* Status Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5 col-span-1">
+                <label className="text-xs font-bold text-slate-600">ស្ថានភាព *</label>
+                <Select value={formStatus} onValueChange={(val) => setFormStatus(val as 'DRAFT' | 'PENDING' | 'SENT' | 'RECEIVED' | 'LOGGED')}>
+                  <SelectTrigger className="w-full bg-white border-slate-200">
+                    <SelectValue placeholder="--" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PENDING">Pending</SelectItem>
+                    <SelectItem value="LOGGED">Logged</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             {/* Subject / Summary */}
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-600">
@@ -423,7 +445,7 @@ export default function EditDocumentPage({ params }: PageProps) {
             {/* File Upload Zone */}
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-600 block">
-                ផ្ទុកឡើងឯកសារលិខិត (PDF / IMAGES)
+                ផ្ទុកឡើងឯកសារលិខិត (PDF / IMAGES) *
               </label>
               <div className="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:bg-slate-50 transition-colors relative cursor-pointer">
                 <input
