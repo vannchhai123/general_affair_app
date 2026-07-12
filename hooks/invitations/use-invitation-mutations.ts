@@ -12,7 +12,7 @@ export function useCreateInvitation() {
     mutationFn: (data: InvitationFormValues) => invitationApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.invitations.all });
-      toast.success('Invitation created');
+      toast.success('បានបង្កើតលិខិតអញ្ជើញដោយជោគជ័យ');
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -28,7 +28,7 @@ export function useUpdateInvitation() {
       invitationApi.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.invitations.all });
-      toast.success('Invitation updated');
+      toast.success('បានកែប្រែព័ត៌មានលិខិតអញ្ជើញដោយជោគជ័យ');
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -43,7 +43,7 @@ export function useDeleteInvitation() {
     mutationFn: (id: number) => invitationApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.invitations.all });
-      toast.success('Invitation deleted');
+      toast.success('បានលុបលិខិតអញ្ជើញដោយជោគជ័យ');
     },
     onError: (error: Error) => {
       toast.error(error.message);
