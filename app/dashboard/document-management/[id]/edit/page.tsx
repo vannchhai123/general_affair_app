@@ -77,7 +77,9 @@ export default function EditDocumentPage({ params }: PageProps) {
   );
   const [formPriority, setFormPriority] = useState<'NORMAL' | 'HIGH' | 'CRITICAL'>('NORMAL');
   const [formRemarks, setFormRemarks] = useState('');
-  const [formStatus, setFormStatus] = useState<'DRAFT' | 'PENDING' | 'SENT' | 'RECEIVED' | 'LOGGED'>('PENDING');
+  const [formStatus, setFormStatus] = useState<
+    'DRAFT' | 'PENDING' | 'SENT' | 'RECEIVED' | 'LOGGED'
+  >('PENDING');
   const [uploadedFiles, setUploadedFiles] = useState<
     Array<{ id?: number; name: string; size: string; url?: string }>
   >([]);
@@ -415,7 +417,12 @@ export default function EditDocumentPage({ params }: PageProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5 col-span-1">
                 <label className="text-xs font-bold text-slate-600">ស្ថានភាព *</label>
-                <Select value={formStatus} onValueChange={(val) => setFormStatus(val as 'DRAFT' | 'PENDING' | 'SENT' | 'RECEIVED' | 'LOGGED')}>
+                <Select
+                  value={formStatus}
+                  onValueChange={(val) =>
+                    setFormStatus(val as 'DRAFT' | 'PENDING' | 'SENT' | 'RECEIVED' | 'LOGGED')
+                  }
+                >
                   <SelectTrigger className="w-full bg-white border-slate-200">
                     <SelectValue placeholder="--" />
                   </SelectTrigger>

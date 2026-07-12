@@ -220,9 +220,7 @@ export default function DocumentDetailPage({ params }: PageProps) {
                 </div>
                 <div className="space-y-1">
                   <span className="text-xs text-slate-500 block">ប្រភេទឯកសារ</span>
-                  <span className="font-semibold text-slate-900">
-                    {doc.documentType.name}
-                  </span>
+                  <span className="font-semibold text-slate-900">{doc.documentType.name}</span>
                 </div>
                 <div className="space-y-1">
                   <span className="text-xs text-slate-500 block">លេខឯកសារ / លេខលិខិត</span>

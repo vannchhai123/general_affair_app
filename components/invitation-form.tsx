@@ -206,112 +206,38 @@ export function InvitationForm({
             })}
             className="space-y-5"
           >
-            {!isAssignMode ? (
-              <div className="grid gap-5 md:grid-cols-2">
+            {isAssignMode ? (
+              <FormField
+                control={form.control}
+                name="officers"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>សមាសភាពចូលរួម</FormLabel>
+                    <FormControl>
+                      <OfficerMultiSelect
+                        officers={officers}
+                        value={field.value ?? []}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ) : (
+              <div className="space-y-5">
+                {/* 1. officers -> សមាសភាពចូលរួម at the top */}
                 <FormField
                   control={form.control}
-                  name="subject"
-                  render={({ field }) => (
-                    <FormItem className="md:col-span-2">
-                      <FormLabel>កម្មវត្ថុ / ប្រធានបទ</FormLabel>
-                      <FormControl>
-                        <Input placeholder="ឧ. កិច្ចប្រជុំបូកសរុបការងារប្រចាំត្រីមាស" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="organization"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>អង្គភាព / ស្ថាប័នផ្ញើមក</FormLabel>
-                      <FormControl>
-                        <Input placeholder="ឧ. ក្រសួងសាធារណការ និងដឹកជញ្ជូន" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="type"
+                  name="officers"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>ប្រភេទលិខិត</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="ជ្រើសរើសប្រភេទ" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="incoming">លិខិតចូល (Incoming)</SelectItem>
-                          <SelectItem value="outgoing">លិខិតចេញ (Outgoing)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>កាលបរិច្ឆេទ</FormLabel>
+                      <FormLabel>សមាសភាពចូលរួម</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="time"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>ម៉ោង</FormLabel>
-                      <FormControl>
-                        <Input type="time" {...field} value={field.value ?? ''} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="location"
-                  render={({ field }) => (
-                    <FormItem className="md:col-span-2">
-                      <FormLabel>ទីតាំង</FormLabel>
-                      <FormControl>
-                        <Input placeholder="ឧ. សាលប្រជុំកោះពេជ្រ អគារ A" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem className="md:col-span-2">
-                      <FormLabel>ពិពណ៌នាបន្ថែម</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="សូមបញ្ជាក់អំពីខ្លឹមសារ កម្មវិធីការងារ ឬតម្រូវការផ្សេងៗ..."
-                          rows={4}
-                          {...field}
-                          value={field.value ?? ''}
+                        <OfficerMultiSelect
+                          officers={officers}
+                          value={field.value ?? []}
+                          onChange={field.onChange}
                         />
                       </FormControl>
                       <FormMessage />
@@ -319,161 +245,223 @@ export function InvitationForm({
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>ស្ថានភាព</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
+                <div className="grid gap-5 md:grid-cols-2">
+                  {/* 2. subject -> បរិយាយ as a Textarea */}
+                  <FormField
+                    control={form.control}
+                    name="subject"
+                    render={({ field }) => (
+                      <FormItem className="md:col-span-2">
+                        <FormLabel>បរិយាយ</FormLabel>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="ជ្រើសរើសស្ថានភាព" />
-                          </SelectTrigger>
+                          <Textarea
+                            placeholder="ឧ. សិក្ខាសាលាផ្សព្វផ្សាយស្តីពី..."
+                            rows={3}
+                            {...field}
+                          />
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="accepted">Accepted</SelectItem>
-                          <SelectItem value="rejected">Rejected</SelectItem>
-                          <SelectItem value="completed">Completed</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="imageIds"
-                  render={({ field }) => (
-                    <FormItem className="md:col-span-2">
-                      <FormLabel>លិខិតអញ្ជើញ (រូបភាព / Image Documents)</FormLabel>
-                      <FormControl>
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-3">
-                            <Input
-                              type="file"
-                              accept="image/*"
-                              multiple
-                              className="hidden"
-                              id="invitation-image-upload"
-                              onChange={async (e) => {
-                                const files = e.target.files;
-                                if (!files || files.length === 0) return;
+                  {/* 3. date & time side-by-side */}
+                  <FormField
+                    control={form.control}
+                    name="date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>កាលបរិច្ឆេទ</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                                const newIds: number[] = [];
-                                const newUrls: string[] = [];
+                  <FormField
+                    control={form.control}
+                    name="time"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>ម៉ោង</FormLabel>
+                        <FormControl>
+                          <Input type="time" {...field} value={field.value ?? ''} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                                for (let i = 0; i < files.length; i++) {
-                                  try {
-                                    const result = await uploadImageMutation.mutateAsync(files[i]);
-                                    newIds.push(result.id);
-                                    newUrls.push(result.url);
-                                  } catch (error: any) {
-                                    toast.error(
-                                      `បរាជ័យក្នុងការបញ្ចូលរូបភាព ${files[i].name}: ${error.message}`,
-                                    );
-                                  }
-                                }
+                  {/* 4. location -> ទីកន្លែង */}
+                  <FormField
+                    control={form.control}
+                    name="location"
+                    render={({ field }) => (
+                      <FormItem className="md:col-span-2">
+                        <FormLabel>ទីកន្លែង</FormLabel>
+                        <FormControl>
+                          <Input placeholder="ឧ. សណ្ឋាគារកាំបូឌីយ៉ាណា" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                                if (newIds.length > 0) {
-                                  const currentIds = field.value ?? [];
-                                  field.onChange([...currentIds, ...newIds]);
-                                  setPreviewUrls((prev) => [...prev, ...newUrls]);
-                                  toast.success(`បានបញ្ចូលរូបភាពចំនួន ${newIds.length} ជោគជ័យ`);
-                                }
-                              }}
-                              disabled={uploadImageMutation.isPending}
-                            />
-                            <label
-                              htmlFor="invitation-image-upload"
-                              className={cn(
-                                'flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-lg p-6 cursor-pointer hover:bg-slate-50 transition w-full',
-                                uploadImageMutation.isPending && 'opacity-50 pointer-events-none',
-                              )}
-                            >
-                              {uploadImageMutation.isPending ? (
-                                <div className="flex flex-col items-center gap-2">
-                                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                                  <span className="text-sm text-muted-foreground">
-                                    កំពុងបញ្ជូន...
-                                  </span>
-                                </div>
-                              ) : (
-                                <div className="flex flex-col items-center gap-2">
-                                  <Upload className="h-6 w-6 text-muted-foreground" />
-                                  <span className="text-sm font-medium text-slate-700">
-                                    ចុចទីនេះដើម្បីបញ្ចូលរូបភាពលិខិត
-                                  </span>
-                                  <span className="text-xs text-muted-foreground">
-                                    JPEG, PNG, WebP (ទំហំអតិបរមា 5MB)
-                                  </span>
-                                </div>
-                              )}
-                            </label>
-                          </div>
+                  {/* 5. organization -> ក្រោមអធិបតីភាព */}
+                  <FormField
+                    control={form.control}
+                    name="organization"
+                    render={({ field }) => (
+                      <FormItem className="md:col-span-2">
+                        <FormLabel>ក្រោមអធិបតីភាព</FormLabel>
+                        <FormControl>
+                          <Input placeholder="ឧ. ឯកឧត្តម..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                          {previewUrls.length > 0 && (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
-                              {previewUrls.map((url, index) => (
-                                <div
-                                  key={url}
-                                  className="relative rounded-lg border overflow-hidden bg-slate-50 flex justify-center items-center p-2 h-[150px]"
-                                >
-                                  <img
-                                    src={url}
-                                    alt={`Invitation Document ${index + 1}`}
-                                    className="h-full object-contain rounded"
-                                  />
-                                  <Button
-                                    type="button"
-                                    variant="destructive"
-                                    size="icon"
-                                    className="absolute top-1.5 right-1.5 h-6 w-6 rounded-full shadow hover:bg-destructive/90"
-                                    onClick={() => {
-                                      const currentIds = field.value ?? [];
-                                      const nextIds = currentIds.filter((_, idx) => idx !== index);
-                                      const nextUrls = previewUrls.filter(
-                                        (_, idx) => idx !== index,
+                  {/* 6. description -> ចំណាំ */}
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem className="md:col-span-2">
+                        <FormLabel>ចំណាំ</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="ឧ. ឯកសណ្ឋានការងារ"
+                            {...field}
+                            value={field.value ?? ''}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* 7. imageIds -> បញ្ចូលរូបភាព */}
+                  <FormField
+                    control={form.control}
+                    name="imageIds"
+                    render={({ field }) => (
+                      <FormItem className="md:col-span-2">
+                        <FormLabel>បញ្ចូលរូបភាព</FormLabel>
+                        <FormControl>
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-3">
+                              <Input
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                className="hidden"
+                                id="invitation-image-upload"
+                                onChange={async (e) => {
+                                  const files = e.target.files;
+                                  if (!files || files.length === 0) return;
+
+                                  const newIds: number[] = [];
+                                  const newUrls: string[] = [];
+
+                                  for (let i = 0; i < files.length; i++) {
+                                    try {
+                                      const result = await uploadImageMutation.mutateAsync(
+                                        files[i],
                                       );
+                                      newIds.push(result.id);
+                                      newUrls.push(result.url);
+                                    } catch (error: any) {
+                                      toast.error(
+                                        `បរាជ័យក្នុងការបញ្ចូលរូបភាព ${files[i].name}: ${error.message}`,
+                                      );
+                                    }
+                                  }
 
-                                      field.onChange(nextIds);
-                                      setPreviewUrls(nextUrls);
-                                    }}
-                                  >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                  </Button>
-                                </div>
-                              ))}
+                                  if (newIds.length > 0) {
+                                    const currentIds = field.value ?? [];
+                                    field.onChange([...currentIds, ...newIds]);
+                                    setPreviewUrls((prev) => [...prev, ...newUrls]);
+                                    toast.success(`បានបញ្ចូលរូបភាពចំនួន ${newIds.length} ជោគជ័យ`);
+                                  }
+                                }}
+                                disabled={uploadImageMutation.isPending}
+                              />
+                              <label
+                                htmlFor="invitation-image-upload"
+                                className={cn(
+                                  'flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-lg p-6 cursor-pointer hover:bg-slate-50 transition w-full',
+                                  uploadImageMutation.isPending && 'opacity-50 pointer-events-none',
+                                )}
+                              >
+                                {uploadImageMutation.isPending ? (
+                                  <div className="flex flex-col items-center gap-2">
+                                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                                    <span className="text-sm text-muted-foreground">
+                                      កំពុងបញ្ជូន...
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <div className="flex flex-col items-center gap-2">
+                                    <Upload className="h-6 w-6 text-muted-foreground" />
+                                    <span className="text-sm font-medium text-slate-700">
+                                      ចុចទីនេះដើម្បីបញ្ចូលរូបភាពលិខិត
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      JPEG, PNG, WebP (ទំហំអតិបរមា 5MB)
+                                    </span>
+                                  </div>
+                                )}
+                              </label>
                             </div>
-                          )}
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            ) : null}
 
-            <FormField
-              control={form.control}
-              name="officers"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>មន្ត្រីដែលចាត់តាំង</FormLabel>
-                  <FormControl>
-                    <OfficerMultiSelect
-                      officers={officers}
-                      value={field.value ?? []}
-                      onChange={field.onChange}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                            {previewUrls.length > 0 && (
+                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
+                                {previewUrls.map((url, index) => (
+                                  <div
+                                    key={url}
+                                    className="relative rounded-lg border overflow-hidden bg-slate-50 flex justify-center items-center p-2 h-[150px]"
+                                  >
+                                    <img
+                                      src={url}
+                                      alt={`Invitation Document ${index + 1}`}
+                                      className="h-full object-contain rounded"
+                                    />
+                                    <Button
+                                      type="button"
+                                      variant="destructive"
+                                      size="icon"
+                                      className="absolute top-1.5 right-1.5 h-6 w-6 rounded-full shadow hover:bg-destructive/90"
+                                      onClick={() => {
+                                        const currentIds = field.value ?? [];
+                                        const nextIds = currentIds.filter(
+                                          (_, idx) => idx !== index,
+                                        );
+                                        const nextUrls = previewUrls.filter(
+                                          (_, idx) => idx !== index,
+                                        );
+
+                                        field.onChange(nextIds);
+                                        setPreviewUrls(nextUrls);
+                                      }}
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            )}
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

@@ -3,7 +3,6 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { QRCodeSVG } from 'qrcode.react';
 
-
 interface QRDisplayProps {
   errorMessage?: string;
   lastUpdatedAt: number;
@@ -64,8 +63,9 @@ export function QRDisplay({
             </div>
             <div
               key={lastUpdatedAt}
-              className={`transition-all duration-500 ${isRefreshing ? 'scale-95 opacity-40' : 'scale-100 opacity-100'
-                }`}
+              className={`transition-all duration-500 ${
+                isRefreshing ? 'scale-95 opacity-40' : 'scale-100 opacity-100'
+              }`}
             >
               {qrAvailable ? (
                 <>
@@ -77,7 +77,14 @@ export function QRDisplay({
                       </linearGradient>
                     </defs>
                   </svg>
-                  <QRCodeSVG value={qrToken} size={240} level="H" includeMargin fgColor="url(#qr-gradient-display)" className="h-full w-full" />
+                  <QRCodeSVG
+                    value={qrToken}
+                    size={240}
+                    level="H"
+                    includeMargin
+                    fgColor="url(#qr-gradient-display)"
+                    className="h-full w-full"
+                  />
                 </>
               ) : (
                 <div className="flex h-[240px] w-[240px] items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-100 px-6 text-center text-slate-600">

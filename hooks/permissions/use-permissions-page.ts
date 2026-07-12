@@ -37,7 +37,11 @@ export function usePermissionsPage() {
   const { data: permissions, isLoading: permissionsLoading } = usePermissions(
     category !== 'all' ? category : undefined,
   );
-  const { officers, isLoading: officersLoading, pagination: officerPagination } = useOfficers({
+  const {
+    officers,
+    isLoading: officersLoading,
+    pagination: officerPagination,
+  } = useOfficers({
     search: officerSearch || undefined,
     page: assignPageState,
     pageSize,
