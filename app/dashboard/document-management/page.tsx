@@ -58,6 +58,37 @@ import {
 } from './document-store';
 import { apiFetch } from '@/lib/client';
 
+const getPageNumbers = (currentPage: number, totalPages: number) => {
+  const pages: (number | string)[] = [];
+  if (totalPages <= 7) {
+    for (let i = 1; i <= totalPages; i++) {
+      pages.push(i);
+    }
+  } else {
+    pages.push(1);
+    if (currentPage > 3) {
+      pages.push('...');
+    }
+    const start = Math.max(2, currentPage - 1);
+    const end = Math.min(totalPages - 1, currentPage + 1);
+    let adjustedStart = start;
+    let adjustedEnd = end;
+    if (currentPage <= 3) {
+      adjustedEnd = 4;
+    } else if (currentPage >= totalPages - 2) {
+      adjustedStart = totalPages - 3;
+    }
+    for (let i = adjustedStart; i <= adjustedEnd; i++) {
+      pages.push(i);
+    }
+    if (currentPage < totalPages - 2) {
+      pages.push('...');
+    }
+    pages.push(totalPages);
+  }
+  return pages;
+};
+
 export default function DocumentManagementPage() {
   const router = useRouter();
 
@@ -575,20 +606,33 @@ export default function DocumentManagementPage() {
                       <ChevronLeft className="h-4 w-4 text-slate-600" />
                     </Button>
 
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <Button
-                        key={page}
-                        variant={currentPage === page ? 'default' : 'outline'}
-                        className={`h-8.5 w-8.5 rounded-lg font-semibold text-xs transition-all duration-150 ${
-                          currentPage === page
-                            ? 'bg-indigo-600 hover:bg-indigo-700 text-white border-transparent'
-                            : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                        }`}
-                        onClick={() => setCurrentPage(page)}
-                      >
-                        {page}
-                      </Button>
-                    ))}
+                    {getPageNumbers(currentPage, totalPages).map((page, index) => {
+                      if (page === '...') {
+                        return (
+                          <span
+                            key={`ellipsis-${index}`}
+                            className="h-8.5 w-8.5 flex items-center justify-center text-slate-400 text-xs font-semibold"
+                          >
+                            ...
+                          </span>
+                        );
+                      }
+                      const pageNum = page as number;
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={currentPage === pageNum ? 'default' : 'outline'}
+                          className={`h-8.5 w-8.5 rounded-lg font-semibold text-xs transition-all duration-150 ${
+                            currentPage === pageNum
+                              ? 'bg-indigo-600 hover:bg-indigo-700 text-white border-transparent'
+                              : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                          }`}
+                          onClick={() => setCurrentPage(pageNum)}
+                        >
+                          {pageNum}
+                        </Button>
+                      );
+                    })}
 
                     <Button
                       variant="outline"
