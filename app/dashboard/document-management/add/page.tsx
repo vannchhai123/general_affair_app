@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, FileCheck2, UploadCloud, X, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -21,97 +21,199 @@ import {
   INITIAL_TAGS,
   DocumentItem,
   DocumentFile,
+  Organization,
+  DocumentType as AppDocumentType,
 } from '../document-store';
+import { apiFetch } from '@/lib/client';
 
 export default function AddDocumentPage() {
   const router = useRouter();
 
   // Form states
   const [formDirection, setFormDirection] = useState<'INCOMING' | 'OUTGOING' | 'INTERNAL'>(
-    'INCOMING',
+    'OUTGOING',
   );
-  const [formType, setFormType] = useState('1');
-  const [formSender, setFormSender] = useState('1');
-  const [formReceiver, setFormReceiver] = useState('3');
+  const [formType, setFormType] = useState('');
+  const [formSender, setFormSender] = useState('3'); // Default to NU (Norton University) for Outgoing
+  const [formReceiver, setFormReceiver] = useState('');
   const [formNumber, setFormNumber] = useState('');
   const [formDate, setFormDate] = useState('');
   const [formSubject, setFormSubject] = useState('');
-  const [formSummary, setFormSummary] = useState('');
   const [formConfidentiality, setFormConfidentiality] = useState<'NORMAL' | 'CONFIDENTIAL'>(
     'NORMAL',
   );
   const [formPriority, setFormPriority] = useState<'NORMAL' | 'HIGH' | 'CRITICAL'>('NORMAL');
   const [formRemarks, setFormRemarks] = useState('');
-  const [uploadedFiles, setUploadedFiles] = useState<Array<{ name: string; size: string }>>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<
+    Array<{ id?: number; name: string; size: string; url?: string }>
+  >([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [documentTypes, setDocumentTypes] = useState<AppDocumentType[]>(INITIAL_TYPES);
+
+  useEffect(() => {
+    const fetchDocTypes = async () => {
+      try {
+        const response = await apiFetch('/documents/types');
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.length > 0) {
+            setDocumentTypes(
+              data.map((t: any) => ({
+                id: t.id,
+                name: t.name,
+                code: t.code || '',
+              })),
+            );
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch document types:', err);
+      }
+    };
+    fetchDocTypes();
+  }, []);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const filesArr = Array.from(e.target.files).map((file) => ({
-        name: file.name,
-        size: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
-      }));
-      setUploadedFiles((prev) => [...prev, ...filesArr]);
+      setIsUploading(true);
+      try {
+        const files = Array.from(e.target.files);
+        for (const file of files) {
+          const formData = new FormData();
+          formData.append('file', file);
+          const response = await apiFetch('/files/upload', {
+            method: 'POST',
+            body: formData,
+          });
+          if (response.ok) {
+            const data = await response.json();
+            setUploadedFiles((prev) => [
+              ...prev,
+              {
+                id: data.id,
+                name: data.fileName,
+                size: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
+                url: data.url,
+              },
+            ]);
+          } else {
+            alert('ផ្ទុកឡើងឯកសារបរាជ័យ៖ ' + file.name);
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        alert('មានកំហុសក្នុងការផ្ទុកឡើងឯកសារ');
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formType) {
+      alert('សូមជ្រើសរើសប្រភេទលិខិត!');
+      return;
+    }
     if (!formNumber || !formSubject || !formDate) {
       alert('សូមបំពេញលេខឯកសារ កម្មវត្ថុ និងកាលបរិច្ឆេទឱ្យបានត្រឹមត្រូវ!');
       return;
     }
 
-    const docType = INITIAL_TYPES.find((t) => t.id.toString() === formType) || INITIAL_TYPES[0];
-    const sender = INITIAL_ORGS.find((o) => o.id.toString() === formSender) || INITIAL_ORGS[0];
-    const receiver = INITIAL_ORGS.find((o) => o.id.toString() === formReceiver) || INITIAL_ORGS[2];
+    setIsSubmitting(true);
+    try {
+      const fileIds = uploadedFiles.map((f) => f.id).filter((id): id is number => id !== undefined);
 
-    const mappedFiles: DocumentFile[] = uploadedFiles.map((f, i) => ({
-      id: Date.now() + i,
-      fileName: f.name,
-      filePath: `/documents/2026/07/${f.name}`,
-      mimeType: f.name.endsWith('.pdf') ? 'application/pdf' : 'image/png',
-      fileSize: f.size,
-      isPrimary: i === 0,
-      uploadedBy: 'ឆៃ វណ្ណ',
-    }));
+      const payload = {
+        direction: formDirection,
+        documentTypeId: parseInt(formType, 10),
+        receiverOrganizationName: formReceiver,
+        documentNumber: formNumber,
+        documentDate: formDate,
+        subject: formSubject,
+        summary: formSubject,
+        status: formDirection === 'OUTGOING' ? 'PENDING' : 'RECEIVED',
+        remarks: formRemarks,
+        fileIds: fileIds,
+      };
 
-    const newDoc: DocumentItem = {
-      id: Date.now(),
-      uuid:
-        typeof crypto !== 'undefined' && crypto.randomUUID
-          ? crypto.randomUUID()
-          : 'mock-uuid-' + Date.now(),
-      direction: formDirection,
-      documentType: docType,
-      senderOrganization: formDirection === 'INTERNAL' ? undefined : sender,
-      receiverOrganization: formDirection === 'INTERNAL' ? undefined : receiver,
-      documentNumber: formNumber,
-      documentDate: formDate,
-      subject: formSubject,
-      summary: formSummary,
-      confidentiality: formConfidentiality,
-      priority: formPriority,
-      status: formDirection === 'OUTGOING' ? 'PENDING' : 'RECEIVED',
-      remarks: formRemarks,
-      createdBy: 'ឆៃ វណ្ណ',
-      createdAt: new Date().toISOString(),
-      tags: formConfidentiality === 'CONFIDENTIAL' ? [INITIAL_TAGS[1]] : [INITIAL_TAGS[4]],
-      files: mappedFiles,
-      logs: [
-        {
-          id: Date.now() + 50,
-          officerName: 'ឆៃ វណ្ណ',
-          action: 'CREATE',
-          description: 'បានចុះបញ្ជី និងផ្ទុកឡើងឯកសារថ្មី',
-          createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      const response = await apiFetch('/documents', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      ],
-    };
+        body: JSON.stringify(payload),
+      });
 
-    const currentList = getStoredDocuments();
-    saveStoredDocuments([newDoc, ...currentList]);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'បង្កើតឯកសារបរាជ័យ');
+      }
 
-    router.push('/dashboard/document-management');
+      // Sync mock list so it updates locally as well if local storage is used elsewhere
+      const docType = documentTypes.find((t) => t.id.toString() === formType) || documentTypes[0];
+      const sender = INITIAL_ORGS.find((o) => o.id.toString() === formSender) || INITIAL_ORGS[0];
+      const receiver: Organization = {
+        id: Date.now() + 1,
+        name: formReceiver,
+        shortName: formReceiver,
+      };
+      const mappedFiles: DocumentFile[] = uploadedFiles.map((f, i) => ({
+        id: f.id || Date.now() + i,
+        fileName: f.name,
+        filePath: f.url || `/documents/2026/07/${f.name}`,
+        mimeType: f.name.endsWith('.pdf') ? 'application/pdf' : 'image/png',
+        fileSize: f.size,
+        isPrimary: i === 0,
+        uploadedBy: 'ឆៃ វណ្ណ',
+      }));
+
+      const newDoc: DocumentItem = {
+        id: Date.now(),
+        uuid:
+          typeof crypto !== 'undefined' && crypto.randomUUID
+            ? crypto.randomUUID()
+            : 'mock-uuid-' + Date.now(),
+        direction: formDirection,
+        documentType: docType,
+        senderOrganization: formDirection === 'INTERNAL' ? undefined : sender,
+        receiverOrganization: formDirection === 'INTERNAL' ? undefined : receiver,
+        documentNumber: formNumber,
+        documentDate: formDate,
+        subject: formSubject,
+        summary: formSubject,
+        confidentiality: formConfidentiality,
+        priority: formPriority,
+        status: formDirection === 'OUTGOING' ? 'PENDING' : 'RECEIVED',
+        remarks: formRemarks,
+        createdBy: 'ឆៃ វណ្ណ',
+        createdAt: new Date().toISOString(),
+        tags: formConfidentiality === 'CONFIDENTIAL' ? [INITIAL_TAGS[1]] : [INITIAL_TAGS[4]],
+        files: mappedFiles,
+        logs: [
+          {
+            id: Date.now() + 50,
+            officerName: 'ឆៃ វណ្ណ',
+            action: 'CREATE',
+            description: 'បានចុះបញ្ជី និងផ្ទុកឡើងឯកសារថ្មី',
+            createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+          },
+        ],
+      };
+
+      const currentList = getStoredDocuments();
+      saveStoredDocuments([newDoc, ...currentList]);
+
+      alert('បានចុះបញ្ជីឯកសារជោគជ័យ!');
+      router.push('/dashboard/document-management');
+    } catch (err: any) {
+      console.error(err);
+      alert('មានកំហុសក្នុងការចុះបញ្ជីឯកសារ៖ ' + err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -127,11 +229,8 @@ export default function AddDocumentPage() {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <span className="text-2xs text-slate-400 block font-semibold uppercase tracking-wider">
-            គ្រប់គ្រងឯកសារ • REGISTER ROUTE
-          </span>
-          <h1 className="text-lg font-bold text-slate-900 mt-0.5">
-            ចុះបញ្ជីឯកសារផ្លូវការថ្មី (Register Document)
+          <h1 className="page-title text-lg font-bold text-slate-900 mt-0.5">
+            ចុះបញ្ជីឯកសារចេញផ្លូវការថ្មី
           </h1>
         </div>
       </div>
@@ -143,23 +242,47 @@ export default function AddDocumentPage() {
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-600 block">ទិសដៅឯកសារ *</label>
               <div className="grid grid-cols-3 gap-3">
-                {(['INCOMING', 'OUTGOING', 'INTERNAL'] as const).map((dir) => (
-                  <div
-                    key={dir}
-                    onClick={() => setFormDirection(dir)}
-                    className={`cursor-pointer p-4 rounded-xl border text-center text-xs font-bold transition-all ${
-                      formDirection === dir
-                        ? 'border-indigo-600 bg-indigo-50/50 text-indigo-700 shadow-sm'
-                        : 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600'
-                    }`}
-                  >
-                    {dir === 'INCOMING'
-                      ? '📥 ឯកសារចូល'
-                      : dir === 'OUTGOING'
-                        ? '📤 ឯកសារចេញ'
-                        : '💻 ឯកសារផ្ទៃក្នុង'}
-                  </div>
-                ))}
+                {(['INCOMING', 'OUTGOING', 'INTERNAL'] as const).map((dir) => {
+                  const isOutgoing = dir === 'OUTGOING';
+                  return (
+                    <div
+                      key={dir}
+                      onClick={() => {
+                        if (isOutgoing) {
+                          setFormDirection(dir);
+                        }
+                      }}
+                      className={`p-4 rounded-xl border text-center text-xs font-bold transition-all ${
+                        isOutgoing
+                          ? 'border-indigo-600 bg-indigo-50/50 text-indigo-700 shadow-sm cursor-default'
+                          : 'border-slate-100 bg-slate-50/30 text-slate-400 cursor-not-allowed opacity-60'
+                      }`}
+                    >
+                      {dir === 'INCOMING' ? (
+                        <div className="flex flex-col items-center">
+                          <span>📥 ឯកសារចូល</span>
+                          <span className="text-[10px] font-normal text-slate-400 mt-1">
+                            (ក្រៅវិសាលភាព)
+                          </span>
+                        </div>
+                      ) : dir === 'OUTGOING' ? (
+                        <div className="flex flex-col items-center">
+                          <span>📤 ឯកសារចេញ</span>
+                          <span className="text-[10px] font-semibold text-indigo-500 mt-1">
+                            (វិសាលភាពបច្ចុប្បន្ន)
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center">
+                          <span>💻 ឯកសារផ្ទៃក្នុង</span>
+                          <span className="text-[10px] font-normal text-slate-400 mt-1">
+                            (ក្រៅវិសាលភាព)
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -170,7 +293,6 @@ export default function AddDocumentPage() {
                 <Input
                   value={formNumber}
                   onChange={(e) => setFormNumber(e.target.value)}
-                  placeholder="ឧ. MoI-2026-1049"
                   required
                 />
               </div>
@@ -186,15 +308,15 @@ export default function AddDocumentPage() {
             </div>
 
             {/* Type and organizations */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5 col-span-1">
                 <label className="text-xs font-bold text-slate-600">ប្រភេទលិខិត *</label>
                 <Select value={formType} onValueChange={setFormType}>
                   <SelectTrigger className="w-full bg-white border-slate-200">
-                    <SelectValue placeholder="ជ្រើសរើសប្រភេទ" />
+                    <SelectValue placeholder="--" />
                   </SelectTrigger>
                   <SelectContent>
-                    {INITIAL_TYPES.map((t) => (
+                    {documentTypes.map((t) => (
                       <SelectItem key={t.id} value={t.id.toString()}>
                         {t.name.split(' ')[0]}
                       </SelectItem>
@@ -204,94 +326,32 @@ export default function AddDocumentPage() {
               </div>
 
               {formDirection !== 'INTERNAL' && (
-                <>
-                  <div className="space-y-1.5 col-span-1">
-                    <label className="text-xs font-bold text-slate-600">ស្ថាប័នបញ្ជូន (ពី) *</label>
-                    <Select value={formSender} onValueChange={setFormSender}>
-                      <SelectTrigger className="w-full bg-white border-slate-200">
-                        <SelectValue placeholder="ស្ថាប័នបញ្ជូន" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {INITIAL_ORGS.map((o) => (
-                          <SelectItem key={o.id} value={o.id.toString()}>
-                            {o.shortName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5 col-span-1">
-                    <label className="text-xs font-bold text-slate-600">ស្ថាប័នទទួល (ទៅ) *</label>
-                    <Select value={formReceiver} onValueChange={setFormReceiver}>
-                      <SelectTrigger className="w-full bg-white border-slate-200">
-                        <SelectValue placeholder="ស្ថាប័នទទួល" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {INITIAL_ORGS.map((o) => (
-                          <SelectItem key={o.id} value={o.id.toString()}>
-                            {o.shortName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </>
+                <div className="space-y-1.5 col-span-1">
+                  <label className="text-xs font-bold text-slate-600">ស្ថាប័នទទួល (ទៅ) *</label>
+                  <Input
+                    value={formReceiver}
+                    onChange={(e) => setFormReceiver(e.target.value)}
+                    placeholder=""
+                    className="bg-white border-slate-200"
+                    required
+                  />
+                </div>
               )}
             </div>
 
-            {/* Subject */}
+            {/* Subject / Summary */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-600">កម្មវត្ថុឯកសារ *</label>
-              <Input
+              <label className="text-xs font-bold text-slate-600">
+                កម្មវត្ថុឯកសារ / សេចក្តីសង្ខេប *
+              </label>
+              <textarea
                 value={formSubject}
                 onChange={(e) => setFormSubject(e.target.value)}
-                placeholder="កម្មវត្ថុនៃលិខិត..."
-                required
-              />
-            </div>
-
-            {/* Summary */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-600">សេចក្តីសង្ខេប (Summary)</label>
-              <textarea
-                value={formSummary}
-                onChange={(e) => setFormSummary(e.target.value)}
                 rows={4}
                 className="w-full rounded-xl border border-slate-200 p-3 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white"
-                placeholder="សង្ខេបមាតិកាសំខាន់ៗនៃលិខិត..."
+                placeholder=""
+                required
               />
-            </div>
-
-            {/* Priority and Confidentiality */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-600">កម្រិតអាទិភាព *</label>
-                <Select value={formPriority} onValueChange={(val: any) => setFormPriority(val)}>
-                  <SelectTrigger className="w-full bg-white border-slate-200">
-                    <SelectValue placeholder="ជ្រើសរើសអាទិភាព" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="NORMAL">ធម្មតា (Normal)</SelectItem>
-                    <SelectItem value="HIGH">ខ្ពស់ (High)</SelectItem>
-                    <SelectItem value="CRITICAL">បន្ទាន់បំផុត (Critical)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-600">កម្រិតភាពសម្ងាត់ *</label>
-                <Select
-                  value={formConfidentiality}
-                  onValueChange={(val: any) => setFormConfidentiality(val)}
-                >
-                  <SelectTrigger className="w-full bg-white border-slate-200">
-                    <SelectValue placeholder="ជ្រើសរើសភាពសម្ងាត់" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="NORMAL">ធម្មតា (Normal)</SelectItem>
-                    <SelectItem value="CONFIDENTIAL">សម្ងាត់ (Confidential)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
 
             {/* File Upload Zone */}
@@ -304,11 +364,12 @@ export default function AddDocumentPage() {
                   type="file"
                   onChange={handleFileUpload}
                   multiple
+                  disabled={isUploading}
                   className="absolute inset-0 opacity-0 cursor-pointer"
                 />
                 <UploadCloud className="mx-auto h-8 w-8 text-slate-400 mb-2" />
                 <p className="text-sm font-semibold text-slate-700">
-                  ចុចទីនេះ ឬអូសទាញឯកសារដើម្បីផ្ទុកឡើង
+                  {isUploading ? 'កំពុងផ្ទុកឡើងឯកសារ...' : 'ចុចទីនេះ ឬអូសទាញឯកសារដើម្បីផ្ទុកឡើង'}
                 </p>
                 <p className="text-xs text-slate-400 mt-1">
                   គាំទ្រត្រឹម PDF, PNG, JPG (ទំហំអតិបរមា 10MB)
@@ -350,11 +411,7 @@ export default function AddDocumentPage() {
             {/* Remarks */}
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-600">កំណត់សម្គាល់ផ្សេងៗ</label>
-              <Input
-                value={formRemarks}
-                onChange={(e) => setFormRemarks(e.target.value)}
-                placeholder="ព័ត៌មានបន្ថែម..."
-              />
+              <Input value={formRemarks} onChange={(e) => setFormRemarks(e.target.value)} />
             </div>
 
             {/* Actions Footer */}
@@ -362,15 +419,17 @@ export default function AddDocumentPage() {
               <Button
                 type="button"
                 variant="outline"
+                disabled={isSubmitting || isUploading}
                 onClick={() => router.push('/dashboard/document-management')}
               >
                 បោះបង់
               </Button>
               <Button
                 type="submit"
+                disabled={isSubmitting || isUploading}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm font-semibold"
               >
-                រក្សាទុកឯកសារ
+                {isSubmitting ? 'កំពុងរក្សាទុក...' : 'រក្សាទុកឯកសារ'}
               </Button>
             </div>
           </form>

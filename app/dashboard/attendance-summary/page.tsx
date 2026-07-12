@@ -9,7 +9,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function AttendanceSummaryPage() {
-  const { data, isLoading, error, refetch } = useAttendance({ page: 0, size: 200 });
+  const { data, isLoading, error, refetch } = useAttendance({
+    page: 0,
+    size: 1000,
+    viewMode: 'monthly',
+  });
   const records: Attendance[] = data?.content ?? [];
 
   return (

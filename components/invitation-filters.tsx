@@ -54,7 +54,6 @@ export function InvitationFilters({
           <Input
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="ស្វែងរកតាមប្រធានបទ អង្គភាព ទីតាំង ឬមន្ត្រី"
             className="pl-9"
           />
         </div>

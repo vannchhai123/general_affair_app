@@ -118,17 +118,25 @@ export function AttendanceSummaryDashboard({
 
     const trendMap = new Map<
       string,
-      { date: string; present: number; late: number; absent: number }
+      { date: string; rawDate: string; present: number; late: number; absent: number }
     >();
     records.forEach((record) => {
-      const key = formatCompactDate(record.date);
-      const existing = trendMap.get(key) ?? { date: key, present: 0, late: 0, absent: 0 };
+      const key = record.date;
+      const existing = trendMap.get(key) ?? {
+        date: formatCompactDate(record.date),
+        rawDate: record.date,
+        present: 0,
+        late: 0,
+        absent: 0,
+      };
       if (record.status === 'Present') existing.present += 1;
       if (record.status === 'Late') existing.late += 1;
       if (record.status === 'Absent') existing.absent += 1;
       trendMap.set(key, existing);
     });
-    const trendData = Array.from(trendMap.values()).slice(-7);
+    const trendData = Array.from(trendMap.values())
+      .sort((a, b) => a.rawDate.localeCompare(b.rawDate))
+      .slice(-7);
 
     const departmentMap = new Map<
       string,

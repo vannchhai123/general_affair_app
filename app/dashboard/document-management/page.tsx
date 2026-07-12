@@ -20,6 +20,8 @@ import {
   CheckCircle2,
   FileCheck2,
   Clock,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -51,38 +53,101 @@ import {
   DocumentItem,
   DocumentFile,
   DocumentTag,
-  DocumentType,
+  DocumentType as AppDocumentType,
   Organization,
 } from './document-store';
+import { apiFetch } from '@/lib/client';
 
 export default function DocumentManagementPage() {
   const router = useRouter();
 
   // Lists
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
+  const [documentTypes, setDocumentTypes] = useState<AppDocumentType[]>(INITIAL_TYPES);
 
-  // Sync state with localStorage store
   useEffect(() => {
-    setDocuments(getStoredDocuments());
-
-    const handleSync = () => {
-      setDocuments(getStoredDocuments());
+    const fetchDocTypes = async () => {
+      try {
+        const response = await apiFetch('/documents/types');
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.length > 0) {
+            setDocumentTypes(
+              data.map((t: any) => ({
+                id: t.id,
+                name: t.name,
+                code: t.code || '',
+              })),
+            );
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch document types:', err);
+      }
     };
+    fetchDocTypes();
+  }, []);
 
-    window.addEventListener('document-store-update', handleSync);
-    window.addEventListener('storage', handleSync);
+  const [loading, setLoading] = useState(true);
 
-    return () => {
-      window.removeEventListener('document-store-update', handleSync);
-      window.removeEventListener('storage', handleSync);
-    };
+  const fetchDocuments = async () => {
+    try {
+      setLoading(true);
+      const response = await apiFetch('/documents');
+      if (response.ok) {
+        const data = await response.json();
+        const mappedDocs = data.map((d: any) => ({
+          id: d.id,
+          documentNumber: d.documentNumber || '',
+          direction: d.direction || 'OUTGOING',
+          documentType: d.documentType
+            ? {
+                id: d.documentType.id,
+                name: d.documentType.name,
+                code: d.documentType.code || '',
+              }
+            : { id: 0, name: '', code: '' },
+          documentDate: d.documentDate || '',
+          receivedDate: d.receivedDate || '',
+          subject: d.subject || '',
+          summary: d.summary || '',
+          senderOrganization: d.senderOrganization
+            ? {
+                id: d.senderOrganization.id,
+                name: d.senderOrganization.name,
+                shortName: d.senderOrganization.shortName,
+              }
+            : null,
+          receiverOrganization: d.receiverOrganization
+            ? {
+                id: d.receiverOrganization.id,
+                name: d.receiverOrganization.name,
+                shortName: d.receiverOrganization.shortName,
+              }
+            : null,
+          confidentiality: d.confidentiality || 'NORMAL',
+          priority: d.priority || 'NORMAL',
+          status: d.status || 'DRAFT',
+          tags: d.tags || [],
+          files: d.files || [],
+          logs: d.logs || [],
+        }));
+        setDocuments(mappedDocs);
+      }
+    } catch (err) {
+      console.error('Failed to fetch documents:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDocuments();
   }, []);
 
   // States
   const [searchQuery, setSearchQuery] = useState('');
-  const [directionFilter, setDirectionFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [confidentialityFilter, setConfidentialityFilter] = useState<string>('all');
 
   // Metrics calculations
   const stats = useMemo(() => {
@@ -108,22 +173,44 @@ export default function DocumentManagementPage() {
         doc.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
         doc.summary.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesDirection = directionFilter === 'all' || doc.direction === directionFilter;
       const matchesType = typeFilter === 'all' || doc.documentType.id.toString() === typeFilter;
-      const matchesConfidentiality =
-        confidentialityFilter === 'all' || doc.confidentiality === confidentialityFilter;
 
-      return matchesSearch && matchesDirection && matchesType && matchesConfidentiality;
+      return matchesSearch && matchesType;
     });
-  }, [documents, searchQuery, directionFilter, typeFilter, confidentialityFilter]);
+  }, [documents, searchQuery, typeFilter]);
 
-  const handleDeleteDoc = (id: number) => {
+  // Pagination states & calculations
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, typeFilter]);
+
+  const paginatedDocs = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredDocs.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredDocs, currentPage]);
+
+  const totalPages = useMemo(() => {
+    return Math.ceil(filteredDocs.length / itemsPerPage);
+  }, [filteredDocs]);
+
+  const handleDeleteDoc = async (id: number) => {
     if (confirm('តើអ្នកពិតជាចង់លុបឯកសារនេះមែនទេ?')) {
-      setDocuments((prev) => {
-        const nextDocs = prev.filter((d) => d.id !== id);
-        saveStoredDocuments(nextDocs);
-        return nextDocs;
-      });
+      try {
+        const response = await apiFetch(`/documents/${id}`, {
+          method: 'DELETE',
+        });
+        if (response.ok) {
+          setDocuments((prev) => prev.filter((d) => d.id !== id));
+        } else {
+          alert('មានបញ្ហាក្នុងការលុបឯកសារនេះពីម៉ាស៊ីនបម្រើ');
+        }
+      } catch (err) {
+        console.error('Failed to delete document:', err);
+        alert('មិនអាចភ្ជាប់ទៅកាន់ម៉ាស៊ីនបម្រើដើម្បីលុបបានឡើយ');
+      }
     }
   };
 
@@ -214,12 +301,9 @@ export default function DocumentManagementPage() {
           <CardHeader className="gap-4 border-b bg-slate-50/70 p-5">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div className="space-y-1">
-                <h3 className="text-lg font-bold text-slate-900">
-                  ផ្ទាំងគ្រប់គ្រងឯកសារ (Document Management)
+                <h3 className="page-title text-lg font-bold text-slate-900">
+                  ផ្ទាំងគ្រប់គ្រងឯកសារ
                 </h3>
-                <p className="text-xs text-muted-foreground">
-                  ស្វែងរក ចុះបញ្ជី និងតាមដានរាល់ឯកសារចេញ-ចូលផ្លូវការទាំងអស់
-                </p>
               </div>
               <div className="flex items-center gap-2">
                 <Button
@@ -235,37 +319,25 @@ export default function DocumentManagementPage() {
             </div>
 
             {/* Filtering Controls */}
-            <div className="flex flex-col md:flex-row gap-3 pt-2">
-              <div className="relative flex-1">
+            <div className="flex flex-col md:flex-row md:items-center gap-3 pt-2">
+              <div className="relative w-full md:w-[280px]">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9 bg-white"
-                  placeholder="ស្វែងរកតាមលេខ លេខលិខិត កម្មវត្ថុ..."
+                  placeholder="ស្វែងរកឯកសារ..."
                 />
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                <Select value={directionFilter} onValueChange={setDirectionFilter}>
-                  <SelectTrigger className="w-[140px] bg-white">
-                    <SelectValue placeholder="ទិសដៅទាំងអស់" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">ទិសដៅទាំងអស់</SelectItem>
-                    <SelectItem value="INCOMING">ឯកសារចូល</SelectItem>
-                    <SelectItem value="OUTGOING">ឯកសារចេញ</SelectItem>
-                    <SelectItem value="INTERNAL">ឯកសារផ្ទៃក្នុង</SelectItem>
-                  </SelectContent>
-                </Select>
-
+              <div className="flex items-center gap-2">
                 <Select value={typeFilter} onValueChange={setTypeFilter}>
                   <SelectTrigger className="w-[160px] bg-white">
                     <SelectValue placeholder="ប្រភេទលិខិត" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">ប្រភេទ</SelectItem>
-                    {INITIAL_TYPES.map((t) => (
+                    {documentTypes.map((t) => (
                       <SelectItem key={t.id} value={t.id.toString()}>
                         {t.name.split(' ')[0]}
                       </SelectItem>
@@ -273,29 +345,13 @@ export default function DocumentManagementPage() {
                   </SelectContent>
                 </Select>
 
-                <Select value={confidentialityFilter} onValueChange={setConfidentialityFilter}>
-                  <SelectTrigger className="w-[140px] bg-white">
-                    <SelectValue placeholder="ភាពសម្ងាត់" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">ភាពសម្ងាត់ទាំងអស់</SelectItem>
-                    <SelectItem value="NORMAL">កម្រិតធម្មតា</SelectItem>
-                    <SelectItem value="CONFIDENTIAL">កម្រិតសម្ងាត់</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                {(searchQuery ||
-                  directionFilter !== 'all' ||
-                  typeFilter !== 'all' ||
-                  confidentialityFilter !== 'all') && (
+                {(searchQuery || typeFilter !== 'all') && (
                   <Button
                     variant="ghost"
                     className="text-indigo-600 hover:text-indigo-750 hover:bg-indigo-50"
                     onClick={() => {
                       setSearchQuery('');
-                      setDirectionFilter('all');
                       setTypeFilter('all');
-                      setConfidentialityFilter('all');
                     }}
                   >
                     សម្អាតតម្រង
@@ -310,25 +366,39 @@ export default function DocumentManagementPage() {
             <Table>
               <TableHeader className="bg-slate-50/70">
                 <TableRow>
-                  <TableHead className="w-[130px] font-bold">លេខឯកសារ</TableHead>
-                  <TableHead className="font-bold">កម្មវត្ថុឯកសារ</TableHead>
-                  <TableHead className="w-[120px] font-bold">ប្រភេទ</TableHead>
-                  <TableHead className="w-[120px] font-bold">ប្រភព/ទិសដៅ</TableHead>
-                  <TableHead className="w-[110px] font-bold text-center">ស្ថានភាព</TableHead>
-                  <TableHead className="w-[110px] font-bold text-right">កាលបរិច្ឆេទ</TableHead>
-                  <TableHead className="w-[110px] text-center font-bold">សកម្មភាព</TableHead>
+                  <TableHead className="w-[160px] font-bold px-6 py-4">លេខឯកសារ</TableHead>
+                  <TableHead className="font-bold px-6 py-4">កម្មវត្ថុឯកសារ</TableHead>
+                  <TableHead className="w-[140px] font-bold px-6 py-4">ប្រភេទ</TableHead>
+                  <TableHead className="w-[130px] font-bold text-center px-6 py-4">
+                    ស្ថានភាព
+                  </TableHead>
+                  <TableHead className="w-[140px] font-bold text-right px-6 py-4">
+                    កាលបរិច្ឆេទ
+                  </TableHead>
+                  <TableHead className="w-[120px] text-center font-bold px-6 py-4">
+                    សកម្មភាព
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredDocs.length === 0 ? (
+                {loading ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-10 text-slate-400">
+                    <TableCell colSpan={6} className="text-center py-10 text-slate-400">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <div className="h-6 w-6 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
+                        កំពុងទាញយកទិន្នន័យ...
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : filteredDocs.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-10 text-slate-400">
                       <FolderOpen className="mx-auto h-10 w-10 text-slate-300 mb-2" />
                       មិនមានឯកសារស្របតាមលក្ខខណ្ឌស្វែងរកឡើយ
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredDocs.map((doc) => (
+                  paginatedDocs.map((doc) => (
                     <TableRow
                       key={doc.id}
                       onClick={() => {
@@ -336,38 +406,24 @@ export default function DocumentManagementPage() {
                       }}
                       className="cursor-pointer transition-colors hover:bg-slate-50/60"
                     >
-                      <TableCell className="font-semibold text-slate-700">
+                      <TableCell className="font-semibold text-slate-700 px-6 py-4">
                         {doc.documentNumber}
                       </TableCell>
-                      <TableCell className="max-w-[280px]">
-                        <div className="font-medium text-slate-900 truncate" title={doc.subject}>
+                      <TableCell className="max-w-[320px] px-6 py-4">
+                        <div
+                          className="w-[240px] sm:w-[320px] max-w-[240px] sm:max-w-[320px] font-medium text-slate-900 truncate"
+                          title={doc.subject}
+                        >
                           {doc.subject}
                         </div>
-                        <div className="text-xs text-muted-foreground truncate">{doc.summary}</div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="px-6 py-4">
                         <Badge variant="outline" className="bg-white text-xs border-slate-200">
                           {doc.documentType.name.split(' ')[0]}
                         </Badge>
                       </TableCell>
-                      <TableCell>
-                        <div className="text-xs font-medium">
-                          {doc.direction === 'INCOMING' && (
-                            <span className="text-emerald-600">
-                              📥 ពី: {doc.senderOrganization?.shortName}
-                            </span>
-                          )}
-                          {doc.direction === 'OUTGOING' && (
-                            <span className="text-blue-600">
-                              📤 ទៅ: {doc.receiverOrganization?.shortName}
-                            </span>
-                          )}
-                          {doc.direction === 'INTERNAL' && (
-                            <span className="text-purple-600">💻 ផ្ទៃក្នុង</span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center">
+
+                      <TableCell className="text-center px-6 py-4">
                         <Badge
                           className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                             doc.status === 'RECEIVED'
@@ -388,10 +444,13 @@ export default function DocumentManagementPage() {
                                 : 'សេចក្តីព្រាង'}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right text-slate-600 text-xs font-mono">
+                      <TableCell className="text-right text-slate-600 text-xs font-mono px-6 py-4">
                         {doc.documentDate}
                       </TableCell>
-                      <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                      <TableCell
+                        className="text-center px-6 py-4"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <div className="flex items-center justify-center gap-0.5">
                           <Button
                             size="icon"
@@ -432,6 +491,87 @@ export default function DocumentManagementPage() {
               </TableBody>
             </Table>
           </CardContent>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50/40 px-6 py-4 rounded-b-2xl">
+              <div className="flex flex-1 justify-between sm:hidden">
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="bg-white border-slate-200"
+                >
+                  ថយក្រោយ
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="bg-white border-slate-200"
+                >
+                  បន្ទាប់
+                </Button>
+              </div>
+              <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-xs text-slate-500">
+                    បង្ហាញលទ្ធផលពី{' '}
+                    <span className="font-semibold text-slate-900">
+                      {(currentPage - 1) * itemsPerPage + 1}
+                    </span>{' '}
+                    ដល់{' '}
+                    <span className="font-semibold text-slate-900">
+                      {Math.min(currentPage * itemsPerPage, filteredDocs.length)}
+                    </span>{' '}
+                    នៃ <span className="font-semibold text-slate-900">{filteredDocs.length}</span>{' '}
+                    ឯកសារ
+                  </p>
+                </div>
+                <div>
+                  <nav
+                    className="isolate inline-flex -space-x-px rounded-xl gap-1"
+                    aria-label="Pagination"
+                  >
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8.5 w-8.5 rounded-lg border-slate-200 bg-white"
+                      onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4 text-slate-600" />
+                    </Button>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? 'default' : 'outline'}
+                        className={`h-8.5 w-8.5 rounded-lg font-semibold text-xs transition-all duration-150 ${
+                          currentPage === page
+                            ? 'bg-indigo-600 hover:bg-indigo-700 text-white border-transparent'
+                            : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                        }`}
+                        onClick={() => setCurrentPage(page)}
+                      >
+                        {page}
+                      </Button>
+                    ))}
+
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8.5 w-8.5 rounded-lg border-slate-200 bg-white"
+                      onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                    >
+                      <ChevronRight className="h-4 w-4 text-slate-600" />
+                    </Button>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          )}
         </Card>
       </div>
     </div>

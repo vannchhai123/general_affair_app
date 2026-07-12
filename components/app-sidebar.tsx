@@ -61,20 +61,20 @@ function SidebarNavigation({ mounted }: { mounted: boolean }) {
                     isActive={active}
                     tooltip={mounted ? item.title : undefined}
                     className={cn(
-                      'min-h-[2.5rem] rounded-xl px-4 py-4 text-slate-800 transition-all duration-200 [WebkitTapHighlightColor:transparent]',
+                      'min-h-[2.5rem] rounded-xl px-3 py-4 text-slate-800 transition-all duration-200 [WebkitTapHighlightColor:transparent]',
                       'hover:bg-slate-100 hover:text-slate-950',
-                      'active:bg-emerald-50 active:text-emerald-800',
-                      'focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-emerald-200',
-                      'data-[active=true]:bg-emerald-100 data-[active=true]:font-semibold data-[active=true]:text-emerald-900',
+                      'active:bg-blue-600 active:text-white',
+                      'focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-blue-200',
+                      'data-[active=true]:bg-blue-600 data-[active=true]:font-semibold data-[active=true]:text-white data-[active=true]:shadow-sm',
                       'group-data-[collapsible=icon]:h-11 group-data-[collapsible=icon]:min-h-0 group-data-[collapsible=icon]:w-11 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0 group-data-[collapsible=icon]:rounded-lg',
                     )}
                   >
                     <Link
                       href={item.href}
-                      className="flex flex-1 min-w-0 items-center gap-3 overflow-hidden group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:h-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:gap-0"
+                      className="flex flex-1 min-w-0 items-center gap-2 group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:h-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:gap-0"
                     >
                       <item.icon className="h-5 w-5 shrink-0 text-current" />
-                      <span className="flex-1 min-w-0 truncate text-sm font-medium leading-[1.4]">
+                      <span className="flex-1 min-w-0 text-sm font-medium leading-[1.6] py-0.5 whitespace-nowrap">
                         {item.title}
                       </span>
                     </Link>
@@ -92,13 +92,13 @@ function SidebarNavigation({ mounted }: { mounted: boolean }) {
                               className={cn(
                                 'min-h-[2.75rem] rounded-xl px-3 py-2 text-slate-700 transition-colors [WebkitTapHighlightColor:transparent]',
                                 'hover:bg-slate-100 hover:text-slate-900',
-                                'active:bg-emerald-50 active:text-emerald-800',
-                                'focus-visible:ring-2 focus-visible:ring-emerald-200',
-                                'data-[active=true]:bg-emerald-50 data-[active=true]:font-semibold data-[active=true]:text-emerald-900',
+                                'active:bg-blue-50 active:text-blue-700',
+                                'focus-visible:ring-2 focus-visible:ring-blue-100',
+                                'data-[active=true]:bg-blue-50 data-[active=true]:font-semibold data-[active=true]:text-blue-700',
                               )}
                             >
                               <Link href={child.href} className="block w-full min-w-0">
-                                <span className="block min-w-0 truncate text-sm leading-[1.45]">
+                                <span className="block min-w-0 text-sm leading-[1.6] py-0.5 whitespace-nowrap">
                                   {child.title}
                                 </span>
                               </Link>

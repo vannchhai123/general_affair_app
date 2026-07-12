@@ -340,7 +340,6 @@ export default function ShiftsPage() {
                         updateFilters({ search: event.target.value || undefined, page: '1' })
                       }
                       className="pl-9"
-                      placeholder="ស្វែងរកតាមឈ្មោះវេន ឬកូដ"
                     />
                   </div>
 
