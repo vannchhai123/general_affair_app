@@ -61,10 +61,7 @@ function OfficerMultiSelect({
   const [open, setOpen] = useState(false);
 
   const selectedOfficers = officers.filter((officer) => value.includes(officer.id));
-  const label =
-    selectedOfficers.length > 0
-      ? `បានជ្រើសរើសមន្ត្រីចំនួន ${selectedOfficers.length} រូប`
-      : 'ចាត់តាំងមន្ត្រី';
+  const label = selectedOfficers.length > 0 ? `${selectedOfficers.length} រូប` : 'ចាត់តាំងមន្ត្រី';
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

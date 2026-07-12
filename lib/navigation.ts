@@ -46,11 +46,18 @@ export const appNavigation: NavItem[] = [
     permission: 'ATTENDANCE_VIEW',
   },
   {
-    title: 'សង្ខេបវត្តមាន',
-    href: '/dashboard/attendance-summary',
-    icon: BarChart3,
-    permission: 'ATTENDANCE_VIEW',
+    title: 'QR Code វត្តមាន',
+    href: '/dashboard/qr-sessions',
+    icon: QrCode,
+    roles: ['ROLE_ADMIN'],
+    permission: 'QR_SESSION_VIEW',
   },
+  // {
+  //   title: 'សង្ខេបវត្តមាន',
+  //   href: '/dashboard/attendance-summary',
+  //   icon: BarChart3,
+  //   permission: 'ATTENDANCE_VIEW',
+  // },
   {
     title: 'លិខិតអញ្ជើញ គណៈអភិបាល',
     href: '/dashboard/invitations',
@@ -60,13 +67,6 @@ export const appNavigation: NavItem[] = [
     title: 'គ្រប់គ្រងឯកសារ',
     href: '/dashboard/document-management',
     icon: FolderOpen,
-  },
-  {
-    title: 'QR Code វត្តមាន',
-    href: '/dashboard/qr-sessions',
-    icon: QrCode,
-    roles: ['ROLE_ADMIN'],
-    permission: 'QR_SESSION_VIEW',
   },
   {
     title: 'កំណត់ការចុះវត្តមាន',
