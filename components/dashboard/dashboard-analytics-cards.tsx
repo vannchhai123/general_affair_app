@@ -42,22 +42,30 @@ function formatTrendDate(date: string): string {
 function buildTrendData(records: DashboardRecentAttendance[]) {
   const trendMap = new Map<
     string,
-    { date: string; present: number; late: number; absent: number }
+    { date: string; rawDate: string; present: number; late: number; absent: number }
   >();
 
   records.forEach((record) => {
-    const date = formatTrendDate(record.date);
-    const existing = trendMap.get(date) ?? { date, present: 0, late: 0, absent: 0 };
+    const key = record.date;
+    const existing = trendMap.get(key) ?? {
+      date: formatTrendDate(record.date),
+      rawDate: record.date,
+      present: 0,
+      late: 0,
+      absent: 0,
+    };
     const normalizedStatus = record.status?.toString().trim().toLowerCase() ?? '';
 
     if (['present', 'មាន'].includes(normalizedStatus)) existing.present += 1;
     if (['late', 'យឺត'].includes(normalizedStatus)) existing.late += 1;
     if (['absent', 'អវត្តមាន'].includes(normalizedStatus)) existing.absent += 1;
 
-    trendMap.set(date, existing);
+    trendMap.set(key, existing);
   });
 
-  const result = Array.from(trendMap.values()).slice(-7);
+  const result = Array.from(trendMap.values())
+    .sort((a, b) => a.rawDate.localeCompare(b.rawDate))
+    .slice(-7);
 
   if (result.length === 0) {
     return [
