@@ -43,16 +43,11 @@ export const invitationApi = {
       { method: 'DELETE' },
       {
         parse: (data: unknown) => {
-          if (
-            !data ||
-            typeof data !== 'object' ||
-            !('success' in data) ||
-            typeof data.success !== 'boolean'
-          ) {
+          if (!data || typeof data !== 'object') {
             throw new Error('Invalid delete response');
           }
 
-          return data as { success: boolean };
+          return data as { success?: boolean; message?: string };
         },
       },
     );
