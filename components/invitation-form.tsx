@@ -66,7 +66,7 @@ function OfficerMultiSelect({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" className="justify-between">
+        <Button type="button" variant="outline" className="justify-between">
           <span className="flex items-center gap-2 truncate">
             <Users className="h-4 w-4 text-muted-foreground" />
             {label}
@@ -356,6 +356,7 @@ export function InvitationForm({
                                 multiple
                                 className="hidden"
                                 id="invitation-image-upload"
+                                onClick={(e) => e.stopPropagation()}
                                 onChange={async (e) => {
                                   const files = e.target.files;
                                   if (!files || files.length === 0) return;
@@ -388,6 +389,7 @@ export function InvitationForm({
                               />
                               <label
                                 htmlFor="invitation-image-upload"
+                                onClick={(e) => e.stopPropagation()}
                                 className={cn(
                                   'flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-lg p-6 cursor-pointer hover:bg-slate-50 transition w-full',
                                   uploadImageMutation.isPending && 'opacity-50 pointer-events-none',
