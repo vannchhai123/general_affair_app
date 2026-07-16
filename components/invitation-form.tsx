@@ -198,6 +198,9 @@ export function InvitationForm({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(async (values) => {
+              if (uploadImageMutation.isPending) {
+                return;
+              }
               await onSubmit(values);
               form.reset();
             })}
@@ -382,7 +385,6 @@ export function InvitationForm({
                                     const currentIds = field.value ?? [];
                                     field.onChange([...currentIds, ...newIds]);
                                     setPreviewUrls((prev) => [...prev, ...newUrls]);
-                                    toast.success(`បានបញ្ចូលរូបភាពចំនួន ${newIds.length} ជោគជ័យ`);
                                   }
                                 }}
                                 disabled={uploadImageMutation.isPending}
@@ -466,14 +468,16 @@ export function InvitationForm({
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 បោះបង់
               </Button>
-              <Button type="submit" disabled={isPending}>
-                {isPending
-                  ? 'កំពុងរក្សាទុក...'
-                  : mode === 'create'
-                    ? 'បង្កើតលិខិតអញ្ជើញ'
-                    : mode === 'assign'
-                      ? 'រក្សាទុកការចាត់តាំង'
-                      : 'រក្សាទុក'}
+              <Button type="submit" disabled={isPending || uploadImageMutation.isPending}>
+                {uploadImageMutation.isPending
+                  ? 'កំពុងបញ្ចូលរូបភាព...'
+                  : isPending
+                    ? 'កំពុងរក្សាទុក...'
+                    : mode === 'create'
+                      ? 'បង្កើតលិខិតអញ្ជើញ'
+                      : mode === 'assign'
+                        ? 'រក្សាទុកការចាត់តាំង'
+                        : 'រក្សាទុក'}
               </Button>
             </DialogFooter>
           </form>
