@@ -105,17 +105,16 @@ export function OfficerForm({
       let matchedPositionId = officer.position_id || 0;
       if (!matchedPositionId && officer.position) {
         const titleToLook = officer.position.trim().toLowerCase();
-        const found = positions.find((p) => p.title.trim().toLowerCase() === titleToLook);
+        const found = positions.find(
+          (p) => p.title.trim().toLowerCase() === titleToLook && p.departmentId === matchedOfficeId,
+        );
         if (found) {
           matchedPositionId = found.id;
         }
       }
 
       const contractType =
-        officer.contract_type === 'FULL_TIME' ||
-        officer.contract_type === 'PART_TIME' ||
-        officer.contract_type === 'CONTRACT' ||
-        officer.contract_type === 'INTERNSHIP'
+        officer.contract_type === 'FULL_TIME' || officer.contract_type === 'CONTRACT'
           ? officer.contract_type
           : 'FULL_TIME';
 
@@ -456,10 +455,8 @@ export function OfficerForm({
                   <SelectValue placeholder="ជ្រើសរើសប្រភេទកិច្ចសន្យា" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="FULL_TIME">ពេញម៉ោង</SelectItem>
-                  <SelectItem value="PART_TIME">កន្លះម៉ោង</SelectItem>
-                  <SelectItem value="CONTRACT">កិច្ចសន្យា</SelectItem>
-                  <SelectItem value="INTERNSHIP">អន្តរកម្ម</SelectItem>
+                  <SelectItem value="FULL_TIME">មន្រ្តីក្របខណ្ធ</SelectItem>
+                  <SelectItem value="CONTRACT">មន្រ្តីកិច្ចសន្យា</SelectItem>
                 </SelectContent>
               </Select>
             </div>

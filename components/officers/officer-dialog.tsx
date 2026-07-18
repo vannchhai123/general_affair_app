@@ -114,7 +114,10 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
         office_id: officer.office_id || 0,
         education_level: officer.education_level ?? '',
         hire_date: officer.hire_date || '',
-        contract_type: officer.contract_type || 'FULL_TIME',
+        contract_type:
+          officer.contract_type === 'FULL_TIME' || officer.contract_type === 'CONTRACT'
+            ? officer.contract_type
+            : 'FULL_TIME',
         phone: officer.phone || '',
         status: (officer.status || 'ACTIVE').toUpperCase(),
         invitation_priority: officer.invitation_priority ?? false,
@@ -427,10 +430,8 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
                       <SelectValue placeholder="ជ្រើសរើសប្រភេទកិច្ចសន្យា" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="FULL_TIME">ពេញម៉ោង</SelectItem>
-                      <SelectItem value="PART_TIME">ម៉ោងខ្លះ</SelectItem>
-                      <SelectItem value="CONTRACT">កិច្ចសន្យា</SelectItem>
-                      <SelectItem value="INTERNSHIP">ហាត់ការ</SelectItem>
+                      <SelectItem value="FULL_TIME">មន្រ្តីក្របខណ្ធ</SelectItem>
+                      <SelectItem value="CONTRACT">មន្រ្តីកិច្ចសន្យា</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

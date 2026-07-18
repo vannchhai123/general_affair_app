@@ -139,6 +139,7 @@ export default function OfficersPage() {
   }, [filteredOfficers]);
   const canCreate = hasPermission('OFFICER_CREATE');
   const canUpdate = hasPermission('OFFICER_UPDATE');
+  const canDelete = hasPermission('OFFICER_DELETE');
   const canUploadImage = hasPermission('OFFICER_UPDATE');
 
   function resetPage() {
@@ -270,7 +271,7 @@ export default function OfficersPage() {
             onPageChange={setPage}
             onView={(officer) => router.push(`/dashboard/officers/${officer.id}`)}
             onEdit={canUpdate ? handleEdit : undefined}
-            onDelete={undefined}
+            onDelete={canDelete ? (officer) => setDeleteOfficerData(officer) : undefined}
             onUploadImage={canUploadImage ? handleUploadImage : undefined}
           />
         </div>

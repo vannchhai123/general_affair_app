@@ -74,13 +74,9 @@ function getSexLabel(sex?: string | null) {
 function getContractTypeLabel(type?: string | null) {
   switch (type) {
     case 'FULL_TIME':
-      return 'ពេញម៉ោង';
-    case 'PART_TIME':
-      return 'កន្លះម៉ោង';
+      return 'មន្រ្តីក្របខណ្ធ';
     case 'CONTRACT':
-      return 'កិច្ចសន្យា';
-    case 'INTERNSHIP':
-      return 'ហាត់ការ';
+      return 'មន្រ្តីកិច្ចសន្យា';
     default:
       return type || '-';
   }

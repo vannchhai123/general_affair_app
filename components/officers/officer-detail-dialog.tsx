@@ -62,6 +62,17 @@ function getSexLabel(sex?: string | null) {
   }
 }
 
+function getContractTypeLabel(type?: string | null) {
+  switch (type) {
+    case 'FULL_TIME':
+      return 'មន្រ្តីក្របខណ្ធ';
+    case 'CONTRACT':
+      return 'មន្រ្តីកិច្ចសន្យា';
+    default:
+      return type || '-';
+  }
+}
+
 function getOfficerImageUrl(officer: Officer) {
   return (
     officer.image_url ||
@@ -159,7 +170,11 @@ export function OfficerDetailDialog({ open, onOpenChange, officer }: OfficerDeta
             <DetailItem icon={Calendar} label="Date of Birth" value={officer.date_of_birth} />
             <DetailItem icon={Calendar} label="Hire Date" value={officer.hire_date} />
             <DetailItem icon={IdCard} label="National ID" value={officer.national_id} />
-            <DetailItem icon={IdCard} label="Contract Type" value={officer.contract_type} />
+            <DetailItem
+              icon={IdCard}
+              label="ប្រភេទកិច្ចសន្យា"
+              value={getContractTypeLabel(officer.contract_type)}
+            />
             <DetailItem icon={IdCard} label="Nationality" value={officer.nationality} />
             <DetailItem icon={IdCard} label="Ethnicity" value={officer.ethnicity} />
             <DetailItem
