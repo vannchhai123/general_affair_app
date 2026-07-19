@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck, X } from 'lucide-react';
 import { RequireAccess } from '@/components/auth/require-access';
 import { PageHeader } from '@/components/app-shell/page-header';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ import {
 import {
   useAssignPermissionToRole,
   usePermissionsByRole,
+  useRevokePermissionFromRole,
 } from '@/hooks/permissions/use-role-permissions';
 import { usePermissions } from '@/hooks/permissions/use-permissions';
 import type { Permission } from '@/lib/schemas';
@@ -31,6 +32,7 @@ export default function RolePermissionsPage() {
   const allPermissions = usePermissions();
   const currentPermissions = usePermissionsByRole(role, { page: 0, size: 500 });
   const assignPermission = useAssignPermissionToRole();
+  const revokePermission = useRevokePermissionFromRole();
 
   const permissionsByCategory = useMemo(() => {
     const grouped = new Map<string, string[]>();
@@ -153,9 +155,24 @@ export default function RolePermissionsPage() {
                   {(currentPermissions.data?.content ?? []).map((item: Permission) => (
                     <div
                       key={item.id}
-                      className="rounded-lg border bg-slate-50 px-3 py-2 text-sm text-slate-700"
+                      className="flex items-center justify-between rounded-lg border bg-slate-50 px-3 py-2 text-sm text-slate-700"
                     >
-                      {item.permission_name}
+                      <span>{item.permission_name}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-slate-400 hover:text-destructive"
+                        onClick={async () => {
+                          await revokePermission.mutateAsync({
+                            role,
+                            data: { permissionName: item.permission_name },
+                          });
+                        }}
+                        disabled={revokePermission.isPending}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
                   ))}
                 </div>

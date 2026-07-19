@@ -42,3 +42,22 @@ export function useAssignPermissionToRole() {
     },
   });
 }
+
+export function useRevokePermissionFromRole() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ role, data }: { role: string; data: AssignPermissionToRole }) =>
+      fetchApi(`/permissions/roles/${role}/revoke`, successResponseSchema, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.rolePermissions.byRole(variables.role) });
+      toast.success('Permission revoked from role successfully');
+    },
+    onError: (error: ApiError) => {
+      toast.error(error.message);
+    },
+  });
+}
