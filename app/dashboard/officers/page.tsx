@@ -22,6 +22,7 @@ import {
 import { useOfficerStats } from '@/hooks/officers/use-officer-stats';
 import { useOfficers } from '@/hooks/officers/use-officers';
 import { useDepartments } from '@/hooks/organization/use-departments';
+import { usePositions } from '@/hooks/organization/use-positions';
 import {
   ACCEPTED_OFFICER_IMAGE_TYPES,
   MAX_OFFICER_IMAGE_SIZE_BYTES,
@@ -39,12 +40,14 @@ export default function OfficersPage() {
   const { hasPermission } = useAuth();
   const [search, setSearch] = useState('');
   const [department, setDepartment] = useState('all');
+  const [positionFilter, setPositionFilter] = useState('all');
   const [status, setStatus] = useState('all');
   const [page, setPage] = useState(1);
   const [deleteOfficerData, setDeleteOfficerData] = useState<Officer | null>(null);
 
   const { data: stats, isLoading: statsLoading } = useOfficerStats();
   const { departments = [] } = useDepartments({ page: 0, size: 100 });
+  const { positions = [] } = usePositions({ page: 0, size: 200 });
   const {
     officers = [],
     mutate,
@@ -81,12 +84,14 @@ export default function OfficersPage() {
 
       const matchesDepartment =
         department === 'all' || officer.department === department || officer.office === department;
+      const matchesPosition =
+        positionFilter === 'all' || officer.position === positionFilter;
       const normalizedStatus = normalizeOfficerStatus(officer.status);
       const matchesStatus = status === 'all' || normalizedStatus === status;
 
-      return matchesSearch && matchesDepartment && matchesStatus;
+      return matchesSearch && matchesDepartment && matchesPosition && matchesStatus;
     });
-  }, [department, officers, search, status]);
+  }, [department, officers, positionFilter, search, status]);
   const pagination = getOfficerPagination({
     page,
     pageSize: OFFICERS_PAGE_SIZE,
@@ -250,8 +255,10 @@ export default function OfficersPage() {
             isLoading={isLoading}
             search={search}
             department={department}
+            position={positionFilter}
             status={status}
             departments={departments}
+            positions={positions}
             currentPage={pagination.currentPage}
             totalPages={pagination.totalPages}
             startItem={pagination.startItem}
@@ -262,6 +269,10 @@ export default function OfficersPage() {
             }}
             onDepartmentChange={(value) => {
               setDepartment(value);
+              resetPage();
+            }}
+            onPositionChange={(value) => {
+              setPositionFilter(value);
               resetPage();
             }}
             onStatusChange={(value) => {

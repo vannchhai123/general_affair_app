@@ -1,6 +1,6 @@
 import { Search } from 'lucide-react';
 
-import type { Department } from '@/lib/schemas';
+import type { Department, Position } from '@/lib/schemas';
 
 import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -10,9 +10,12 @@ interface OfficerFiltersProps {
   setSearch: (value: string) => void;
   department: string;
   setDepartment: (value: string) => void;
+  position: string;
+  setPosition: (value: string) => void;
   status: string;
   setStatus: (value: string) => void;
   departments?: Department[];
+  positions?: Position[];
 }
 
 export function OfficerFilters({
@@ -20,10 +23,17 @@ export function OfficerFilters({
   setSearch,
   department,
   setDepartment,
+  position,
+  setPosition,
   status,
   setStatus,
   departments = [],
+  positions = [],
 }: OfficerFiltersProps) {
+  const uniquePositions = Array.from(new Set(positions.map((p) => p.title)))
+    .filter((title): title is string => Boolean(title))
+    .sort((a, b) => a.localeCompare(b));
+
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
       <div className="relative flex-1">
@@ -45,6 +55,20 @@ export function OfficerFilters({
           {departments.map((item) => (
             <SelectItem key={item.id} value={item.name}>
               {item.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Select value={position} onValueChange={setPosition}>
+        <SelectTrigger className="w-full sm:w-[200px]">
+          <SelectValue placeholder="តួនាទី" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">តួនាទី</SelectItem>
+          {uniquePositions.map((title) => (
+            <SelectItem key={title} value={title}>
+              {title}
             </SelectItem>
           ))}
         </SelectContent>

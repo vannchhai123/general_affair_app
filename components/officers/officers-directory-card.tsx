@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { OfficerFilters } from '@/components/officers/officer-filters';
 import { OfficersTable } from '@/components/officers/officers-table';
-import type { Department, Officer } from '@/lib/schemas';
+import type { Department, Officer, Position } from '@/lib/schemas';
 
 type OfficersDirectoryCardProps = {
   officers: Officer[];
@@ -13,14 +13,17 @@ type OfficersDirectoryCardProps = {
   isLoading: boolean;
   search: string;
   department: string;
+  position: string;
   status: string;
   departments: Department[];
+  positions: Position[];
   currentPage: number;
   totalPages: number;
   startItem: number;
   endItem: number;
   onSearchChange: (value: string) => void;
   onDepartmentChange: (value: string) => void;
+  onPositionChange: (value: string) => void;
   onStatusChange: (value: string) => void;
   onPageChange: (page: SetStateAction<number>) => void;
   onView: (officer: Officer) => void;
@@ -35,14 +38,17 @@ export function OfficersDirectoryCard({
   isLoading,
   search,
   department,
+  position,
   status,
   departments,
+  positions,
   currentPage,
   totalPages,
   startItem,
   endItem,
   onSearchChange,
   onDepartmentChange,
+  onPositionChange,
   onStatusChange,
   onPageChange,
   onView,
@@ -58,9 +64,12 @@ export function OfficersDirectoryCard({
           setSearch={onSearchChange}
           department={department}
           setDepartment={onDepartmentChange}
+          position={position}
+          setPosition={onPositionChange}
           status={status}
           setStatus={onStatusChange}
           departments={departments}
+          positions={positions}
         />
       </CardContent>
 
