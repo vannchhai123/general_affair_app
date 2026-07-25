@@ -39,6 +39,8 @@ export function normalizeOfficerStatus(status?: string | null) {
       return 'on_leave';
     case 'inactive':
       return 'inactive';
+    case 'deleted':
+      return 'deleted';
     default:
       return normalized || '';
   }

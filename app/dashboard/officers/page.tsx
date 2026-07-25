@@ -8,14 +8,12 @@ import { useAuth } from '@/components/auth/auth-provider';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   OfficersAnalyticsCard,
-  OfficersDeleteDialog,
   OfficersDirectoryCard,
   OfficersPageHeader,
   OfficersSummaryCards,
 } from '@/components/officers';
 import {
   useCreateOfficer,
-  useDeleteOfficer,
   useUpdateOfficer,
   useUploadOfficerImage,
 } from '@/hooks/officers/use-officer-mutations';
@@ -43,7 +41,6 @@ export default function OfficersPage() {
   const [positionFilter, setPositionFilter] = useState('all');
   const [status, setStatus] = useState('all');
   const [page, setPage] = useState(1);
-  const [deleteOfficerData, setDeleteOfficerData] = useState<Officer | null>(null);
 
   const { data: stats, isLoading: statsLoading } = useOfficerStats();
   const { departments = [] } = useDepartments({ page: 0, size: 100 });
@@ -59,12 +56,14 @@ export default function OfficersPage() {
     pageSize: 1000,
   });
 
-  const deleteOfficer = useDeleteOfficer();
   const uploadOfficerImage = useUploadOfficerImage();
   const filteredOfficers = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
 
     return officers.filter((officer: Officer) => {
+      const normalizedStatus = normalizeOfficerStatus(officer.status);
+      if (normalizedStatus === 'deleted') return false;
+
       const matchesSearch =
         !normalizedSearch ||
         [
@@ -84,9 +83,7 @@ export default function OfficersPage() {
 
       const matchesDepartment =
         department === 'all' || officer.department === department || officer.office === department;
-      const matchesPosition =
-        positionFilter === 'all' || officer.position === positionFilter;
-      const normalizedStatus = normalizeOfficerStatus(officer.status);
+      const matchesPosition = positionFilter === 'all' || officer.position === positionFilter;
       const matchesStatus = status === 'all' || normalizedStatus === status;
 
       return matchesSearch && matchesDepartment && matchesPosition && matchesStatus;
@@ -169,14 +166,6 @@ export default function OfficersPage() {
 
   function handleEdit(officer: Officer) {
     router.push(`/dashboard/officers/${officer.id}/edit`);
-  }
-
-  async function confirmDelete() {
-    if (!deleteOfficerData) return;
-
-    await deleteOfficer.mutateAsync(deleteOfficerData.id);
-    mutate();
-    setDeleteOfficerData(null);
   }
 
   function handleUploadImage(officer: Officer) {
@@ -282,16 +271,9 @@ export default function OfficersPage() {
             onPageChange={setPage}
             onView={(officer) => router.push(`/dashboard/officers/${officer.id}`)}
             onEdit={canUpdate ? handleEdit : undefined}
-            onDelete={canDelete ? (officer) => setDeleteOfficerData(officer) : undefined}
             onUploadImage={canUploadImage ? handleUploadImage : undefined}
           />
         </div>
-
-        <OfficersDeleteDialog
-          officer={deleteOfficerData}
-          onOpenChange={(open) => !open && setDeleteOfficerData(null)}
-          onConfirm={confirmDelete}
-        />
       </div>
     </RequireAccess>
   );

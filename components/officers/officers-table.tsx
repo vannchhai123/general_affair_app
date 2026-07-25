@@ -1,4 +1,4 @@
-import { Eye, MoreHorizontal, Pencil, Phone, Trash2, Upload } from 'lucide-react';
+import { Eye, MoreHorizontal, Pencil, Phone, Upload } from 'lucide-react';
 import type { Officer } from '@/lib/schemas';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
@@ -24,7 +24,6 @@ interface OfficersTableProps {
   officers?: Officer[];
   onView?: (officer: Officer) => void;
   onEdit?: (officer: Officer) => void;
-  onDelete?: (officer: Officer) => void;
   onUploadImage?: (officer: Officer) => void;
   isLoading?: boolean;
   totalOfficer?: number;
@@ -78,13 +77,11 @@ export function OfficersTable({
   officers,
   onView,
   onEdit,
-  onDelete,
   onUploadImage,
   isLoading,
 }: OfficersTableProps) {
   const showUpload = Boolean(onUploadImage);
   const showEdit = Boolean(onEdit);
-  const showDelete = Boolean(onDelete);
 
   if (!isLoading && (!officers || officers.length === 0)) {
     return (
@@ -172,12 +169,6 @@ export function OfficersTable({
                         <DropdownMenuItem onClick={() => onEdit?.(officer)}>
                           <Pencil className="mr-2 h-4 w-4" />
                           កែសម្រួល
-                        </DropdownMenuItem>
-                      ) : null}
-                      {showDelete ? (
-                        <DropdownMenuItem variant="destructive" onClick={() => onDelete?.(officer)}>
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          លុប
                         </DropdownMenuItem>
                       ) : null}
                     </DropdownMenuContent>
