@@ -11,6 +11,7 @@ import {
 import { ApiError } from '@/lib/api/fetcher';
 import type {
   DeleteMessageResponse,
+  Department,
   DepartmentFormValues,
   DepartmentsListResponse,
 } from '@/lib/schemas';
@@ -57,7 +58,7 @@ export function useDepartments(filters: DepartmentListParams = {}) {
 }
 
 export function useDepartment(id: number, enabled = true) {
-  return useQuery({
+  return useQuery<Department, ApiError>({
     queryKey: queryKeys.organization.departments.detail(id),
     queryFn: () => organizationApi.getDepartment(id),
     enabled,

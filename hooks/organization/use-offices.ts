@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/api/fetcher';
 import { organizationApi, type DepartmentListParams } from '@/lib/api/organization.api';
 import { ApiError } from '@/lib/api/fetcher';
-import type { OfficesListResponse } from '@/lib/schemas';
+import type { Office, OfficesListResponse } from '@/lib/schemas';
 
 function toFilterRecord(filters: DepartmentListParams) {
   return Object.fromEntries(
@@ -48,7 +48,7 @@ export function useOffices(filters: DepartmentListParams = {}) {
 }
 
 export function useOffice(id: number, enabled = true) {
-  return useQuery({
+  return useQuery<Office, ApiError>({
     queryKey: queryKeys.organization.offices.detail(id),
     queryFn: () => organizationApi.getOffice(id),
     enabled,
