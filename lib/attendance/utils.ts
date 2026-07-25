@@ -1,7 +1,45 @@
 import { format } from 'date-fns';
+import type { Officer } from '@/lib/schemas';
 
-export function getAttendanceInitials(firstName: string, lastName: string) {
-  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+export function getAttendanceOfficerName(
+  record: {
+    firstName?: string | null;
+    lastName?: string | null;
+    firstNameKh?: string | null;
+    lastNameKh?: string | null;
+    first_name_kh?: string | null;
+    last_name_kh?: string | null;
+    nameKh?: string | null;
+    name_kh?: string | null;
+    officerId?: number;
+  },
+  officersMap?: Map<number, Officer>,
+): string {
+  const rec = record as any;
+  const directKhmer =
+    rec.nameKh ||
+    rec.name_kh ||
+    `${rec.lastNameKh || rec.last_name_kh || ''} ${rec.firstNameKh || rec.first_name_kh || ''}`.trim();
+
+  if (directKhmer) return directKhmer;
+
+  if (officersMap && record.officerId) {
+    const matched = officersMap.get(record.officerId);
+    if (matched) {
+      const officerKh = `${matched.last_name_kh || ''} ${matched.first_name_kh || ''}`.trim();
+      if (officerKh) return officerKh;
+    }
+  }
+
+  const enName = `${record.lastName || ''} ${record.firstName || ''}`.trim();
+  return enName || 'មន្ត្រី';
+}
+
+export function getAttendanceInitials(firstName: string, lastName: string, nameKh?: string) {
+  if (nameKh && nameKh.trim().length > 0) {
+    return nameKh.trim().charAt(0);
+  }
+  return `${(firstName || '').charAt(0)}${(lastName || '').charAt(0)}`.toUpperCase() || 'ម';
 }
 
 export function formatAttendanceDate(date: string | null | undefined): string {

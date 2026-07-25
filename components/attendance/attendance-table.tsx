@@ -1,9 +1,8 @@
 import { ChevronLeft, ChevronRight, Eye, Pencil, Plus, Users } from 'lucide-react';
-import type { Attendance } from '@/lib/schemas';
+import type { Attendance, Officer } from '@/lib/schemas';
 import { AttendanceStatusBadge } from '@/components/attendance/attendance-status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { CardNumber } from '@/components/ui/card-number';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -19,6 +18,7 @@ import {
   formatAttendanceDate,
   formatAttendanceTime,
   getAttendanceInitials,
+  getAttendanceOfficerName,
 } from '@/lib/attendance/utils';
 
 export function AttendanceTable({
@@ -33,6 +33,7 @@ export function AttendanceTable({
   onToggleSelect,
   onToggleSelectAll,
   onPageChange,
+  officersMap,
 }: {
   records: Attendance[];
   isLoading: boolean;
@@ -45,6 +46,7 @@ export function AttendanceTable({
   onToggleSelect: (id: number) => void;
   onToggleSelectAll: () => void;
   onPageChange: (page: number) => void;
+  officersMap?: Map<number, Officer>;
 }) {
   return (
     <div className="rounded-lg border bg-card">
@@ -56,22 +58,21 @@ export function AttendanceTable({
         <>
           <Table>
             <TableHeader>
-              <TableRow>
+              <TableRow className="font-khmer-moul-light">
                 <TableHead className="w-12">
                   <Checkbox
                     checked={selectedIds.length === records.length && records.length > 0}
                     onCheckedChange={onToggleSelectAll}
                   />
                 </TableHead>
-                <TableHead>មន្ត្រី</TableHead>
-                <TableHead>លេខកូដមន្ត្រី</TableHead>
-                <TableHead>ការិយាល័យ</TableHead>
-                <TableHead>កាលបរិច្ឆេទ</TableHead>
-                <TableHead>ម៉ោងចូល</TableHead>
-                <TableHead>ម៉ោងចេញ</TableHead>
-                <TableHead>ម៉ោងធ្វើការសរុប</TableHead>
-                <TableHead>ស្ថានភាព</TableHead>
-                <TableHead className="w-[100px]">សកម្មភាព</TableHead>
+                <TableHead className="px-4 py-3">មន្ត្រី</TableHead>
+                <TableHead className="px-4 py-3">ការិយាល័យ</TableHead>
+                <TableHead className="px-4 py-3">កាលបរិច្ឆេទ</TableHead>
+                <TableHead className="px-4 py-3">ម៉ោងចូល</TableHead>
+                <TableHead className="px-4 py-3">ម៉ោងចេញ</TableHead>
+                <TableHead className="px-4 py-3">ម៉ោងធ្វើការសរុប</TableHead>
+                <TableHead className="px-4 py-3">ស្ថានភាព</TableHead>
+                <TableHead className="w-[100px] px-4 py-3 text-right">សកម្មភាព</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -83,6 +84,7 @@ export function AttendanceTable({
                   onDetails={onDetails}
                   onEdit={onEdit}
                   onToggleSelect={onToggleSelect}
+                  officersMap={officersMap}
                 />
               ))}
             </TableBody>
@@ -90,7 +92,7 @@ export function AttendanceTable({
 
           {totalPages > 0 ? (
             <div className="flex items-center justify-end gap-2 border-t px-4 py-3">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground leading-relaxed">
                 ទំព័រទី {page + 1} នៃ {totalPages}
               </p>
               <Button
@@ -125,42 +127,41 @@ function AttendanceTableRow({
   onDetails,
   onEdit,
   onToggleSelect,
+  officersMap,
 }: {
   record: Attendance;
   selected: boolean;
   onDetails: (record: Attendance) => void;
   onEdit?: (record: Attendance) => void;
   onToggleSelect: (id: number) => void;
+  officersMap?: Map<number, Officer>;
 }) {
+  const officerNameKh = getAttendanceOfficerName(record, officersMap);
+  const initials = getAttendanceInitials(record.firstName, record.lastName, officerNameKh);
+
   return (
     <TableRow
       className={`transition-colors hover:bg-muted/50 ${record.status === 'Late' ? 'bg-amber-50/50' : ''}`}
     >
-      <TableCell>
+      <TableCell className="px-4 py-3.5 align-middle">
         <Checkbox checked={selected} onCheckedChange={() => onToggleSelect(record.id)} />
       </TableCell>
-      <TableCell>
+      <TableCell className="px-4 py-3.5 align-middle">
         <div className="flex items-center gap-3">
           <Avatar className="h-9 w-9">
-            <AvatarImage
-              src={record.imageUrl || undefined}
-              alt={`${record.lastName} ${record.firstName}`}
-            />
-            <AvatarFallback className="bg-primary/10 text-xs font-medium text-primary">
-              {getAttendanceInitials(record.firstName, record.lastName)}
+            <AvatarImage src={record.imageUrl || undefined} alt={officerNameKh} />
+            <AvatarFallback className="bg-indigo-50 text-xs font-semibold text-indigo-700">
+              {initials}
             </AvatarFallback>
           </Avatar>
           <div>
-            <p className="font-medium">
-              {record.lastName} {record.firstName}
-            </p>
+            <p className="font-semibold text-slate-900 leading-relaxed text-sm">{officerNameKh}</p>
           </div>
         </div>
       </TableCell>
-      <TableCell className="font-mono text-sm text-muted-foreground">
-        {record.officerCode || '-'}
+      <TableCell className="px-4 py-3.5 align-middle text-sm font-medium leading-relaxed">
+        {record.department || '-'}
       </TableCell>
-      <TableCell className="text-sm">{record.department}</TableCell>
       <TableCell className="text-sm">{formatAttendanceDate(record.date)}</TableCell>
       <TableCell className="text-sm">{formatAttendanceTime(record.checkIn)}</TableCell>
       <TableCell className="text-sm">{formatAttendanceTime(record.checkOut)}</TableCell>

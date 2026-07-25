@@ -181,7 +181,7 @@ export default function ShiftsPage() {
       total: listQuery.data?.totalElements ?? shifts.length,
       active,
       inactive,
-      averageGrace: `${grace} នាទី`,
+      averageGrace: `${grace} min`,
     };
   }, [listQuery.data?.totalElements, shifts]);
 
@@ -415,45 +415,158 @@ export default function ShiftsPage() {
                     </Empty>
                   ) : (
                     <>
-                      <div className="hidden lg:block">
+                      <div className="hidden lg:block overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-xs">
                         <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>ឈ្មោះវេន</TableHead>
-                              <TableHead>ចាប់ផ្តើម</TableHead>
-                              <TableHead>បញ្ចប់</TableHead>
-                              <TableHead>រយៈពេល</TableHead>
-                              <TableHead>ពេលអនុគ្រោះ</TableHead>
-                              <TableHead>យឺតក្រោយ</TableHead>
-                              <TableHead>ស្ថានភាព</TableHead>
-                              <TableHead>កាលបរិច្ឆេទមានប្រសិទ្ធភាព</TableHead>
-                              <TableHead>ការិយាល័យ</TableHead>
-                              <TableHead className="text-right">សកម្មភាព</TableHead>
+                          <TableHeader className="bg-slate-50/80 font-khmer-moul-light">
+                            <TableRow className="border-b border-slate-200/80 hover:bg-transparent">
+                              <TableHead className="w-[22%] py-3.5 px-4 font-semibold text-slate-700">
+                                ឈ្មោះវេន
+                              </TableHead>
+                              <TableHead className="w-[11%] py-3.5 px-4 font-semibold text-slate-700">
+                                ចាប់ផ្តើម
+                              </TableHead>
+                              <TableHead className="w-[11%] py-3.5 px-4 font-semibold text-slate-700">
+                                បញ្ចប់
+                              </TableHead>
+                              <TableHead className="w-[13%] py-3.5 px-4 font-semibold text-slate-700">
+                                រយៈពេល
+                              </TableHead>
+                              <TableHead className="w-[13%] py-3.5 px-4 font-semibold text-slate-700">
+                                យឺតក្រោយ
+                              </TableHead>
+                              <TableHead className="w-[12%] py-3.5 px-4 font-semibold text-slate-700">
+                                ស្ថានភាព
+                              </TableHead>
+                              <TableHead className="w-[18%] py-3.5 px-4 font-semibold text-slate-700">
+                                កាលបរិច្ឆេទមានប្រសិទ្ធភាព
+                              </TableHead>
+                              <TableHead className="w-[10%] py-3.5 px-4 font-semibold text-slate-700 text-right">
+                                សកម្មភាព
+                              </TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {shifts.map((shift) => (
-                              <TableRow key={shift.id}>
-                                <TableCell>
+                            {shifts.map((shift) => {
+                              const durationMinutes = computeShiftDurationMinutes(
+                                shift.startTime,
+                                shift.endTime,
+                                shift.crossMidnight,
+                              );
+                              return (
+                                <TableRow
+                                  key={shift.id}
+                                  className="border-b border-slate-100 hover:bg-slate-50/70 transition-colors"
+                                >
+                                  <TableCell className="py-4 px-4 align-middle">
+                                    <div className="space-y-0.5">
+                                      <p className="font-semibold text-slate-900 text-sm leading-snug">
+                                        {shift.name}
+                                      </p>
+                                      <span className="inline-block text-[11px] font-mono font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                                        {shift.code}
+                                      </span>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="py-4 px-4 align-middle font-medium text-slate-700 text-sm">
+                                    {shift.startTime}
+                                  </TableCell>
+                                  <TableCell className="py-4 px-4 align-middle font-medium text-slate-700 text-sm">
+                                    {shift.endTime}
+                                  </TableCell>
+                                  <TableCell className="py-4 px-4 align-middle text-sm text-slate-600">
+                                    <span className="inline-flex items-center gap-1 font-medium text-slate-700">
+                                      {formatMinutesAsDuration(durationMinutes)}
+                                    </span>
+                                  </TableCell>
+                                  <TableCell className="py-4 px-4 align-middle text-sm text-slate-600">
+                                    {getLateAfterTime(shift)}
+                                  </TableCell>
+                                  <TableCell className="py-4 px-4 align-middle">
+                                    <Badge
+                                      className={
+                                        shift.status === 'active'
+                                          ? 'border-emerald-200/80 bg-emerald-50 text-emerald-700 hover:bg-emerald-50 font-medium px-2.5 py-0.5'
+                                          : 'border-slate-200 bg-slate-100 text-slate-600 hover:bg-slate-100 font-medium px-2.5 py-0.5'
+                                      }
+                                    >
+                                      {getStatusLabel(shift.status)}
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell className="py-4 px-4 align-middle text-sm">
+                                    <div className="font-medium text-slate-800">
+                                      {shift.effectiveFrom}
+                                    </div>
+                                    <span className="text-xs text-slate-500">
+                                      {shift.effectiveTo
+                                        ? `ដល់ ${shift.effectiveTo}`
+                                        : 'មិនកំណត់ថ្ងៃបញ្ចប់'}
+                                    </span>
+                                  </TableCell>
+                                  <TableCell className="py-4 px-4 align-middle text-right">
+                                    <div className="flex justify-end gap-1">
+                                      <ActionButton
+                                        label="មើល"
+                                        onClick={() => {
+                                          setSelectedShiftId(shift.id);
+                                          setDetailsOpen(true);
+                                        }}
+                                      >
+                                        <Eye className="h-4 w-4 text-slate-600" />
+                                      </ActionButton>
+                                      <ActionButton
+                                        label="កែសម្រួល"
+                                        onClick={() => openEdit(shift)}
+                                        disabled={!canManage}
+                                      >
+                                        <Pencil className="h-4 w-4 text-slate-600" />
+                                      </ActionButton>
+                                      <ActionButton
+                                        label={
+                                          shift.status === 'active' ? 'បិទការប្រើ' : 'បើកការប្រើ'
+                                        }
+                                        onClick={() =>
+                                          shift.status === 'active'
+                                            ? setPendingAction({ type: 'deactivate', shift })
+                                            : toggleShiftStatus.mutate({
+                                                id: shift.id,
+                                                status: 'active',
+                                              })
+                                        }
+                                        disabled={!canManage}
+                                      >
+                                        <Power className="h-4 w-4 text-slate-600" />
+                                      </ActionButton>
+                                      <ActionButton
+                                        label="លុប"
+                                        onClick={() => setPendingAction({ type: 'delete', shift })}
+                                        disabled={!canManage}
+                                      >
+                                        <Trash2 className="h-4 w-4 text-rose-600" />
+                                      </ActionButton>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </TableBody>
+                        </Table>
+                      </div>
+
+                      <div className="grid gap-4 lg:hidden">
+                        {shifts.map((shift) => {
+                          const durationMinutes = computeShiftDurationMinutes(
+                            shift.startTime,
+                            shift.endTime,
+                            shift.crossMidnight,
+                          );
+                          return (
+                            <Card key={shift.id} className="border-slate-200">
+                              <CardContent className="space-y-4 p-4">
+                                <div className="flex items-start justify-between gap-3">
                                   <div>
                                     <p className="font-medium">{shift.name}</p>
-                                    <p className="text-xs text-muted-foreground">{shift.code}</p>
+                                    <p className="text-sm text-muted-foreground">{shift.code}</p>
                                   </div>
-                                </TableCell>
-                                <TableCell>{shift.startTime}</TableCell>
-                                <TableCell>{shift.endTime}</TableCell>
-                                <TableCell>
-                                  {formatMinutesAsDuration(
-                                    computeShiftDurationMinutes(
-                                      shift.startTime,
-                                      shift.endTime,
-                                      shift.crossMidnight,
-                                    ),
-                                  )}
-                                </TableCell>
-                                <TableCell>{shift.graceMinutes} នាទី</TableCell>
-                                <TableCell>{getLateAfterTime(shift)}</TableCell>
-                                <TableCell>
                                   <Badge
                                     className={
                                       shift.status === 'active'
@@ -463,116 +576,44 @@ export default function ShiftsPage() {
                                   >
                                     {getStatusLabel(shift.status)}
                                   </Badge>
-                                </TableCell>
-                                <TableCell className="text-sm">
-                                  {shift.effectiveFrom}
-                                  <br />
-                                  <span className="text-xs text-muted-foreground">
-                                    {shift.effectiveTo ?? 'មិនកំណត់ថ្ងៃបញ្ចប់'}
-                                  </span>
-                                </TableCell>
-                                <TableCell>{shift.assignedDepartmentsCount}</TableCell>
-                                <TableCell className="text-right">
-                                  <div className="flex justify-end gap-1">
-                                    <ActionButton
-                                      label="មើល"
-                                      onClick={() => {
-                                        setSelectedShiftId(shift.id);
-                                        setDetailsOpen(true);
-                                      }}
-                                    >
-                                      <Eye className="h-4 w-4" />
-                                    </ActionButton>
-                                    <ActionButton
-                                      label="កែសម្រួល"
-                                      onClick={() => openEdit(shift)}
-                                      disabled={!canManage}
-                                    >
-                                      <Pencil className="h-4 w-4" />
-                                    </ActionButton>
-                                    <ActionButton
-                                      label={
-                                        shift.status === 'active' ? 'បិទការប្រើ' : 'បើកការប្រើ'
-                                      }
-                                      onClick={() =>
-                                        shift.status === 'active'
-                                          ? setPendingAction({ type: 'deactivate', shift })
-                                          : toggleShiftStatus.mutate({
-                                              id: shift.id,
-                                              status: 'active',
-                                            })
-                                      }
-                                      disabled={!canManage}
-                                    >
-                                      <Power className="h-4 w-4" />
-                                    </ActionButton>
-                                    <ActionButton
-                                      label="លុប"
-                                      onClick={() => setPendingAction({ type: 'delete', shift })}
-                                      disabled={!canManage}
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </ActionButton>
-                                  </div>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-
-                      <div className="grid gap-4 lg:hidden">
-                        {shifts.map((shift) => (
-                          <Card key={shift.id} className="border-slate-200">
-                            <CardContent className="space-y-4 p-4">
-                              <div className="flex items-start justify-between gap-3">
-                                <div>
-                                  <p className="font-medium">{shift.name}</p>
-                                  <p className="text-sm text-muted-foreground">{shift.code}</p>
                                 </div>
-                                <Badge
-                                  className={
-                                    shift.status === 'active'
-                                      ? 'bg-emerald-100 text-emerald-700'
-                                      : 'bg-slate-100 text-slate-700'
-                                  }
-                                >
-                                  {getStatusLabel(shift.status)}
-                                </Badge>
-                              </div>
 
-                              <div className="grid grid-cols-2 gap-3 text-sm">
-                                <Info label="ចាប់ផ្តើម" value={shift.startTime} />
-                                <Info label="បញ្ចប់" value={shift.endTime} />
-                                <Info label="ពេលអនុគ្រោះ" value={`${shift.graceMinutes} នាទី`} />
-                                <Info label="យឺតក្រោយ" value={getLateAfterTime(shift)} />
-                              </div>
+                                <div className="grid grid-cols-2 gap-3 text-sm">
+                                  <Info label="ចាប់ផ្តើម" value={shift.startTime} />
+                                  <Info label="បញ្ចប់" value={shift.endTime} />
+                                  <Info
+                                    label="រយៈពេល"
+                                    value={formatMinutesAsDuration(durationMinutes)}
+                                  />
+                                  <Info label="យឺតក្រោយ" value={getLateAfterTime(shift)} />
+                                </div>
 
-                              <div className="flex flex-wrap gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => {
-                                    setSelectedShiftId(shift.id);
-                                    setDetailsOpen(true);
-                                  }}
-                                >
-                                  <Eye className="mr-2 h-4 w-4" />
-                                  មើល
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => openEdit(shift)}
-                                  disabled={!canManage}
-                                >
-                                  <Pencil className="mr-2 h-4 w-4" />
-                                  កែសម្រួល
-                                </Button>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
+                                <div className="flex flex-wrap gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setSelectedShiftId(shift.id);
+                                      setDetailsOpen(true);
+                                    }}
+                                  >
+                                    <Eye className="mr-2 h-4 w-4" />
+                                    មើល
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => openEdit(shift)}
+                                    disabled={!canManage}
+                                  >
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    កែសម្រួល
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
                       </div>
 
                       {totalPages > 1 ? (
@@ -646,9 +687,6 @@ export default function ShiftsPage() {
           <Card className="overflow-hidden border-slate-200 shadow-sm">
             <CardHeader className="border-b bg-slate-50/80">
               <CardTitle className="text-base">មើលច្បាប់ជាមុន</CardTitle>
-              <CardDescription>
-                មើលសង្ខេបលទ្ធផលវត្តមាន និងពេលវេលាដែលបានអនុវត្តសម្រាប់វេនដែលជ្រើស។
-              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 p-5">
               {selectedShiftDetails ? (
@@ -720,23 +758,6 @@ export default function ShiftsPage() {
                       }
                     />
                   </div>
-
-                  <div className="grid gap-3 rounded-3xl border bg-slate-50/80 p-4 sm:grid-cols-2">
-                    <div className="rounded-2xl bg-white p-4">
-                      <p className="text-sm font-medium text-slate-900">សង្ខេបវេនដែលបានជ្រើស</p>
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        វេននេះគាំទ្រការចូលវត្តមានតាមម៉ោងដែលបានកំណត់
-                        និងអាចប្រើជាគោលការណ៍សម្រាប់ការចាត់តាំងប្រចាំថ្ងៃ។
-                      </p>
-                    </div>
-                    <div className="rounded-2xl bg-white p-4">
-                      <p className="text-sm font-medium text-slate-900">ផលប៉ះពាល់បច្ចុប្បន្ន</p>
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        បច្ចុប្បន្នកំពុងភ្ជាប់ទៅនឹង {selectedShiftDetails.assignedDepartmentsCount}{' '}
-                        ការិយាល័យ និង {selectedShiftDetails.assignedEmployeesCount} បុគ្គលិក។
-                      </p>
-                    </div>
-                  </div>
                 </>
               ) : (
                 <div className="rounded-3xl border border-dashed bg-slate-50/70 p-6 text-sm text-muted-foreground">
@@ -803,15 +824,13 @@ function SummaryCard({
   return (
     <Card className="overflow-hidden border-slate-200 shadow-sm">
       <CardContent className="p-0">
-        <div className={`h-1 w-full bg-gradient-to-r ${tone}`} />
-        <div className="flex items-start justify-between gap-3 p-5">
+        <div className="flex items-start justify-between gap-3 p-5 font-khmer-moul-light">
           <div>
             <p className="text-sm text-muted-foreground">{title}</p>
             <CardNumber
               value={value}
               className="mt-2 block text-3xl font-semibold tracking-tight"
             />
-            <p className="mt-2 text-xs text-muted-foreground">{helper}</p>
           </div>
           <div className={`rounded-2xl bg-gradient-to-br p-3 text-white shadow-sm ${tone}`}>
             <Icon className="h-5 w-5" />

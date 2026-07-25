@@ -49,7 +49,7 @@ export interface DocumentItem {
   summary: string;
   confidentiality: 'NORMAL' | 'CONFIDENTIAL';
   priority: 'NORMAL' | 'HIGH' | 'CRITICAL';
-  status: 'DRAFT' | 'PENDING' | 'SENT' | 'RECEIVED' | 'LOGGED';
+  status: 'PENDING' | 'LOGGED';
   remarks?: string;
   createdBy: string;
   updatedBy?: string;
@@ -98,7 +98,7 @@ const INITIAL_DOCUMENTS: DocumentItem[] = [
       'លិខិតអញ្ជើញតំណាងសាកលវិទ្យាល័យណរតុន ចូលរួមសិក្ខាសាលាស្តីពីការយល់ដឹងអំពីសន្តិសុខបច្ចេកវិទ្យាជាតិនៅខែក្រោយ។',
     confidentiality: 'NORMAL',
     priority: 'HIGH',
-    status: 'RECEIVED',
+    status: 'LOGGED',
     remarks: 'ចាត់ចែងជូនប្រធានការិយាល័យព័ត៌មានវិទ្យាដើម្បីសហការសម្របសម្រួល',
     createdBy: 'ឆៃ វណ្ណ',
     createdAt: '2026-07-02T09:15:00',
@@ -138,7 +138,7 @@ const INITIAL_DOCUMENTS: DocumentItem[] = [
       'សារាចរណែនាំទៅកាន់ក្រសួងអប់រំ យុវជន និងកីឡា អំពីរបាយការណ៍វឌ្ឍនភាព និងការអនុលោមតាមគោលការណ៍រៀនអនឡាញ។',
     confidentiality: 'NORMAL',
     priority: 'NORMAL',
-    status: 'SENT',
+    status: 'LOGGED',
     remarks: 'បានផ្ញើតាមរយៈសារអេឡិចត្រូនិច និងចម្លងរឹងរួចរាល់',
     createdBy: 'ឆៃ វណ្ណ',
     updatedBy: 'លឹម ហេង',
@@ -186,7 +186,7 @@ const INITIAL_DOCUMENTS: DocumentItem[] = [
       'សំណើថវិកាលម្អិតសម្រាប់ការផ្លាស់ប្តូរ Server ថ្មី និងការទិញឧបករណ៍ការពារសុវត្ថិភាព Firewall។',
     confidentiality: 'CONFIDENTIAL',
     priority: 'CRITICAL',
-    status: 'DRAFT',
+    status: 'PENDING',
     remarks: 'កំពុងរង់ចាំការពិនិត្យពីគណៈកម្មការនាយក',
     createdBy: 'លឹម ហេង',
     createdAt: '2026-07-06T17:25:00',

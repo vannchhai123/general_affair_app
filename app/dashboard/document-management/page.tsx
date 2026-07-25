@@ -159,7 +159,7 @@ export default function DocumentManagementPage() {
             : null,
           confidentiality: d.confidentiality || 'NORMAL',
           priority: d.priority || 'NORMAL',
-          status: d.status || 'DRAFT',
+          status: d.status === 'LOGGED' ? 'LOGGED' : 'PENDING',
           tags: d.tags || [],
           files: d.files || [],
           logs: d.logs || [],
@@ -186,16 +186,46 @@ export default function DocumentManagementPage() {
   // Metrics calculations
   const stats = useMemo(() => {
     const total = documents.length;
-    const pending = documents.filter((d) => d.status === 'PENDING' || d.status === 'DRAFT').length;
+    const pending = documents.filter((d) => d.status === 'PENDING').length;
     const urgent = documents.filter(
       (d) => d.priority === 'CRITICAL' || d.priority === 'HIGH',
     ).length;
+
+    let totalBytes = 0;
+    documents.forEach((d) => {
+      (d.files || []).forEach((f: any) => {
+        if (!f.fileSize) return;
+        if (typeof f.fileSize === 'number') {
+          totalBytes += f.fileSize;
+        } else if (typeof f.fileSize === 'string') {
+          const str = f.fileSize.trim().toUpperCase();
+          const num = parseFloat(str);
+          if (!isNaN(num)) {
+            if (str.includes('GB')) totalBytes += num * 1024 * 1024 * 1024;
+            else if (str.includes('MB')) totalBytes += num * 1024 * 1024;
+            else if (str.includes('KB')) totalBytes += num * 1024;
+            else totalBytes += num;
+          }
+        }
+      });
+    });
+
+    let storageFormatted = '0 KB';
+    if (totalBytes >= 1024 * 1024 * 1024) {
+      storageFormatted = `${(totalBytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+    } else if (totalBytes >= 1024 * 1024) {
+      storageFormatted = `${(totalBytes / (1024 * 1024)).toFixed(2)} MB`;
+    } else if (totalBytes >= 1024) {
+      storageFormatted = `${(totalBytes / 1024).toFixed(2)} KB`;
+    } else if (totalBytes > 0) {
+      storageFormatted = `${totalBytes} B`;
+    }
 
     return {
       total,
       pending,
       urgent,
-      storage: '3.07 MB',
+      storage: storageFormatted,
     };
   }, [documents]);
 
@@ -278,12 +308,12 @@ export default function DocumentManagementPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  កំពុងពិនិត្យ / ព្រាង
+                  កំពុងពិនិត្យ
                 </p>
                 <h3 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
                   {stats.pending}
                 </h3>
-                <p className="mt-1 text-xs text-slate-400">ឯកសារត្រូវការត្រួតពិនិត្យ</p>
+                <p className="mt-1 text-xs text-slate-400">ឯកសារត្រូវការត្រួតពិនិត្យ (Pending)</p>
               </div>
               <div className="rounded-2xl bg-amber-50 border border-amber-100 p-3 text-amber-600 shadow-sm">
                 <Clock className="h-6 w-6" />
@@ -421,7 +451,7 @@ export default function DocumentManagementPage() {
           {/* Document Data Table */}
           <CardContent className="p-0">
             <Table>
-              <TableHeader className="bg-slate-50/70">
+              <TableHeader className="bg-slate-50/70 font-khmer-moul-light">
                 <TableRow>
                   <TableHead className="w-[160px] font-bold px-6 py-4">លេខឯកសារ</TableHead>
                   <TableHead className="font-bold px-6 py-4">កម្មវត្ថុឯកសារ</TableHead>
@@ -466,9 +496,9 @@ export default function DocumentManagementPage() {
                       <TableCell className="font-semibold text-slate-700 px-6 py-4">
                         {doc.documentNumber}
                       </TableCell>
-                      <TableCell className="max-w-[320px] px-6 py-4">
+                      <TableCell className="max-w-[340px] px-6 py-4 align-middle">
                         <div
-                          className="w-[240px] sm:w-[320px] max-w-[240px] sm:max-w-[320px] font-medium text-slate-900 truncate"
+                          className="font-medium text-slate-900 leading-relaxed text-sm line-clamp-2 py-0.5"
                           title={doc.subject}
                         >
                           {doc.subject}
@@ -483,26 +513,12 @@ export default function DocumentManagementPage() {
                       <TableCell className="text-center px-6 py-4">
                         <Badge
                           className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                            doc.status === 'RECEIVED'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : doc.status === 'SENT'
-                                ? 'bg-blue-100 text-blue-800'
-                                : doc.status === 'PENDING'
-                                  ? 'bg-amber-100 text-amber-800'
-                                  : doc.status === 'LOGGED'
-                                    ? 'bg-indigo-100 text-indigo-800'
-                                    : 'bg-slate-100 text-slate-800'
+                            doc.status === 'LOGGED'
+                              ? 'bg-indigo-100 text-indigo-800'
+                              : 'bg-amber-100 text-amber-800'
                           }`}
                         >
-                          {doc.status === 'RECEIVED'
-                            ? 'Received'
-                            : doc.status === 'SENT'
-                              ? 'Sent'
-                              : doc.status === 'PENDING'
-                                ? 'Pending'
-                                : doc.status === 'LOGGED'
-                                  ? 'Logged'
-                                  : 'Draft'}
+                          {doc.status === 'LOGGED' ? 'Logged' : 'Pending'}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right px-6 py-4">

@@ -121,21 +121,23 @@ export function OfficersTable({
           ) : (
             officers?.map((officer) => (
               <TableRow key={officer.id}>
-                <TableCell className="px-4 py-2 font-mono text-sm text-muted-foreground">
+                <TableCell className="px-4 py-3 align-middle font-mono text-sm text-muted-foreground">
                   {officer.officerCode || '-'}
                 </TableCell>
-                <TableCell className="px-4 py-2 font-medium">
+                <TableCell className="px-4 py-3 align-middle font-medium leading-relaxed">
                   {officer.first_name_kh || officer.first_name}
                 </TableCell>
-                <TableCell className="px-4 py-2 font-medium">
+                <TableCell className="px-4 py-3 align-middle font-medium leading-relaxed">
                   {officer.last_name_kh || officer.last_name}
                 </TableCell>
-                <TableCell className="px-4 py-2 text-sm">{officer.position}</TableCell>
+                <TableCell className="px-4 py-3 align-middle text-sm leading-relaxed">
+                  {officer.position}
+                </TableCell>
                 <TableCell
-                  className="hidden px-4 py-2 text-sm lg:table-cell"
+                  className="hidden px-4 py-3 text-sm align-middle leading-relaxed lg:table-cell"
                   title={officer.department}
                 >
-                  {truncateText(officer.department, 25)}
+                  <div className="line-clamp-1 py-0.5">{officer.department}</div>
                 </TableCell>
                 <TableCell className="hidden px-4 py-2 text-sm md:table-cell">
                   <div className="flex items-center gap-1.5 text-muted-foreground">

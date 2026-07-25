@@ -33,6 +33,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAttendance } from '@/hooks/attendance/use-attendance';
 import { useOffices } from '@/hooks/organization/use-offices';
+import { useOfficers } from '@/hooks/officers/use-officers';
 import {
   useCreateAttendance,
   useExportAttendance,
@@ -41,7 +42,7 @@ import {
 } from '@/hooks/attendance/use-attendance-mutations';
 import type { AttendanceStatus, AttendanceViewMode } from '@/hooks/attendance/use-attendance';
 import type { AttendanceFormData } from '@/lib/attendance/types';
-import type { Attendance, Office } from '@/lib/schemas';
+import type { Attendance, Office, Officer } from '@/lib/schemas';
 
 function getDateInputToday() {
   const date = new Date();
@@ -121,6 +122,12 @@ export default function AttendancePage() {
 
   // Dynamic offices/departments from API
   const { offices = [] } = useOffices({ page: 0, size: 100, status: 'active' });
+  const { officers = [] } = useOfficers({ page: 1, pageSize: 1000 });
+
+  const officersMap = useMemo(
+    () => new Map<number, Officer>(officers.map((o: Officer) => [o.id, o])),
+    [officers],
+  );
 
   const departmentOptions = useMemo(() => {
     return [
@@ -271,6 +278,7 @@ export default function AttendancePage() {
           selectedIds={selectedIds}
           page={page}
           totalPages={totalPages}
+          officersMap={officersMap}
           onAdd={canCreate ? () => setModalOpen(true) : undefined}
           onDetails={(record) => {
             setSelectedAttendance(record);

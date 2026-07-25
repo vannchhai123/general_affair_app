@@ -25,6 +25,54 @@ export type DepartmentChartItem = {
   officers: number;
 };
 
+export function getPositionRank(positionTitle?: string | null): number {
+  if (!positionTitle) return 99;
+
+  const title = positionTitle.trim().toLowerCase();
+
+  // Rank 1: Chief / Director / President / Head
+  if (title.startsWith('ប្រធាន') && !title.startsWith('អនុប្រធាន')) return 1;
+  if (
+    title.includes('director') ||
+    title.includes('chief') ||
+    title.includes('head') ||
+    title.includes('manager')
+  )
+    return 1;
+
+  // Rank 2: Deputy Chief / Vice Director / Assistant Manager
+  if (title.startsWith('អនុប្រធាន') || title.includes('deputy') || title.includes('vice')) return 2;
+
+  // Rank 3: Team Lead / Supervisor / Coordinator / Section Chief
+  if (
+    title.includes('ប្រធានផ្នែក') ||
+    title.includes('ប្រធានក្រុម') ||
+    title.includes('lead') ||
+    title.includes('supervisor')
+  )
+    return 3;
+
+  // Rank 4: Senior / Specialist / Assistant
+  if (title.includes('ជាន់ខ្ពស់') || title.includes('senior') || title.includes('specialist'))
+    return 4;
+
+  // Rank 5: Normal Officer / Staff
+  return 5;
+}
+
+export function compareOfficerPositions(a: Officer, b: Officer): number {
+  const rankA = getPositionRank(a.position);
+  const rankB = getPositionRank(b.position);
+
+  if (rankA !== rankB) {
+    return rankA - rankB; // Lower rank number comes first (Chiefs on top)
+  }
+
+  const nameA = `${a.last_name_kh || a.last_name || ''} ${a.first_name_kh || a.first_name || ''}`;
+  const nameB = `${b.last_name_kh || b.last_name || ''} ${b.first_name_kh || b.first_name || ''}`;
+  return nameA.localeCompare(nameB, 'km');
+}
+
 export function normalizeOfficerStatus(status?: string | null) {
   const normalized = status
     ?.trim()

@@ -28,6 +28,7 @@ import {
   formatAttendanceMinutes,
   formatAttendanceTime,
   getAttendanceInitials,
+  getAttendanceOfficerName,
 } from '@/lib/attendance/utils';
 import type { Attendance, Officer } from '@/lib/schemas';
 import { useOfficers } from '@/hooks/officers/use-officers';
@@ -270,6 +271,8 @@ export function AttendanceDetailsDialog({
 
   const sessions = attendance.sessions ?? [];
   const officerPhoto = attendance.imageUrl?.trim() || '';
+  const officerNameKh = getAttendanceOfficerName(attendance);
+  const initials = getAttendanceInitials(attendance.firstName, attendance.lastName, officerNameKh);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -286,22 +289,21 @@ export function AttendanceDetailsDialog({
                 {officerPhoto ? (
                   <img
                     src={officerPhoto}
-                    alt={`${attendance.firstName} ${attendance.lastName}`}
+                    alt={officerNameKh}
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-200 to-slate-300">
-                    <span className="font-khmer-moul-light text-3xl font-semibold text-slate-700">
-                      {getAttendanceInitials(attendance.firstName, attendance.lastName)}
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-50 to-indigo-100">
+                    <span className="font-khmer-moul-light text-3xl font-semibold text-indigo-700">
+                      {initials}
                     </span>
                   </div>
                 )}
               </div>
-              <div className="border-t bg-background/95 px-3 py-2">
-                <p className="font-khmer-moul-light text-sm font-semibold">
-                  {attendance.firstName} {attendance.lastName}
+              <div className="border-t bg-background/95 px-3.5 py-3 text-center">
+                <p className="font-bold text-slate-900 leading-relaxed text-base">
+                  {officerNameKh}
                 </p>
-                <p className="text-xs text-muted-foreground">{attendance.officerCode || '--'}</p>
               </div>
             </div>
 

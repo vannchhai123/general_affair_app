@@ -48,6 +48,18 @@ export default function EditOfficerPage({ params }: EditPageProps) {
 
   const isLoading = isOfficerLoading || deptQuery.isLoading || posQuery.isLoading;
   const isError = isOfficerError || deptQuery.isError || posQuery.isError;
+  const handleBack = () => {
+    if (
+      typeof window !== 'undefined' &&
+      window.history.length > 1 &&
+      document.referrer &&
+      document.referrer.includes(window.location.host)
+    ) {
+      router.back();
+    } else {
+      router.push(`/dashboard/officers/${id}`);
+    }
+  };
 
   return (
     <RequireAccess permission="OFFICER_UPDATE">
@@ -58,7 +70,7 @@ export default function EditOfficerPage({ params }: EditPageProps) {
               កែប្រែព័ត៌មានមន្រ្តី
             </h1>
           </div>
-          <Button variant="outline" onClick={() => router.push(`/dashboard/officers/${id}`)}>
+          <Button variant="outline" onClick={handleBack}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </div>

@@ -180,6 +180,19 @@ export default function OfficerDetailPage({ params }: PageProps) {
     }
   };
 
+  const handleBack = () => {
+    if (
+      typeof window !== 'undefined' &&
+      window.history.length > 1 &&
+      document.referrer &&
+      document.referrer.includes(window.location.host)
+    ) {
+      router.back();
+    } else {
+      router.push('/dashboard/officers');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="py-24 text-center text-sm text-muted-foreground">
@@ -198,7 +211,7 @@ export default function OfficerDetailPage({ params }: PageProps) {
           <Button variant="outline" onClick={() => refetch()}>
             ព្យាយាមឡើងវិញ
           </Button>
-          <Button onClick={() => router.push('/dashboard/officers')}>ត្រឡប់</Button>
+          <Button onClick={handleBack}>ត្រឡប់</Button>
         </div>
       </div>
     );
@@ -218,7 +231,7 @@ export default function OfficerDetailPage({ params }: PageProps) {
               variant="outline"
               size="icon"
               className="h-9 w-9 rounded-xl border-slate-200"
-              onClick={() => router.push('/dashboard/officers')}
+              onClick={handleBack}
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
@@ -343,8 +356,11 @@ export default function OfficerDetailPage({ params }: PageProps) {
             </h4>
             <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
               <DetailItem icon={BriefcaseBusiness} label="តំណែង" value={officer.position} />
-              <DetailItem icon={Layers} label="ផ្នែក/ការិយាល័យ" value={officer.office} />
-              <DetailItem icon={Layers} label="អង្គភាព/ការិយាល័យ" value={officer.department} />
+              <DetailItem
+                icon={Layers}
+                label="ការិយាល័យ"
+                value={officer.office || officer.department}
+              />
               <DetailItem
                 icon={Calendar}
                 label="ថ្ងៃចូលធ្វើការផ្លូវការ"

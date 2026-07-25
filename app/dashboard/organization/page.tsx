@@ -1,13 +1,14 @@
 'use client';
 
 import { useMemo, useState, type ElementType } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   BriefcaseBusiness,
   Building2,
   CheckCircle2,
   CircleOff,
   Edit3,
+  Eye,
   Loader2,
   MoreHorizontal,
   Plus,
@@ -141,7 +142,7 @@ function MetricCard({
     <Card className="gap-0 rounded-lg shadow-none">
       <CardContent className="flex items-start justify-between gap-4 p-4">
         <div>
-          <p className="text-xs font-medium text-muted-foreground">{title}</p>
+          <p className="text-xs font-medium text-muted-foreground font-khmer-moul-light">{title}</p>
           <CardNumber value={value} className="mt-2 block text-2xl font-semibold" />
         </div>
         <div className="rounded-md bg-slate-100 p-2.5 text-slate-700">
@@ -226,6 +227,7 @@ function PaginationControls({
 }
 
 export default function OrganizationPage() {
+  const router = useRouter();
   const pathname = usePathname();
   const [activeTab, setActiveTab] = useState<TabValue>(
     pathname.includes('/positions') ? 'positions' : 'departments',
@@ -473,13 +475,13 @@ export default function OrganizationPage() {
 
       <div className="grid gap-3 sm:grid-cols-3">
         <MetricCard
-          title="ការិយាល័យសកម្មដែលកំពុងបង្ហាញ"
+          title="ការិយាល័យសកម្ម"
           value={activeDepartmentCount}
           description={`សរុប ${departmentQuery.total} ការិយាល័យពី API`}
           icon={Building2}
         />
         <MetricCard
-          title="តួនាទីសកម្មដែលកំពុងបង្ហាញ"
+          title="តួនាទីសកម្ម"
           value={activePositionCount}
           description={`សរុប ${positionQuery.total} តួនាទីពី API`}
           icon={BriefcaseBusiness}
@@ -564,7 +566,10 @@ export default function OrganizationPage() {
                     {departments.map((department: Department) => (
                       <div
                         key={department.id}
-                        className="grid gap-4 p-4 transition hover:bg-muted/20 lg:grid-cols-[minmax(0,1fr)_180px_140px_44px] lg:items-center"
+                        onClick={() =>
+                          router.push(`/dashboard/organization/departments/${department.id}`)
+                        }
+                        className="grid gap-4 p-4 transition hover:bg-slate-50/80 cursor-pointer lg:grid-cols-[minmax(0,1fr)_180px_140px_44px] lg:items-center"
                       >
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
@@ -572,19 +577,25 @@ export default function OrganizationPage() {
                               <Building2 className="h-4 w-4" />
                             </div>
                             <div>
-                              <p className="font-medium">{department.name}</p>
-                              <p className="text-xs text-muted-foreground">{department.code}</p>
+                              <p className="font-semibold text-slate-900 leading-relaxed text-sm hover:text-indigo-600 transition-colors">
+                                {department.name}
+                              </p>
+                              <p className="text-xs font-mono text-muted-foreground">
+                                {department.code}
+                              </p>
                             </div>
                             <StatusBadge status={department.status} />
                           </div>
-                          <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
+                          <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground leading-relaxed py-0.5">
                             {department.description || 'មិនមានការពិពណ៌នាការិយាល័យទេ។'}
                           </p>
                         </div>
 
                         <div>
                           <p className="text-xs text-muted-foreground">អ្នកគ្រប់គ្រង</p>
-                          <p className="mt-1 text-sm font-medium">{department.manager || '-'}</p>
+                          <p className="mt-1 text-sm font-medium leading-relaxed">
+                            {department.manager || '-'}
+                          </p>
                         </div>
 
                         <div>
@@ -595,33 +606,45 @@ export default function OrganizationPage() {
                           />
                         </div>
 
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">បើកម៉ឺនុយ</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => openEditDepartment(department)}>
-                              <Edit3 className="mr-2 h-4 w-4" />
-                              កែប្រែ
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              variant="destructive"
-                              onClick={() =>
-                                setDeleteTarget({
-                                  mode: 'department',
-                                  id: department.id,
-                                  name: department.name,
-                                })
-                              }
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              លុប
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">បើកម៉ឺនុយ</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  router.push(
+                                    `/dashboard/organization/departments/${department.id}`,
+                                  )
+                                }
+                              >
+                                <Eye className="mr-2 h-4 w-4 text-slate-600" />
+                                មើលលម្អិត / មន្ត្រី
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => openEditDepartment(department)}>
+                                <Edit3 className="mr-2 h-4 w-4 text-slate-600" />
+                                កែប្រែ
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                variant="destructive"
+                                onClick={() =>
+                                  setDeleteTarget({
+                                    mode: 'department',
+                                    id: department.id,
+                                    name: department.name,
+                                  })
+                                }
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                លុប
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </div>
                     ))}
 
@@ -666,19 +689,23 @@ export default function OrganizationPage() {
                               <BriefcaseBusiness className="h-4 w-4" />
                             </div>
                             <div>
-                              <p className="font-medium">{position.title}</p>
-                              <p className="text-xs text-muted-foreground">{position.code}</p>
+                              <p className="font-semibold text-slate-900 leading-relaxed text-sm">
+                                {position.title}
+                              </p>
+                              <p className="text-xs font-mono text-muted-foreground">
+                                {position.code}
+                              </p>
                             </div>
                             <StatusBadge status={position.status} />
                           </div>
-                          <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
+                          <p className="mt-1.5 line-clamp-2 text-sm text-muted-foreground leading-relaxed py-0.5">
                             {position.description || 'មិនមានការពិពណ៌នាតួនាទីទេ។'}
                           </p>
                         </div>
 
                         <div>
                           <p className="text-xs text-muted-foreground">ការិយាល័យ</p>
-                          <p className="mt-1 text-sm font-medium">
+                          <p className="mt-1 text-sm font-medium leading-relaxed">
                             {position.departmentName || '-'}
                           </p>
                         </div>

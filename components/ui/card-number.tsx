@@ -1,4 +1,4 @@
-import { cn, formatKhmerNumerals } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 export function CardNumber({
   value,
@@ -8,8 +8,8 @@ export function CardNumber({
   className?: string;
 }) {
   return (
-    <span className={cn('font-khmer-moul-light', className)}>
-      {value === null || value === undefined ? '--' : formatKhmerNumerals(value)}
+    <span className={cn('font-sans', className)}>
+      {value === null || value === undefined ? '--' : String(value)}
     </span>
   );
 }

@@ -24,12 +24,12 @@ import { usePositions } from '@/hooks/organization/use-positions';
 import {
   ACCEPTED_OFFICER_IMAGE_TYPES,
   MAX_OFFICER_IMAGE_SIZE_BYTES,
-  OFFICERS_PAGE_SIZE,
   getDepartmentChartData,
-  getOfficerFormData,
   getOfficerPagination,
+  getOfficerStatusChartData,
   normalizeOfficerStatus,
-  type DepartmentChartItem,
+  OFFICERS_PAGE_SIZE,
+  compareOfficerPositions,
 } from '@/lib/officers/page-utils';
 import type { Officer } from '@/lib/schemas';
 import { Users } from 'lucide-react';
@@ -60,34 +60,38 @@ export default function OfficersPage() {
   const filteredOfficers = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
 
-    return officers.filter((officer: Officer) => {
-      const normalizedStatus = normalizeOfficerStatus(officer.status);
-      if (normalizedStatus === 'deleted') return false;
+    return officers
+      .filter((officer: Officer) => {
+        const normalizedStatus = normalizeOfficerStatus(officer.status);
+        if (normalizedStatus === 'deleted') return false;
 
-      const matchesSearch =
-        !normalizedSearch ||
-        [
-          officer.first_name,
-          officer.last_name,
-          officer.first_name_kh,
-          officer.last_name_kh,
-          officer.email,
-          officer.officerCode,
-          officer.phone,
-          officer.position,
-          officer.department,
-          officer.office,
-        ]
-          .filter((value): value is string => Boolean(value))
-          .some((value: string) => value.toLowerCase().includes(normalizedSearch));
+        const matchesSearch =
+          !normalizedSearch ||
+          [
+            officer.first_name,
+            officer.last_name,
+            officer.first_name_kh,
+            officer.last_name_kh,
+            officer.email,
+            officer.officerCode,
+            officer.phone,
+            officer.position,
+            officer.department,
+            officer.office,
+          ]
+            .filter((value): value is string => Boolean(value))
+            .some((value: string) => value.toLowerCase().includes(normalizedSearch));
 
-      const matchesDepartment =
-        department === 'all' || officer.department === department || officer.office === department;
-      const matchesPosition = positionFilter === 'all' || officer.position === positionFilter;
-      const matchesStatus = status === 'all' || normalizedStatus === status;
+        const matchesDepartment =
+          department === 'all' ||
+          officer.department === department ||
+          officer.office === department;
+        const matchesPosition = positionFilter === 'all' || officer.position === positionFilter;
+        const matchesStatus = status === 'all' || normalizedStatus === status;
 
-      return matchesSearch && matchesDepartment && matchesPosition && matchesStatus;
-    });
+        return matchesSearch && matchesDepartment && matchesPosition && matchesStatus;
+      })
+      .sort(compareOfficerPositions);
   }, [department, officers, positionFilter, search, status]);
   const pagination = getOfficerPagination({
     page,

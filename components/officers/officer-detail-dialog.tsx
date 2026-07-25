@@ -165,18 +165,21 @@ export function OfficerDetailDialog({ open, onOpenChange, officer }: OfficerDeta
             <DetailItem icon={UserRound} label="ឈ្មោះ (EN)" value={fullName} />
             <DetailItem icon={UserRound} label="ឈ្មោះ (KH)" value={fullNameKh} />
             <DetailItem icon={BriefcaseBusiness} label="តួនាទី" value={officer.position} />
-            <DetailItem icon={BriefcaseBusiness} label="Office" value={officer.office} />
-            <DetailItem icon={BriefcaseBusiness} label="Department" value={officer.department} />
-            <DetailItem icon={Calendar} label="Date of Birth" value={officer.date_of_birth} />
-            <DetailItem icon={Calendar} label="Hire Date" value={officer.hire_date} />
-            <DetailItem icon={IdCard} label="National ID" value={officer.national_id} />
+            <DetailItem
+              icon={BriefcaseBusiness}
+              label="ការិយាល័យ"
+              value={officer.office || officer.department}
+            />
+            <DetailItem icon={Calendar} label="ថ្ងៃខែឆ្នាំកំណើត" value={officer.date_of_birth} />
+            <DetailItem icon={Calendar} label="ថ្ងៃចូលធ្វើការ" value={officer.hire_date} />
+            <DetailItem icon={IdCard} label="អត្តសញ្ញាណប័ណ្ណ" value={officer.national_id} />
             <DetailItem
               icon={IdCard}
               label="ប្រភេទកិច្ចសន្យា"
               value={getContractTypeLabel(officer.contract_type)}
             />
-            <DetailItem icon={IdCard} label="Nationality" value={officer.nationality} />
-            <DetailItem icon={IdCard} label="Ethnicity" value={officer.ethnicity} />
+            <DetailItem icon={IdCard} label="សញ្ជាតិ" value={officer.nationality} />
+            <DetailItem icon={IdCard} label="ជនជាតិ" value={officer.ethnicity} />
             <DetailItem
               icon={Mail}
               label="អ៊ីមែល"

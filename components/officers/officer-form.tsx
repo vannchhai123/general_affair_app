@@ -71,7 +71,11 @@ const emptyForm: OfficerFormData = {
 };
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <p className="font-khmer-moul-light text-xs text-muted-foreground">{children}</p>;
+  return (
+    <p className="font-khmer-moul-light text-xs text-muted-foreground leading-relaxed py-1">
+      {children}
+    </p>
+  );
 }
 
 export function OfficerForm({
@@ -443,7 +447,7 @@ export function OfficerForm({
               />
             </div>
 
-            <div className="flex flex-col gap-2 sm:col-span-2">
+            <div className="flex flex-col gap-2">
               <Label htmlFor="contract_type">ប្រភេទកិច្ចសន្យា</Label>
               <Select
                 value={form.contract_type}
@@ -451,7 +455,7 @@ export function OfficerForm({
                   setForm({ ...form, contract_type: value as OfficerFormData['contract_type'] })
                 }
               >
-                <SelectTrigger id="contract_type">
+                <SelectTrigger id="contract_type" className="w-full sm:w-[260px]">
                   <SelectValue placeholder="ជ្រើសរើសប្រភេទកិច្ចសន្យា" />
                 </SelectTrigger>
                 <SelectContent>
@@ -464,9 +468,6 @@ export function OfficerForm({
             <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/30 p-3 sm:col-span-2">
               <div className="space-y-0.5">
                 <Label htmlFor="invitation_priority">អទិភាពនៃការអញ្ជើញ (Invitation Priority)</Label>
-                <p className="text-xs text-muted-foreground">
-                  កំណត់ជាអទិភាពសម្រាប់ការផ្ញើលិខិតអញ្ជើញ
-                </p>
               </div>
               <Switch
                 id="invitation_priority"

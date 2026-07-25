@@ -47,13 +47,15 @@ export function OfficerFilters({
       </div>
 
       <Select value={department} onValueChange={setDepartment}>
-        <SelectTrigger className="w-full sm:w-[220px]">
+        <SelectTrigger className="w-full sm:w-[240px] text-sm leading-relaxed">
           <SelectValue placeholder="ការិយាល័យ" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">ការិយាល័យ</SelectItem>
+          <SelectItem value="all" className="py-1.5 leading-relaxed">
+            ការិយាល័យ
+          </SelectItem>
           {departments.map((item) => (
-            <SelectItem key={item.id} value={item.name}>
+            <SelectItem key={item.id} value={item.name} className="py-1.5 leading-relaxed">
               {item.name}
             </SelectItem>
           ))}
@@ -61,13 +63,15 @@ export function OfficerFilters({
       </Select>
 
       <Select value={position} onValueChange={setPosition}>
-        <SelectTrigger className="w-full sm:w-[200px]">
+        <SelectTrigger className="w-full sm:w-[220px] text-sm leading-relaxed">
           <SelectValue placeholder="តួនាទី" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">តួនាទី</SelectItem>
+          <SelectItem value="all" className="py-1.5 leading-relaxed">
+            តួនាទី
+          </SelectItem>
           {uniquePositions.map((title) => (
-            <SelectItem key={title} value={title}>
+            <SelectItem key={title} value={title} className="py-1.5 leading-relaxed">
               {title}
             </SelectItem>
           ))}
@@ -75,14 +79,22 @@ export function OfficerFilters({
       </Select>
 
       <Select value={status} onValueChange={setStatus}>
-        <SelectTrigger className="w-full sm:w-[160px]">
+        <SelectTrigger className="w-full sm:w-[160px] text-sm leading-relaxed">
           <SelectValue placeholder="ស្ថានភាព" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">ស្ថានភាព</SelectItem>
-          <SelectItem value="active">សកម្ម</SelectItem>
-          <SelectItem value="on_leave">ច្បាប់ឈប់សម្រាក</SelectItem>
-          <SelectItem value="inactive">មិនសកម្ម</SelectItem>
+          <SelectItem value="all" className="py-1.5 leading-relaxed">
+            ស្ថានភាព
+          </SelectItem>
+          <SelectItem value="active" className="py-1.5 leading-relaxed">
+            សកម្ម
+          </SelectItem>
+          <SelectItem value="on_leave" className="py-1.5 leading-relaxed">
+            ច្បាប់ឈប់សម្រាក
+          </SelectItem>
+          <SelectItem value="inactive" className="py-1.5 leading-relaxed">
+            មិនសកម្ម
+          </SelectItem>
         </SelectContent>
       </Select>
     </div>

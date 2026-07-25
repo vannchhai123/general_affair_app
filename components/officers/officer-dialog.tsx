@@ -79,7 +79,11 @@ const emptyForm: OfficerFormData = {
 };
 
 function SectionTitle({ children }: { children: ReactNode }) {
-  return <p className="font-khmer-moul-light text-xs text-muted-foreground">{children}</p>;
+  return (
+    <p className="font-khmer-moul-light text-xs text-muted-foreground leading-relaxed py-1">
+      {children}
+    </p>
+  );
 }
 
 export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: OfficerDialogProps) {
@@ -418,7 +422,7 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
                   />
                 </div>
 
-                <div className="flex flex-col gap-2 sm:col-span-2">
+                <div className="flex flex-col gap-2">
                   <Label htmlFor="contract_type">ប្រភេទកិច្ចសន្យា</Label>
                   <Select
                     value={form.contract_type}
@@ -426,7 +430,7 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
                       setForm({ ...form, contract_type: value as OfficerFormData['contract_type'] })
                     }
                   >
-                    <SelectTrigger id="contract_type">
+                    <SelectTrigger id="contract_type" className="w-full sm:w-[260px]">
                       <SelectValue placeholder="ជ្រើសរើសប្រភេទកិច្ចសន្យា" />
                     </SelectTrigger>
                     <SelectContent>
@@ -441,9 +445,6 @@ export function OfficerDialog({ open, onOpenChange, officer, onSubmit }: Officer
                     <Label htmlFor="invitation_priority">
                       អទិភាពនៃការអញ្ជើញ (Invitation Priority)
                     </Label>
-                    <p className="text-xs text-muted-foreground">
-                      កំណត់ជាអទិភាពសម្រាប់ការផ្ញើលិខិតអញ្ជើញ
-                    </p>
                   </div>
                   <Switch
                     id="invitation_priority"
