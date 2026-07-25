@@ -13,6 +13,7 @@ import {
   positionsListResponseSchema,
   positionRequestSchema,
   positionSchema,
+  type Department,
   type DepartmentField,
   type DepartmentFormValues,
   type DepartmentRequest,
@@ -149,7 +150,7 @@ export const organizationApi = {
       body: JSON.stringify(payload),
     });
   },
-  getDepartment(id: number) {
+  getDepartment(id: number): Promise<Department> {
     return organizationFetch(`/department/${id}`, departmentSchema);
   },
   updateDepartment(id: number, payload: DepartmentRequest) {
@@ -195,7 +196,7 @@ export const organizationApi = {
       officesListResponseSchema,
     );
   },
-  getOffice(id: number) {
+  getOffice(id: number): Promise<Office> {
     return organizationFetch(`/office/${id}`, officeSchema);
   },
 };

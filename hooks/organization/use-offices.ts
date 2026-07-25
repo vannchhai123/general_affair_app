@@ -48,9 +48,9 @@ export function useOffices(filters: DepartmentListParams = {}) {
 }
 
 export function useOffice(id: number, enabled = true) {
-  return useQuery<Office, ApiError>({
+  return useQuery({
     queryKey: queryKeys.organization.offices.detail(id),
-    queryFn: () => organizationApi.getOffice(id),
+    queryFn: (): Promise<Office> => organizationApi.getOffice(id),
     enabled,
   });
 }

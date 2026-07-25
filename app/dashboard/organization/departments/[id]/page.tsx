@@ -47,7 +47,7 @@ import { useDepartment } from '@/hooks/organization/use-departments';
 import { useOfficers } from '@/hooks/officers/use-officers';
 import { useCreateOfficer, useUpdateOfficer } from '@/hooks/officers/use-officer-mutations';
 import { usePositions } from '@/hooks/organization/use-positions';
-import type { Officer } from '@/lib/schemas';
+import type { Department, Office, Officer } from '@/lib/schemas';
 import { OfficerDialog, type OfficerFormData } from '@/components/officers/officer-dialog';
 import { OfficerDetailDialog } from '@/components/officers/officer-detail-dialog';
 import { getOfficerFormData, compareOfficerPositions } from '@/lib/officers/page-utils';
@@ -120,7 +120,7 @@ export default function DepartmentDetailPage({ params }: { params: Promise<{ id:
   };
 
   const { data: department, isLoading: isDeptLoading } = useDepartment(departmentId);
-  const departmentName = department?.name ?? '';
+  const departmentName = (department as Department | undefined)?.name ?? '';
 
   const { officers, isLoading: isOfficersLoading } = useOfficers({
     pageSize: 1000,

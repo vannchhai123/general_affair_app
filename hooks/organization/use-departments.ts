@@ -58,9 +58,9 @@ export function useDepartments(filters: DepartmentListParams = {}) {
 }
 
 export function useDepartment(id: number, enabled = true) {
-  return useQuery<Department, ApiError>({
+  return useQuery({
     queryKey: queryKeys.organization.departments.detail(id),
-    queryFn: () => organizationApi.getDepartment(id),
+    queryFn: (): Promise<Department> => organizationApi.getDepartment(id),
     enabled,
   });
 }
