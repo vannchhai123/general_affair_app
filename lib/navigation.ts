@@ -3,6 +3,7 @@ import {
   BarChart3,
   Building2,
   ClipboardCheck,
+  FileText,
   KeyRound,
   LayoutDashboard,
   Mail,
@@ -44,6 +45,11 @@ export const appNavigation: NavItem[] = [
     href: '/dashboard/attendance',
     icon: ClipboardCheck,
     permission: 'ATTENDANCE_VIEW',
+  },
+  {
+    title: 'សំណើច្បាប់ឈប់សម្រាក',
+    href: '/dashboard/leave-requests',
+    icon: FileText,
   },
   {
     title: 'QR Code វត្តមាន',
@@ -120,6 +126,7 @@ export function getPageTitle(pathname: string) {
   }
 
   if (pathname.startsWith('/dashboard/officers')) return 'មន្ត្រី';
+  if (pathname.startsWith('/dashboard/leave-requests')) return 'សំណើច្បាប់ឈប់សម្រាក';
   if (pathname.startsWith('/dashboard/invitations')) return 'ការអញ្ជើញ';
   if (pathname.startsWith('/dashboard/attendance')) return 'វត្តមាន';
   if (pathname.startsWith('/dashboard/qr-sessions')) return 'សម័យ QR';

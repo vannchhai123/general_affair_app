@@ -14,10 +14,10 @@ export function useCreateLeaveRequest() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.leaveRequests.all });
-      toast.success('Leave request created');
+      toast.success('បង្កើតសំណើច្បាប់បានជោគជ័យ (Leave request created)');
     },
     onError: (error: ApiError) => {
-      toast.error(error.message);
+      toast.error(error.message || 'បង្កើតសំណើច្បាប់មិនបានសម្រេចទេ');
     },
   });
 }
@@ -31,12 +31,18 @@ export function useUpdateLeaveRequest() {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.leaveRequests.all });
-      toast.success('Leave request updated');
+      const actionText =
+        variables.data.status === 'Approved'
+          ? 'បានអនុម័ត'
+          : variables.data.status === 'Rejected'
+            ? 'បានបដិសេធ'
+            : 'បានធ្វើបច្ចុប្បន្នភាព';
+      toast.success(`${actionText}សំណើច្បាប់រួចរាល់ (Status updated)`);
     },
     onError: (error: ApiError) => {
-      toast.error(error.message);
+      toast.error(error.message || 'ធ្វើបច្ចុប្បន្នភាពសំណើច្បាប់មិនបានសម្រេចទេ');
     },
   });
 }
