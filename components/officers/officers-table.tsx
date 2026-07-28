@@ -41,6 +41,14 @@ function getOfficerInitials(officer: Officer) {
   return initials || 'OF';
 }
 
+function getSexLabel(sex?: string | null) {
+  if (!sex) return '-';
+  const normalized = sex.toLowerCase();
+  if (normalized === 'male' || normalized === 'm' || normalized === 'ប្រុស') return 'ប្រុស';
+  if (normalized === 'female' || normalized === 'f' || normalized === 'ស្រី') return 'ស្រី';
+  return sex;
+}
+
 function TableSkeleton() {
   return (
     <>
@@ -55,10 +63,19 @@ function TableSkeleton() {
           <TableCell className="px-4 py-2">
             <Skeleton className="h-4 w-20" />
           </TableCell>
-          <TableCell className="px-4 py-2">
+          <TableCell className="hidden px-4 py-2 md:table-cell">
+            <Skeleton className="h-4 w-20" />
+          </TableCell>
+          <TableCell className="hidden px-4 py-2 md:table-cell">
             <Skeleton className="h-4 w-20" />
           </TableCell>
           <TableCell className="px-4 py-2">
+            <Skeleton className="h-4 w-12" />
+          </TableCell>
+          <TableCell className="px-4 py-2">
+            <Skeleton className="h-4 w-20" />
+          </TableCell>
+          <TableCell className="hidden px-4 py-2 lg:table-cell">
             <Skeleton className="h-4 w-24" />
           </TableCell>
           <TableCell className="px-4 py-2">
@@ -103,13 +120,19 @@ export function OfficersTable({
         <TableHeader>
           <TableRow className="hover:bg-transparent font-khmer-moul-light">
             <TableHead className="px-4 py-2 text-blue-900">កូដមន្រ្តី</TableHead>
-            <TableHead className="px-4 py-2 text-blue-900">នាមខ្លួន</TableHead>
             <TableHead className="px-4 py-2 text-blue-900">នាមត្រកូល</TableHead>
+            <TableHead className="px-4 py-2 text-blue-900">នាមខ្លួន</TableHead>
+            <TableHead className="hidden px-4 py-2 md:table-cell text-blue-900">
+              នាមត្រកូល (EN)
+            </TableHead>
+            <TableHead className="hidden px-4 py-2 md:table-cell text-blue-900">
+              នាមខ្លួន (EN)
+            </TableHead>
+            <TableHead className="px-4 py-2 text-blue-900">ភេទ</TableHead>
             <TableHead className="px-4 py-2 text-blue-900">តួនាទី</TableHead>
-            <TableHead className="hidden px-4 py-2 lg:table-cell text-blue-900">
+            <TableHead className="hidden px-4 py-2 lg:table-cell text-blue-900 max-w-[180px] sm:max-w-[220px]">
               ការិយាល័យ
             </TableHead>
-            <TableHead className="hidden px-4 py-2 md:table-cell text-blue-900">ទូរស័ព្ទ</TableHead>
             <TableHead className="px-4 py-2 text-blue-900">ស្ថានភាព</TableHead>
             <TableHead className="w-12 px-4 py-2 text-center text-blue-900">សកម្មភាព</TableHead>
           </TableRow>
@@ -125,24 +148,32 @@ export function OfficersTable({
                   {officer.officerCode || '-'}
                 </TableCell>
                 <TableCell className="px-4 py-3 align-middle font-medium leading-relaxed">
-                  {officer.first_name_kh || officer.first_name}
-                </TableCell>
-                <TableCell className="px-4 py-3 align-middle font-medium leading-relaxed">
                   {officer.last_name_kh || officer.last_name}
                 </TableCell>
+                <TableCell className="px-4 py-3 align-middle font-medium leading-relaxed">
+                  {officer.first_name_kh || officer.first_name}
+                </TableCell>
+                <TableCell className="hidden px-4 py-3 align-middle text-sm leading-relaxed md:table-cell">
+                  {officer.last_name_en || officer.last_name || '-'}
+                </TableCell>
+                <TableCell className="hidden px-4 py-3 align-middle text-sm leading-relaxed md:table-cell">
+                  {officer.first_name_en || officer.first_name || '-'}
+                </TableCell>
                 <TableCell className="px-4 py-3 align-middle text-sm leading-relaxed">
-                  {officer.position}
+                  {getSexLabel(officer.sex)}
+                </TableCell>
+                <TableCell className="px-4 py-3 align-middle text-sm leading-relaxed">
+                  {officer.position || '-'}
                 </TableCell>
                 <TableCell
-                  className="hidden px-4 py-3 text-sm align-middle leading-relaxed lg:table-cell"
-                  title={officer.department}
+                  className="hidden max-w-[180px] sm:max-w-[220px] px-4 py-3 text-sm align-middle leading-relaxed lg:table-cell"
+                  title={officer.department || officer.office || ''}
                 >
-                  <div className="line-clamp-1 py-0.5">{officer.department}</div>
-                </TableCell>
-                <TableCell className="hidden px-4 py-2 text-sm md:table-cell">
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Phone className="h-3.5 w-3.5" />
-                    {officer.phone || '-'}
+                  <div
+                    className="truncate py-0.5"
+                    title={officer.department || officer.office || ''}
+                  >
+                    {truncateText(officer.department || officer.office || '-', 25)}
                   </div>
                 </TableCell>
                 <TableCell className="px-4 py-2">
