@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { RequireAccess } from '@/components/auth/require-access';
 import { useAuth } from '@/components/auth/auth-provider';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

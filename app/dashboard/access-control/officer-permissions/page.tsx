@@ -1,8 +1,9 @@
 'use client';
 
-import { KeyRound } from 'lucide-react';
+import { KeyRound, Shield } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { PermissionAssignmentDialog } from '@/components/permission-assignment-dialog';
+import { RoleAssignmentDialog } from '@/components/role-assignment-dialog';
 import OfficersTable from '@/components/permissions/officers-table';
 import { RequireAccess } from '@/components/auth/require-access';
 import { PageHeader } from '@/components/app-shell/page-header';
@@ -34,26 +35,33 @@ export default function OfficerPermissionsPage() {
     >
       <div className="space-y-5">
         <PageHeader
-          // eyebrow={t('eyebrow')}
           title={t('title')}
-          // description={
-          //   isSuperAdmin
-          //     ? t('descriptionAdmin')
-          //     : t('descriptionReadOnly')
-          // }
           actions={
             isSuperAdmin ? (
-              <Button
-                variant="outline"
-                onClick={() => {
-                  if (ctx.officers?.[0]) {
-                    ctx.openAssignmentDialog(ctx.officers[0].id);
-                  }
-                }}
-              >
-                <KeyRound className="mr-2 h-4 w-4" />
-                {t('assignButton')}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    if (ctx.officers?.[0]) {
+                      ctx.openRoleDialog(ctx.officers[0].id);
+                    }
+                  }}
+                >
+                  <Shield className="mr-2 h-4 w-4 text-emerald-600" />
+                  កំណត់តួនាទី (Assign Role)
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    if (ctx.officers?.[0]) {
+                      ctx.openAssignmentDialog(ctx.officers[0].id);
+                    }
+                  }}
+                >
+                  <KeyRound className="mr-2 h-4 w-4" />
+                  {t('assignButton')}
+                </Button>
+              </div>
             ) : null
           }
         />
@@ -74,6 +82,13 @@ export default function OfficerPermissionsPage() {
               assignments={ctx.assignments ?? []}
               onAssign={ctx.handleAssign}
               onRevoke={ctx.handleRevoke}
+            />
+
+            <RoleAssignmentDialog
+              open={ctx.roleDialogOpen}
+              onOpenChange={ctx.setRoleDialogOpen}
+              officer={ctx.selectedRoleOfficer}
+              onAssignRole={ctx.handleAssignRole}
             />
           </>
         ) : (

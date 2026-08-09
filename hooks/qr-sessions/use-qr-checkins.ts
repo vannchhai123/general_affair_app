@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { z } from 'zod';
 import { queryKeys, fetchApi, ApiError } from '@/lib/api/fetcher';
 import {

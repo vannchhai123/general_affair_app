@@ -46,18 +46,18 @@
   --sidebar-border: oklch(0.28 0.04 250);
   --sidebar-ring: oklch(0.55 0.2 250);
 
-  --success-bg: #ffffff;
-  --success-text: #15803d;
-  --success-border: #e2e8f0;
-  --error-bg: oklch(0.96 0.04 25);
-  --error-text: oklch(0.35 0.1 25);
-  --error-border: oklch(0.9 0.04 25);
-  --warning-bg: oklch(0.97 0.04 75);
-  --warning-text: oklch(0.35 0.08 75);
-  --warning-border: oklch(0.92 0.04 75);
-  --info-bg: oklch(0.95 0.03 250);
-  --info-text: oklch(0.25 0.08 250);
-  --info-border: oklch(0.9 0.03 250);
+  --success-bg: #ecfdf5;
+  --success-text: #166534;
+  --success-border: #a7f3d0;
+  --error-bg: #fee2e2;
+  --error-text: #991b1b;
+  --error-border: #fecaca;
+  --warning-bg: #fef3c7;
+  --warning-text: #92400e;
+  --warning-border: #fde68a;
+  --info-bg: #dbeafe;
+  --info-text: #1d4ed8;
+  --info-border: #bfdbfe;
 }
 
 .dark {
@@ -94,18 +94,18 @@
   --sidebar-border: oklch(0.24 0.03 250);
   --sidebar-ring: oklch(0.55 0.2 250);
 
-  --success-bg: #1e293b;
-  --success-text: #4ade80;
-  --success-border: #334155;
-  --error-bg: oklch(0.18 0.04 25);
-  --error-text: oklch(0.85 0.05 25);
-  --error-border: oklch(0.24 0.04 25);
-  --warning-bg: oklch(0.18 0.04 75);
-  --warning-text: oklch(0.85 0.05 75);
-  --warning-border: oklch(0.24 0.04 75);
-  --info-bg: oklch(0.16 0.03 250);
-  --info-text: oklch(0.85 0.04 250);
-  --info-border: oklch(0.22 0.03 250);
+  --success-bg: #14532d;
+  --success-text: #d1fae5;
+  --success-border: #2dd4bf;
+  --error-bg: #7f1d1d;
+  --error-text: #fecaca;
+  --error-border: #fca5a5;
+  --warning-bg: #92400e;
+  --warning-text: #fef08a;
+  --warning-border: #facc15;
+  --info-bg: #1e40af;
+  --info-text: #bfdbfe;
+  --info-border: #93c5fd;
 }
 
 @theme inline {
@@ -163,16 +163,19 @@
   .font-khmer-moul-light {
     font-family: var(--font-khmer-moul-light), var(--font-khmer), sans-serif;
     font-weight: 400;
+    line-height: 1.6;
   }
 
   .page-title {
     font-family: var(--font-khmer-moul-light), var(--font-khmer), sans-serif;
     font-weight: 700;
     color: #3c0366;
+    line-height: 1.6;
   }
 
   .font-khmer-bokor {
     font-family: 'KhmerOSBokor', var(--font-khmer), sans-serif;
     font-weight: 400;
+    line-height: 1.6;
   }
 }

@@ -23,7 +23,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useCreateLeaveRequest } from '@/hooks/leave-requests/use-leave-request-mutations';
 import { useOfficers } from '@/hooks/officers/use-officers';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 import type { Officer } from '@/lib/schemas';
 
@@ -62,11 +62,11 @@ export function CreateLeaveRequestDialog({ open, onOpenChange }: CreateLeaveRequ
     e.preventDefault();
 
     if (!officerId) {
-      toast.error('សូមជ្រើសរើសមន្ត្រី (Please select an officer)');
+      toast.error('សូមជ្រើសរើសមន្ត្រី');
       return;
     }
     if (!startDate || !endDate) {
-      toast.error('សូមជ្រើសរើសកាលបរិច្ឆេទ (Please select start and end dates)');
+      toast.error('សូមជ្រើសរើសកាលបរិច្ឆេទ');
       return;
     }
 
@@ -102,18 +102,15 @@ export function CreateLeaveRequestDialog({ open, onOpenChange }: CreateLeaveRequ
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg rounded-2xl p-6 shadow-xl">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-slate-900">
-            បង្កើតសំណើច្បាប់ឈប់សម្រាក (New Leave Request)
+          <DialogTitle className="text-xl font-bold text-slate-900 page-title">
+            បង្កើតសំណើច្បាប់ឈប់សម្រាក
           </DialogTitle>
-          <DialogDescription className="text-slate-500">
-            បំពេញព័ត៌មានខាងក្រោមដើម្បីបង្កើតសំណើច្បាប់ថ្មីជូនមន្ត្រី
-          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="officer" className="text-xs font-semibold text-slate-700">
-              មន្ត្រី (Officer) *
+              មន្ត្រី*
             </Label>
             <Select value={officerId} onValueChange={setOfficerId}>
               <SelectTrigger id="officer" className="h-10 rounded-xl border-slate-200">
@@ -132,17 +129,17 @@ export function CreateLeaveRequestDialog({ open, onOpenChange }: CreateLeaveRequ
 
           <div className="space-y-1.5">
             <Label htmlFor="leaveType" className="text-xs font-semibold text-slate-700">
-              ប្រភេទច្បាប់ (Leave Type) *
+              ប្រភេទច្បាប់*
             </Label>
             <Select value={leaveType} onValueChange={setLeaveType}>
               <SelectTrigger id="leaveType" className="h-10 rounded-xl border-slate-200">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
-                <SelectItem value="Annual Leave">ច្បាប់សម្រាកប្រចាំឆ្នាំ (Annual Leave)</SelectItem>
-                <SelectItem value="Sick Leave">ច្បាប់ជំងឺ (Sick Leave)</SelectItem>
-                <SelectItem value="Personal Leave">ច្បាប់ផ្ទាល់ខ្លួន (Personal Leave)</SelectItem>
-                <SelectItem value="Special Leave">ច្បាប់ពិសេស (Special Leave)</SelectItem>
+                <SelectItem value="Annual Leave">ច្បាប់សម្រាកប្រចាំឆ្នាំ</SelectItem>
+                <SelectItem value="Sick Leave">ច្បាប់ជំងឺ</SelectItem>
+                <SelectItem value="Personal Leave">ច្បាប់ផ្ទាល់ខ្លួន</SelectItem>
+                <SelectItem value="Special Leave">ច្បាប់ពិសេស</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -150,7 +147,7 @@ export function CreateLeaveRequestDialog({ open, onOpenChange }: CreateLeaveRequ
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="startDate" className="text-xs font-semibold text-slate-700">
-                ថ្ងៃចាប់ផ្តើម (Start Date) *
+                ថ្ងៃចាប់ផ្តើម*
               </Label>
               <Input
                 id="startDate"
@@ -163,7 +160,7 @@ export function CreateLeaveRequestDialog({ open, onOpenChange }: CreateLeaveRequ
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="endDate" className="text-xs font-semibold text-slate-700">
-                ថ្ងៃបញ្ចប់ (End Date) *
+                ថ្ងៃបញ្ចប់*
               </Label>
               <Input
                 id="endDate"
@@ -178,7 +175,7 @@ export function CreateLeaveRequestDialog({ open, onOpenChange }: CreateLeaveRequ
 
           <div className="space-y-1.5">
             <Label htmlFor="totalDays" className="text-xs font-semibold text-slate-700">
-              ចំនួនថ្ងៃសរុប (Total Days)
+              ចំនួនថ្ងៃសរុប
             </Label>
             <Input
               id="totalDays"
@@ -193,7 +190,7 @@ export function CreateLeaveRequestDialog({ open, onOpenChange }: CreateLeaveRequ
 
           <div className="space-y-1.5">
             <Label htmlFor="reason" className="text-xs font-semibold text-slate-700">
-              មូលហេតុ (Reason)
+              មូលហេតុ
             </Label>
             <Textarea
               id="reason"
@@ -212,14 +209,14 @@ export function CreateLeaveRequestDialog({ open, onOpenChange }: CreateLeaveRequ
               onClick={() => onOpenChange(false)}
               className="rounded-xl border-slate-200"
             >
-              បោះបង់ (Cancel)
+              បោះបង់
             </Button>
             <Button
               type="submit"
               disabled={createMutation.isPending}
               className="rounded-xl bg-blue-600 font-medium hover:bg-blue-700 text-white"
             >
-              {createMutation.isPending ? 'កំពុងរក្សាទុក...' : 'បង្កើតសំណើ (Create Request)'}
+              {createMutation.isPending ? 'កំពុងរក្សាទុក...' : 'បង្កើតសំណើ'}
             </Button>
           </DialogFooter>
         </form>

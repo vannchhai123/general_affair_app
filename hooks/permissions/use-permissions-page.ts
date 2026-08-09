@@ -10,6 +10,7 @@ import {
 import {
   useAssignPermission,
   useRevokePermission,
+  useAssignRoleToOfficer,
 } from '../officer-permissions/use-officer-permission-mutations';
 import { useOfficers } from '../officers/use-officers';
 import { useOfficerPermissions } from '../officer-permissions/use-officer-permissions';
@@ -34,6 +35,9 @@ export function usePermissionsPage() {
   const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false);
   const [selectedOfficerId, setSelectedOfficerId] = useState<number | null>(null);
 
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [selectedRoleOfficerId, setSelectedRoleOfficerId] = useState<number | null>(null);
+
   const { data: permissions, isLoading: permissionsLoading } = usePermissions(
     category !== 'all' ? category : undefined,
   );
@@ -53,6 +57,7 @@ export function usePermissionsPage() {
   const deletePermission = useDeletePermission();
   const assignPermission = useAssignPermission();
   const revokePermission = useRevokePermission();
+  const assignRoleToOfficer = useAssignRoleToOfficer();
 
   const filteredPermissions = permissions?.filter((p) => {
     return (
@@ -67,6 +72,8 @@ export function usePermissionsPage() {
   const isLoading = permissionsLoading || officersLoading || assignmentsLoading;
 
   const selectedOfficer = officers?.find((o: Officer) => o.id === selectedOfficerId) || null;
+  const selectedRoleOfficer =
+    officers?.find((o: Officer) => o.id === selectedRoleOfficerId) || null;
 
   const manageTotalPages = Math.max(1, Math.ceil((filteredPermissions?.length || 0) / pageSize));
   const assignTotalPages = officerPagination.totalPages;
@@ -133,9 +140,19 @@ export function usePermissionsPage() {
     await revokePermission.mutateAsync(assignmentId);
   };
 
+  const handleAssignRole = async (officerId: number, roleName: string) => {
+    await assignRoleToOfficer.mutateAsync({ officerId, roleName });
+    setRoleDialogOpen(false);
+  };
+
   const openAssignmentDialog = (officerId: number) => {
     setSelectedOfficerId(officerId);
     setAssignmentDialogOpen(true);
+  };
+
+  const openRoleDialog = (officerId: number) => {
+    setSelectedRoleOfficerId(officerId);
+    setRoleDialogOpen(true);
   };
 
   return {
@@ -153,6 +170,8 @@ export function usePermissionsPage() {
     setDeleteId,
     assignmentDialogOpen,
     setAssignmentDialogOpen,
+    roleDialogOpen,
+    setRoleDialogOpen,
 
     permissions,
     officers,
@@ -162,6 +181,7 @@ export function usePermissionsPage() {
     paginatedOfficers,
     categories,
     selectedOfficer,
+    selectedRoleOfficer,
     isLoading,
     pageSize,
     managePage,
@@ -176,6 +196,8 @@ export function usePermissionsPage() {
     handleDelete,
     handleAssign,
     handleRevoke,
+    handleAssignRole,
     openAssignmentDialog,
+    openRoleDialog,
   };
 }

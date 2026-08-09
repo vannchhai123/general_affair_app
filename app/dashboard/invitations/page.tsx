@@ -301,7 +301,7 @@ export default function InvitationsPage() {
         open={formOpen}
         onOpenChange={setFormOpen}
         invitation={selectedInvitation}
-        officers={eligibleOfficers}
+        officers={officers}
         mode={formMode}
         isPending={createInvitation.isPending || updateInvitation.isPending}
         onSubmit={handleFormSubmit}

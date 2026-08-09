@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const invitationStatusValues = ['pending', 'accepted', 'rejected', 'completed'] as const;
 export const invitationTypeValues = ['incoming', 'outgoing'] as const;
+export const invitationCategoryValues = ['internal', 'external'] as const;
 
 export const invitationFormSchema = z.object({
   subject: z.string().min(1, { message: 'Subject is required' }),
@@ -9,6 +10,7 @@ export const invitationFormSchema = z.object({
   type: z.enum(invitationTypeValues, {
     errorMap: () => ({ message: 'Type must be either incoming or outgoing' }),
   }),
+  category: z.enum(invitationCategoryValues).optional().default('internal'),
   date: z.string().min(1, { message: 'Date is required' }),
   time: z.string().optional(),
   location: z.string().min(1, { message: 'Location is required' }),

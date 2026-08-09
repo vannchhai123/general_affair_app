@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { queryKeys, fetchApi, ApiError } from '@/lib/api/fetcher';
 import { apiFetch } from '@/lib/client';
 import type { AttendanceFormData } from '@/lib/attendance/types';

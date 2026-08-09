@@ -45,26 +45,26 @@ import { LeaveRequestDetailsDialog } from '@/components/leave-requests/leave-req
 import { useLeaveRequests } from '@/hooks/leave-requests/use-leave-requests';
 import { useUpdateLeaveRequest } from '@/hooks/leave-requests/use-leave-request-mutations';
 import type { LeaveRequest } from '@/lib/schemas';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 function statusBadge(status: string) {
   switch (status) {
     case 'Approved':
       return (
         <Badge className="border-0 bg-emerald-100 font-medium text-emerald-800 hover:bg-emerald-200">
-          បានអនុម័ត (Approved)
+          Approved
         </Badge>
       );
     case 'Pending':
       return (
         <Badge className="border-0 bg-amber-100 font-medium text-amber-800 hover:bg-amber-200">
-          រង់ចាំ (Pending)
+          Pending
         </Badge>
       );
     case 'Rejected':
       return (
         <Badge className="border-0 bg-red-100 font-medium text-red-800 hover:bg-red-200">
-          បានបដិសេធ (Rejected)
+          Rejected
         </Badge>
       );
     default:
@@ -212,7 +212,7 @@ export default function LeaveRequestsPage() {
         <Card className="rounded-2xl border-slate-200 shadow-sm bg-white">
           <CardContent className="p-5 flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold text-slate-500">សំណើសរុប (Total)</p>
+              <p className="text-xs font-semibold text-slate-500">សំណើសរុប</p>
               <h3 className="text-2xl font-bold text-slate-900 mt-1">{stats.total}</h3>
             </div>
             <div className="h-12 w-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
@@ -224,7 +224,7 @@ export default function LeaveRequestsPage() {
         <Card className="rounded-2xl border-slate-200 shadow-sm bg-white">
           <CardContent className="p-5 flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold text-slate-500">រង់ចាំការអនុម័ត (Pending)</p>
+              <p className="text-xs font-semibold text-slate-500">រង់ចាំការអនុម័ត</p>
               <h3 className="text-2xl font-bold text-amber-600 mt-1">{stats.pending}</h3>
             </div>
             <div className="h-12 w-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
@@ -236,7 +236,7 @@ export default function LeaveRequestsPage() {
         <Card className="rounded-2xl border-slate-200 shadow-sm bg-white">
           <CardContent className="p-5 flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold text-slate-500">បានអនុម័ត (Approved)</p>
+              <p className="text-xs font-semibold text-slate-500">បានអនុម័ត</p>
               <h3 className="text-2xl font-bold text-emerald-600 mt-1">{stats.approved}</h3>
             </div>
             <div className="h-12 w-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
@@ -248,7 +248,7 @@ export default function LeaveRequestsPage() {
         <Card className="rounded-2xl border-slate-200 shadow-sm bg-white">
           <CardContent className="p-5 flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold text-slate-500">បានបដិសេធ (Rejected)</p>
+              <p className="text-xs font-semibold text-slate-500">បានបដិសេធ</p>
               <h3 className="text-2xl font-bold text-red-600 mt-1">{stats.rejected}</h3>
             </div>
             <div className="h-12 w-12 rounded-2xl bg-red-50 flex items-center justify-center text-red-600">
@@ -323,7 +323,7 @@ export default function LeaveRequestsPage() {
               <TableHeader className="bg-slate-50/80">
                 <TableRow>
                   <TableHead className="py-3.5 pl-6 text-xs font-semibold text-slate-600">
-                    មន្ត្រី (Officer)
+                    មន្ត្រី
                   </TableHead>
                   <TableHead className="py-3.5 text-xs font-semibold text-slate-600">
                     ប្រភេទច្បាប់

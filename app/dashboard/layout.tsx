@@ -4,7 +4,6 @@ import { AuthProvider } from '@/components/auth/auth-provider';
 import { AppSidebar, PageHeaderShell } from '@/components/app-sidebar';
 import { DashboardHeaderToggle } from '@/components/dashboard-topbar';
 import { Separator } from '@/components/ui/separator';
-import { Toaster } from '@/components/ui/sonner';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -28,7 +27,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <div className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6">
             {children}
           </div>
-          <Toaster richColors />
         </SidebarInset>
       </SidebarProvider>
     </AuthProvider>

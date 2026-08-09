@@ -11,7 +11,7 @@ import {
   Search,
   Upload,
 } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { RequireAccess } from '@/components/auth/require-access';
 import { useAuth } from '@/components/auth/auth-provider';
 import {

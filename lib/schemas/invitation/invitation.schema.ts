@@ -1,11 +1,16 @@
 import { z } from 'zod';
-import { invitationStatusValues, invitationTypeValues } from './invitation';
+import {
+  invitationStatusValues,
+  invitationTypeValues,
+  invitationCategoryValues,
+} from './invitation';
 
 export const invitationSchema = z.object({
   id: z.number(),
   subject: z.string(),
   organization: z.string(),
   type: z.enum(invitationTypeValues),
+  category: z.enum(invitationCategoryValues).optional().nullable(),
   date: z.string(),
   time: z.string().nullable().optional(),
   location: z.string(),

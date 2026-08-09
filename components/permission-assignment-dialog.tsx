@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { useTranslations } from 'next-intl';
 import { ChevronRight, ChevronDown, UserCog } from 'lucide-react';
 import { Button } from '@/components/ui/button';

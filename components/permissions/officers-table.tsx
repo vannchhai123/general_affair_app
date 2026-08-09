@@ -1,6 +1,6 @@
 'use client';
 
-import { MoreHorizontal, Eye, Key, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { MoreHorizontal, Eye, Key, ChevronLeft, ChevronRight, Search, Shield } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,6 +30,7 @@ interface OfficersTableProps {
     assignments: OfficerPermission[] | undefined;
     isLoading: boolean;
     openAssignmentDialog: (officerId: number) => void;
+    openRoleDialog?: (officerId: number) => void;
     assignPage: number;
     setAssignPage: (page: number) => void;
     assignTotalPages: number;
@@ -79,6 +80,7 @@ export default function OfficersTable({ ctx }: OfficersTableProps) {
     assignments,
     isLoading,
     openAssignmentDialog,
+    openRoleDialog,
     assignPage,
     setAssignPage,
     assignTotalPages,
@@ -164,11 +166,17 @@ export default function OfficersTable({ ctx }: OfficersTableProps) {
                               <span className="sr-only">Open menu</span>
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="center">
+                          <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => openAssignmentDialog(o.id)}>
                               <Key className="mr-2 h-4 w-4" />
                               {t('table.assignAction')}
                             </DropdownMenuItem>
+                            {openRoleDialog && (
+                              <DropdownMenuItem onClick={() => openRoleDialog(o.id)}>
+                                <Shield className="mr-2 h-4 w-4 text-emerald-600" />
+                                កំណត់តួនាទី (Assign Role)
+                              </DropdownMenuItem>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
