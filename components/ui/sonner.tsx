@@ -12,6 +12,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       theme={theme as ToasterProps['theme']}
+      position="bottom-right"
       richColors
       duration={3000}
       closeButton
