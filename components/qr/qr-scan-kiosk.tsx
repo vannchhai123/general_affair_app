@@ -74,24 +74,14 @@ export function QrScanKiosk({
                 className="relative flex h-[320px] w-[320px] items-center justify-center rounded-3xl bg-white p-5 shadow-xl transition-all duration-500 motion-safe:animate-in motion-safe:fade-in md:h-[400px] md:w-[400px]"
               >
                 {qrAvailable ? (
-                  <>
-                    <svg width="0" height="0" className="absolute">
-                      <defs>
-                        <linearGradient id="qr-gradient-kiosk" x1="0%" y1="0%" x2="0%" y2="100%">
-                          <stop offset="0%" stopColor="#6366f1" />
-                          <stop offset="100%" stopColor="#0f172a" />
-                        </linearGradient>
-                      </defs>
-                    </svg>
-                    <QRCodeSVG
-                      value={qrToken}
-                      size={340}
-                      level="M"
-                      includeMargin
-                      fgColor="url(#qr-gradient-kiosk)"
-                      className="h-full w-full"
-                    />
-                  </>
+                  <QRCodeSVG
+                    value={qrToken}
+                    size={320}
+                    level="M"
+                    includeMargin
+                    fgColor="#000000"
+                    className="h-full w-full"
+                  />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-100 px-6 text-center text-slate-600">
                     <div>

@@ -1,5 +1,6 @@
 'use client';
 
+import { Clock, QrCode } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -28,39 +29,33 @@ export function QRDisplay({
 }: QRDisplayProps) {
   if (isLoading) {
     return (
-      <div className="rounded-lg border bg-card p-8">
-        <div className="flex flex-col items-center gap-4">
-          <Skeleton className="aspect-square w-64 rounded-2xl sm:w-80" />
-          <Skeleton className="h-6 w-48" />
-          <Skeleton className="h-4 w-32" />
+      <div className="rounded-xl border bg-card p-8 shadow-sm">
+        <div className="flex flex-col items-center gap-5">
+          <Skeleton className="aspect-square w-64 rounded-3xl sm:w-72" />
+          <Skeleton className="h-5 w-48 rounded-full" />
+          <Skeleton className="h-4 w-36 rounded-md" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="rounded-lg border bg-card p-8">
+    <div className="rounded-xl border bg-card p-6 sm:p-8 shadow-sm">
       <div className="flex flex-col items-center gap-6">
-        {/* QR Code Wrapper with Glowing Backdrop Blur */}
+        {/* QR Code Card Wrapper */}
         <div className="relative group">
-          {/* Glowing blur background */}
-          <div className="absolute -inset-3 bg-gradient-to-r from-blue-500/20 via-sky-400/20 to-indigo-500/20 rounded-3xl blur-2xl opacity-100 animate-pulse pointer-events-none" />
+          {/* Glowing backdrop blur */}
+          <div className="absolute -inset-3 bg-gradient-to-r from-indigo-500/20 via-sky-400/20 to-blue-600/20 rounded-[2.5rem] blur-2xl opacity-100 animate-pulse pointer-events-none" />
 
-          <div className="relative rounded-2xl bg-white p-6 shadow-inner border border-slate-100">
-            {/* Scanner Corners */}
-            <div className="absolute inset-0 pointer-events-none">
-              {/* Top Left */}
-              <div className="absolute top-2 left-2 w-6 h-6 border-t-4 border-l-4 border-black rounded-tl-md" />
-
-              {/* Top Right */}
-              <div className="absolute top-2 right-2 w-6 h-6 border-t-4 border-r-4 border-black rounded-tr-md" />
-
-              {/* Bottom Left */}
-              <div className="absolute bottom-2 left-2 w-6 h-6 border-b-4 border-l-4 border-black rounded-bl-md" />
-
-              {/* Bottom Right */}
-              <div className="absolute bottom-2 right-2 w-6 h-6 border-b-4 border-r-4 border-black rounded-br-md" />
+          <div className="relative rounded-3xl bg-white p-6 shadow-md border border-slate-100">
+            {/* Scanner Bracket Accents */}
+            <div className="absolute inset-2 pointer-events-none">
+              <div className="absolute top-2 left-2 w-6 h-6 border-t-3 border-l-3 border-indigo-600 rounded-tl-lg" />
+              <div className="absolute top-2 right-2 w-6 h-6 border-t-3 border-r-3 border-indigo-600 rounded-tr-lg" />
+              <div className="absolute bottom-2 left-2 w-6 h-6 border-b-3 border-l-3 border-indigo-600 rounded-bl-lg" />
+              <div className="absolute bottom-2 right-2 w-6 h-6 border-b-3 border-r-3 border-indigo-600 rounded-br-lg" />
             </div>
+
             <div
               key={lastUpdatedAt}
               className={`transition-all duration-500 ${
@@ -68,29 +63,19 @@ export function QRDisplay({
               }`}
             >
               {qrAvailable ? (
-                <>
-                  <svg width="0" height="0" className="absolute">
-                    <defs>
-                      <linearGradient id="qr-gradient-display" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stopColor="#6366f1" />
-                        <stop offset="100%" stopColor="#0f172a" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                  <QRCodeSVG
-                    value={qrToken}
-                    size={240}
-                    level="H"
-                    includeMargin
-                    fgColor="url(#qr-gradient-display)"
-                    className="h-full w-full"
-                  />
-                </>
+                <QRCodeSVG
+                  value={qrToken}
+                  size={240}
+                  level="H"
+                  includeMargin
+                  fgColor="#000000"
+                  className="h-[240px] w-[240px] sm:h-[260px] sm:w-[260px]"
+                />
               ) : (
-                <div className="flex h-[240px] w-[240px] items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-100 px-6 text-center text-slate-600">
+                <div className="flex h-[240px] w-[240px] sm:h-[260px] sm:w-[260px] items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 text-center text-slate-600">
                   <div>
                     <p className="text-base font-semibold">មិនមាន QR</p>
-                    <p className="mt-2 text-sm">
+                    <p className="mt-1.5 text-xs text-slate-500">
                       {errorMessage || 'កំពុងរង់ចាំ QR សម័យដែលមានសុពលភាព។'}
                     </p>
                   </div>
@@ -100,16 +85,19 @@ export function QRDisplay({
           </div>
         </div>
 
-        {/* Session Info */}
-        <div className="flex flex-col items-center gap-2 text-center">
-          <p className="text-xs text-muted-foreground">
-            លេខសម្គាល់សម័យ: <span className="font-mono">{sessionId || '---'}</span>
-          </p>
-          {(sessionMessage || timeRange) && (
-            <p className="text-sm font-medium text-foreground">{sessionMessage}</p>
+        {/* Structured Session Details */}
+        <div className="flex flex-col items-center gap-3 text-center w-full max-w-sm">
+          {timeRange && (
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-semibold border border-indigo-100">
+              <Clock className="h-3.5 w-3.5" />
+              <span>{timeRange}</span>
+            </div>
           )}
-          {timeRange && <p className="text-xs text-muted-foreground">{timeRange}</p>}
-          <p className="text-sm text-muted-foreground">មន្ត្រីស្កេន QR នេះដើម្បីកត់ត្រាវត្តមាន</p>
+
+          <div className="mt-1 flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 border border-slate-200/60 text-xs text-slate-600 font-medium">
+            <QrCode className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
+            <span>មន្ត្រីស្កេន QR នេះដើម្បីកត់ត្រាវត្តមាន</span>
+          </div>
         </div>
       </div>
     </div>

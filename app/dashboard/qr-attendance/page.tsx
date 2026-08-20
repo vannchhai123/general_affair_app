@@ -187,17 +187,9 @@ export default function QRAttendancePage() {
     >
       <div className="flex flex-col gap-6">
         <div className="flex items-start justify-between">
-          <div>
-            <h1 className="page-title text-2xl tracking-tight">{t('pageTitle')}</h1>
+          <div className="space-y-1">
+            <h1 className="page-title text-2xl tracking-tight font-bold">{t('pageTitle')}</h1>
           </div>
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipContent>
-                <p>{t('secureBadgeTooltip')}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
         </div>
 
         <SessionControls

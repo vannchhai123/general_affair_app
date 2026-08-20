@@ -52,7 +52,7 @@ export const appNavigation: NavItem[] = [
     icon: FileText,
   },
   {
-    title: 'QR Code វត្តមាន',
+    title: 'វត្តមាន',
     href: '/dashboard/qr-sessions',
     icon: QrCode,
     roles: ['ROLE_ADMIN'],

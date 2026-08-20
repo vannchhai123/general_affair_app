@@ -123,7 +123,7 @@
   "qrAttendance": {
     "restrictedTitle": "ការចូលប្រើ QR attendance ត្រូវបានដាក់កំណត់",
     "restrictedDescription": "មានតែអ្នកគ្រប់គ្រងស៊ុបឌៀដែលអាចប្រើឧបករណ៍ QR attendance បាន។",
-    "pageTitle": "QR ការចូលប្រើ",
+    "pageTitle": "វត្តមាន",
     "pageDescription": "គ្រប់គ្រងសម័យ QR សកម្មសម្រាប់ការចូលរួម និងចាកចេញរបស់មន្ត្រី។",
     "secureBadge": "QR ប្ដូរយ៉ាងសុវត្ថិភាព",
     "secureBadgeTooltip": "ភាពអាចប្រើ និងពេលវេលា QR ត្រូវបានគ្រប់គ្រងដោយកាលវិភាគផ្ទាំងខាងក្រោយ។",

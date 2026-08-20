@@ -310,18 +310,11 @@ export function InvitationForm({
     if (invitation?.imageUrls && invitation.imageUrls.length > 0) {
       setPreviewUrls(invitation.imageUrls);
     }
-  }, [form, invitation, open]);
+  }, [form, invitation, open, mode]);
 
   const isAssignMode = mode === 'assign';
 
-  const currentOfficers =
-    category === 'internal'
-      ? eligiblePriorityOfficers.length > 0
-        ? eligiblePriorityOfficers
-        : activeOfficers.slice(0, 7)
-      : activeOfficers.length > 0
-        ? activeOfficers
-        : officers;
+  const currentOfficers = activeOfficers.length > 0 ? activeOfficers : officers;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -372,7 +365,7 @@ export function InvitationForm({
                           >
                             <div className="flex items-center gap-2 font-medium text-sm">
                               <Building2 className="h-4 w-4" />
-                              <span>លិខិតអញ្ជើញថ្មីផ្ទៃក្រៅ</span>
+                              <span>លិខិតអញ្ជើញថ្មីផ្ទៃក្នុង</span>
                             </div>
                           </button>
 
@@ -391,7 +384,7 @@ export function InvitationForm({
                           >
                             <div className="flex items-center gap-2 font-medium text-sm">
                               <Globe className="h-4 w-4" />
-                              <span>លិខិតអញ្ជើញថ្មីផ្ទៃក្នុង</span>
+                              <span>លិខិតអញ្ជើញថ្មីផ្ទៃក្រៅ</span>
                             </div>
                           </button>
                         </div>
@@ -409,9 +402,7 @@ export function InvitationForm({
                       <div className="flex items-center justify-between">
                         <FormLabel>សមាសភាពចូលរួម</FormLabel>
                         <span className="text-xs text-muted-foreground">
-                          {category === 'internal'
-                            ? `(មន្ត្រីអាទិភាព ${currentOfficers.length} រូប)`
-                            : `(មន្ត្រីទាំងអស់ ${currentOfficers.length} រូប)`}
+                          (មន្ត្រីទាំងអស់ {currentOfficers.length} រូប)
                         </span>
                       </div>
                       <FormControl>
@@ -419,7 +410,7 @@ export function InvitationForm({
                           officers={currentOfficers}
                           value={field.value ?? []}
                           onChange={field.onChange}
-                          showOfficeFilter={category === 'external'}
+                          showOfficeFilter={true}
                         />
                       </FormControl>
                       <FormMessage />
@@ -491,9 +482,7 @@ export function InvitationForm({
                       <div className="flex items-center justify-between">
                         <FormLabel>សមាសភាពចូលរួម</FormLabel>
                         <span className="text-xs text-muted-foreground">
-                          {category === 'internal'
-                            ? `(មន្ត្រីអាទិភាព ${currentOfficers.length} រូប)`
-                            : `(មន្ត្រីទាំងអស់ ${currentOfficers.length} រូប)`}
+                          (មន្ត្រីទាំងអស់ {currentOfficers.length} រូប)
                         </span>
                       </div>
                       <FormControl>
@@ -501,7 +490,7 @@ export function InvitationForm({
                           officers={currentOfficers}
                           value={field.value ?? []}
                           onChange={field.onChange}
-                          showOfficeFilter={category === 'external'}
+                          showOfficeFilter={true}
                         />
                       </FormControl>
                       <FormMessage />
