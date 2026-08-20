@@ -283,18 +283,17 @@ export default function DocumentManagementPage() {
   return (
     <div className="space-y-6">
       {/* 1. Statistics Cards Row */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <Card className="relative overflow-hidden border-slate-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider font-khmer-moul-light">
                   ឯកសារសរុប
                 </p>
                 <h3 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
                   {stats.total}
                 </h3>
-                <p className="mt-1 text-xs text-slate-400">ឯកសារទាំងអស់ក្នុងប្រព័ន្ធ</p>
               </div>
               <div className="rounded-2xl bg-indigo-50 border border-indigo-100 p-3 text-indigo-600 shadow-sm">
                 <FolderOpen className="h-6 w-6" />
@@ -307,13 +306,12 @@ export default function DocumentManagementPage() {
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider font-khmer-moul-light">
                   កំពុងពិនិត្យ
                 </p>
                 <h3 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
                   {stats.pending}
                 </h3>
-                <p className="mt-1 text-xs text-slate-400">ឯកសារត្រូវការត្រួតពិនិត្យ (Pending)</p>
               </div>
               <div className="rounded-2xl bg-amber-50 border border-amber-100 p-3 text-amber-600 shadow-sm">
                 <Clock className="h-6 w-6" />
@@ -322,36 +320,34 @@ export default function DocumentManagementPage() {
           </CardContent>
         </Card>
 
-        <Card className="relative overflow-hidden border-slate-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md">
+        {/* <Card className="relative overflow-hidden border-slate-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  អាទិភាពបន្ទាន់បំផុត
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider font-khmer-moul-light">
+                  អាទិភាព
                 </p>
                 <h3 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
                   {stats.urgent}
                 </h3>
-                <p className="mt-1 text-xs text-slate-400">ឯកសារកម្រិតបន្ទាន់ និងបន្ទាន់បំផុត</p>
               </div>
               <div className="rounded-2xl bg-rose-50 border border-rose-100 p-3 text-rose-600 shadow-sm">
                 <ShieldAlert className="h-6 w-6" />
               </div>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
         <Card className="relative overflow-hidden border-slate-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider font-khmer-moul-light">
                   ទំហំផ្ទុកសរុប
                 </p>
                 <h3 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
                   {stats.storage}
                 </h3>
-                <p className="mt-1 text-xs text-slate-400">គិតជាទំហំឯកសារ PDF / រូបភាព</p>
               </div>
               <div className="rounded-2xl bg-cyan-50 border border-cyan-100 p-3 text-cyan-600 shadow-sm">
                 <FileCheck2 className="h-6 w-6" />

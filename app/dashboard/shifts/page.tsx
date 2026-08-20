@@ -331,7 +331,7 @@ export default function ShiftsPage() {
               </div>
 
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                <div className="flex flex-col gap-3 sm:flex-row">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   <div className="relative min-w-[240px] flex-1">
                     <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
@@ -339,7 +339,8 @@ export default function ShiftsPage() {
                       onChange={(event) =>
                         updateFilters({ search: event.target.value || undefined, page: '1' })
                       }
-                      className="pl-9"
+                      placeholder="ស្វែងរកតាមឈ្មោះវេន, កូដ..."
+                      className="h-10 pl-9 text-sm"
                     />
                   </div>
 
@@ -347,26 +348,27 @@ export default function ShiftsPage() {
                     value={status}
                     onValueChange={(value) => updateFilters({ status: value, page: '1' })}
                   >
-                    <SelectTrigger className="w-full sm:w-[200px]">
+                    <SelectTrigger className="h-10 w-full sm:w-[200px]">
                       <Filter className="mr-2 h-4 w-4 text-muted-foreground" />
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">ស្ថានភាព</SelectItem>
+                      <SelectItem value="all">ស្ថានភាពទាំងអស់</SelectItem>
                       <SelectItem value="active">សកម្ម</SelectItem>
                       <SelectItem value="inactive">មិនសកម្ម</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Button
                     variant="outline"
+                    className="h-10"
                     onClick={() => updateFilters({ search: undefined, status: 'all', page: '1' })}
                   >
                     សម្អាតតម្រង
                   </Button>
-                  <Button onClick={openCreate} disabled={!canManage}>
+                  <Button className="h-10" onClick={openCreate} disabled={!canManage}>
                     <Plus className="mr-2 h-4 w-4" />
                     វេនថ្មី
                   </Button>

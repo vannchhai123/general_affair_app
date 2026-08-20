@@ -48,22 +48,23 @@ export function InvitationFilters({
         </p>
       </div>
 
-      <div className="grid gap-3 xl:grid-cols-[minmax(0,1.6fr)_180px_180px_240px_auto]">
+      <div className="grid gap-3 xl:grid-cols-[minmax(0,1.6fr)_180px_180px_240px_auto] items-center">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
-            className="pl-9"
+            placeholder="ស្វែងរកតាមបរិយាយ, អង្គភាព, ទីកន្លែង..."
+            className="h-10 pl-9 text-sm"
           />
         </div>
 
         <Select value={status} onValueChange={onStatusChange}>
-          <SelectTrigger>
+          <SelectTrigger className="h-10">
             <SelectValue placeholder="ស្ថានភាព" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">ស្ថានភាព</SelectItem>
+            <SelectItem value="all">ស្ថានភាពទាំងអស់</SelectItem>
             <SelectItem value="pending">កំពុងរង់ចាំ</SelectItem>
             <SelectItem value="accepted">បានទទួលយក</SelectItem>
             <SelectItem value="rejected">បានបដិសេធ</SelectItem>
@@ -72,11 +73,11 @@ export function InvitationFilters({
         </Select>
 
         <Select value={type} onValueChange={onTypeChange}>
-          <SelectTrigger>
+          <SelectTrigger className="h-10">
             <SelectValue placeholder="ប្រភេទ" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">ប្រភេទ</SelectItem>
+            <SelectItem value="all">ប្រភេទទាំងអស់</SelectItem>
             <SelectItem value="incoming">លិខិតចូល</SelectItem>
             <SelectItem value="outgoing">លិខិតចេញ</SelectItem>
           </SelectContent>
@@ -87,14 +88,16 @@ export function InvitationFilters({
             <Button
               variant="outline"
               className={cn(
-                'justify-start rounded-md text-left font-normal',
+                'h-10 w-full justify-start rounded-md text-left font-normal text-sm',
                 !dateRange && 'text-muted-foreground',
               )}
             >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {dateRange?.from
-                ? `${format(dateRange.from, 'dd/MM/yyyy')}${dateRange.to ? ` - ${format(dateRange.to, 'dd/MM/yyyy')}` : ''}`
-                : 'ជ្រើសរើសចន្លោះកាលបរិច្ឆេទ'}
+              <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+              <span className="truncate">
+                {dateRange?.from
+                  ? `${format(dateRange.from, 'dd/MM/yyyy')}${dateRange.to ? ` - ${format(dateRange.to, 'dd/MM/yyyy')}` : ''}`
+                  : 'ជ្រើសរើសចន្លោះកាលបរិច្ឆេទ'}
+              </span>
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
@@ -107,10 +110,16 @@ export function InvitationFilters({
           </PopoverContent>
         </Popover>
 
-        <Button variant="outline" onClick={onReset} disabled={!hasActiveFilters}>
-          <RotateCcw className="mr-2 h-4 w-4" />
-          កំណត់ឡើងវិញ
-        </Button>
+        {hasActiveFilters && (
+          <Button
+            variant="ghost"
+            onClick={onReset}
+            className="h-10 px-3 text-xs text-muted-foreground hover:text-foreground shrink-0"
+          >
+            <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+            កំណត់ឡើងវិញ
+          </Button>
+        )}
       </div>
     </div>
   );

@@ -372,11 +372,8 @@ export function InvitationForm({
                           >
                             <div className="flex items-center gap-2 font-medium text-sm">
                               <Building2 className="h-4 w-4" />
-                              <span>លិខិតអញ្ជើញថ្មីផ្ទៃក្នុង</span>
+                              <span>លិខិតអញ្ជើញថ្មីផ្ទៃក្រៅ</span>
                             </div>
-                            <span className="text-xs text-muted-foreground mt-1">
-                              ចាត់តាំងមន្ត្រីអាទិភាព (៧ រូប)
-                            </span>
                           </button>
 
                           <button
@@ -394,11 +391,8 @@ export function InvitationForm({
                           >
                             <div className="flex items-center gap-2 font-medium text-sm">
                               <Globe className="h-4 w-4" />
-                              <span>លិខិតអញ្ជើញថ្មីផ្ទៃក្រៅ</span>
+                              <span>លិខិតអញ្ជើញថ្មីផ្ទៃក្នុង</span>
                             </div>
-                            <span className="text-xs text-muted-foreground mt-1">
-                              អាចចាត់តាំងមន្ត្រីបានទាំងអស់
-                            </span>
                           </button>
                         </div>
                       </FormControl>
@@ -461,9 +455,6 @@ export function InvitationForm({
                               <Building2 className="h-4 w-4" />
                               <span>លិខិតអញ្ជើញថ្មីផ្ទៃក្នុង</span>
                             </div>
-                            <span className="text-xs text-muted-foreground mt-1">
-                              ចាត់តាំងមន្ត្រីអាទិភាព (៧ រូប)
-                            </span>
                           </button>
 
                           <button
@@ -483,9 +474,6 @@ export function InvitationForm({
                               <Globe className="h-4 w-4" />
                               <span>លិខិតអញ្ជើញថ្មីផ្ទៃក្រៅ</span>
                             </div>
-                            <span className="text-xs text-muted-foreground mt-1">
-                              អាចចាត់តាំងមន្ត្រីបានទាំងអស់
-                            </span>
                           </button>
                         </div>
                       </FormControl>

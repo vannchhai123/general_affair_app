@@ -182,9 +182,6 @@ export function InvitationTable({
                 <TableCell>
                   <div className="min-w-[220px]">
                     <p className="font-medium">{invitation.subject}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {invitation.type === 'incoming' ? 'លិខិតចូល' : 'លិខិតចេញ'}
-                    </p>
                   </div>
                 </TableCell>
                 <TableCell className="text-sm">{invitation.organization}</TableCell>

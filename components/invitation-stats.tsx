@@ -11,7 +11,7 @@ const statsConfig = [
     key: 'total',
     label: 'លិខិតអញ្ជើញសរុប',
     icon: CalendarRange,
-    accent: 'bg-slate-500',
+    // accent: 'bg-slate-500',
     iconColor: 'text-slate-700',
     iconBg: 'bg-slate-100',
   },
@@ -19,7 +19,7 @@ const statsConfig = [
     key: 'pending',
     label: 'កំពុងរង់ចាំ',
     icon: CircleDashed,
-    accent: 'bg-amber-500',
+    // accent: 'bg-amber-500',
     iconColor: 'text-amber-700',
     iconBg: 'bg-amber-100',
   },
@@ -39,14 +39,7 @@ const statsConfig = [
     iconColor: 'text-rose-700',
     iconBg: 'bg-rose-100',
   },
-  {
-    key: 'completed',
-    label: 'បានបញ្ចប់',
-    icon: CheckSquare,
-    accent: 'bg-sky-500',
-    iconColor: 'text-sky-700',
-    iconBg: 'bg-sky-100',
-  },
+
 ] as const;
 
 export function InvitationStats({
@@ -65,11 +58,10 @@ export function InvitationStats({
   };
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {statsConfig.map((item) => (
         <Card key={item.key} className="overflow-hidden rounded-xl border shadow-sm">
           <CardContent className="relative p-0">
-            <div className={`h-1 w-full ${item.accent}`} />
             <div className="flex items-start justify-between px-5 py-5">
               <div>
                 {isLoading ? (
@@ -79,11 +71,11 @@ export function InvitationStats({
                   </>
                 ) : (
                   <>
+                    <p className="mt-1 text-sm text-muted-foreground font-khmer-moul-light">{item.label}</p>
                     <CardNumber
                       value={counts[item.key]}
                       className="block text-3xl font-semibold tracking-tight"
                     />
-                    <p className="mt-1 text-sm text-muted-foreground">{item.label}</p>
                   </>
                 )}
               </div>

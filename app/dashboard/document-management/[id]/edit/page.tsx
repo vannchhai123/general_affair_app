@@ -311,51 +311,13 @@ export default function EditDocumentPage({ params }: PageProps) {
       <Card className="border-slate-200 shadow-sm bg-white rounded-2xl overflow-hidden">
         <CardContent className="p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Direction selector */}
-            <div className="space-y-2">
+            {/* Direction indicator - Outgoing Document only */}
+            <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-600 block">ទិសដៅឯកសារ *</label>
-              <div className="grid grid-cols-3 gap-3">
-                {(['INCOMING', 'OUTGOING', 'INTERNAL'] as const).map((dir) => {
-                  const isOutgoing = dir === 'OUTGOING';
-                  return (
-                    <div
-                      key={dir}
-                      onClick={() => {
-                        if (isOutgoing) {
-                          setFormDirection(dir);
-                        }
-                      }}
-                      className={`p-4 rounded-xl border text-center text-xs font-bold transition-all ${
-                        isOutgoing
-                          ? 'border-indigo-600 bg-indigo-50/50 text-indigo-700 shadow-sm cursor-default'
-                          : 'border-slate-100 bg-slate-50/30 text-slate-400 cursor-not-allowed opacity-60'
-                      }`}
-                    >
-                      {dir === 'INCOMING' ? (
-                        <div className="flex flex-col items-center">
-                          <span>📥 ឯកសារចូល</span>
-                          <span className="text-[10px] font-normal text-slate-400 mt-1">
-                            (ក្រៅវិសាលភាព)
-                          </span>
-                        </div>
-                      ) : dir === 'OUTGOING' ? (
-                        <div className="flex flex-col items-center">
-                          <span>📤 ឯកសារចេញ</span>
-                          <span className="text-[10px] font-semibold text-indigo-500 mt-1">
-                            (វិសាលភាពបច្ចុប្បន្ន)
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center">
-                          <span>💻 ឯកសារផ្ទៃក្នុង</span>
-                          <span className="text-[10px] font-normal text-slate-400 mt-1">
-                            (ក្រៅវិសាលភាព)
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+              <div className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-indigo-200 bg-indigo-50/60 text-indigo-700 text-xs font-medium">
+                <span>📤</span>
+                <span className="font-bold">ឯកសារចេញ</span>
+                <span className="text-[11px] text-indigo-500 font-normal">(Outgoing)</span>
               </div>
             </div>
 
