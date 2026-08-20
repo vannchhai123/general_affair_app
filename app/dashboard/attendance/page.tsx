@@ -5,7 +5,9 @@ import {
   AlertCircle,
   BarChart3,
   CalendarIcon,
+  ClipboardList,
   Download,
+  MapPin,
   Plus,
   RefreshCw,
   Search,
@@ -20,6 +22,7 @@ import {
 } from '@/components/attendance/attendance-dialogs';
 import { AttendanceTable } from '@/components/attendance/attendance-table';
 import { AttendanceSummaryDashboard } from '@/components/attendance/attendance-summary-dashboard';
+import { AttendanceLocationManagement } from '@/components/attendance/attendance-location-management';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,7 +33,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 import { useAttendance } from '@/hooks/attendance/use-attendance';
 import { useOffices } from '@/hooks/organization/use-offices';
 import { useOfficers } from '@/hooks/officers/use-officers';
@@ -196,132 +200,159 @@ export default function AttendancePage() {
     await refetchSummary();
   }
 
+  const [mainTab, setMainTab] = useState<'records' | 'locations'>('records');
+
   return (
     <RequireAccess permission="ATTENDANCE_VIEW">
       <div className="flex flex-col gap-6">
-        <div className="flex flex-col gap-4 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="page-title text-2xl font-semibold tracking-tight text-slate-950">
-              ការគ្រប់គ្រងវត្តមាន
-            </h1>
+        <Tabs
+          value={mainTab}
+          onValueChange={(val) => setMainTab(val as 'records' | 'locations')}
+          className="w-full space-y-6"
+        >
+          <div className="flex flex-col gap-4 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
+              <h1 className="page-title text-2xl font-semibold tracking-tight text-slate-950">
+                ការគ្រប់គ្រងវត្តមាន
+              </h1>
+              <TabsList className="bg-muted/60 p-1">
+                <TabsTrigger value="records" className="gap-2 text-xs sm:text-sm">
+                  <ClipboardList className="h-4 w-4" />
+                  កំណត់ត្រាវត្តមាន
+                </TabsTrigger>
+                <TabsTrigger value="locations" className="gap-2 text-xs sm:text-sm">
+                  <MapPin className="h-4 w-4" />
+                  ការកំណត់ទីតាំង
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            {mainTab === 'records' && (
+              <Button
+                variant="outline"
+                onClick={() => setShowStats(!showStats)}
+                className="self-start sm:self-auto gap-2 border-slate-200"
+              >
+                <BarChart3 className="h-4 w-4 text-slate-500" />
+                {showStats ? 'លាក់ស្ថិតិ' : 'បង្ហាញស្ថិតិ'}
+              </Button>
+            )}
           </div>
-          <Button
-            variant="outline"
-            onClick={() => setShowStats(!showStats)}
-            className="self-start sm:self-auto gap-2 border-slate-200"
-          >
-            <BarChart3 className="h-4 w-4 text-slate-500" />
-            {showStats ? 'លាក់ស្ថិតិ' : 'បង្ហាញស្ថិតិ'}
-          </Button>
-        </div>
 
-        <input
-          ref={importInputRef}
-          type="file"
-          accept=".xlsx"
-          className="hidden"
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-            event.target.value = '';
-            if (file) void handleImportFile(file);
-          }}
-        />
-
-        {showStats && (
-          <div className="animate-in fade-in slide-in-from-top-4 duration-300">
-            <AttendanceSummaryDashboard
-              records={summaryRecords}
-              isLoading={isSummaryLoading}
-              error={summaryError}
+          <TabsContent value="records" className="space-y-6 mt-0">
+            <input
+              ref={importInputRef}
+              type="file"
+              accept=".xlsx"
+              className="hidden"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = '';
+                if (file) void handleImportFile(file);
+              }}
             />
-          </div>
-        )}
 
-        {error ? <AttendanceErrorAlert onRetry={() => void refetch()} /> : null}
+            {showStats && (
+              <div className="animate-in fade-in slide-in-from-top-4 duration-300">
+                <AttendanceSummaryDashboard
+                  records={summaryRecords}
+                  isLoading={isSummaryLoading}
+                  error={summaryError}
+                />
+              </div>
+            )}
 
-        <AttendanceFilters
-          search={search}
-          date={date}
-          department={department}
-          status={status}
-          departmentOptions={departmentOptions}
-          onSearchChange={(value) => {
-            setSearch(value);
-            resetPage();
-          }}
-          onDateChange={(value) => {
-            setDate(value);
-            resetPage();
-          }}
-          onDepartmentChange={(value) => {
-            setDepartment(value);
-            resetPage();
-          }}
-          onStatusChange={(value) => {
-            setStatus(value);
-            resetPage();
-          }}
-          onAdd={canCreate ? () => setModalOpen(true) : undefined}
-          onExport={canExport ? () => void handleExport() : undefined}
-          onBulkUpload={canImport ? () => importInputRef.current?.click() : undefined}
-        />
+            {error ? <AttendanceErrorAlert onRetry={() => void refetch()} /> : null}
 
-        <AttendanceViewControls
-          viewMode={viewMode}
-          selectedCount={selectedIds.length}
-          onViewModeChange={setViewMode}
-        />
+            <AttendanceFilters
+              search={search}
+              date={date}
+              department={department}
+              status={status}
+              departmentOptions={departmentOptions}
+              onSearchChange={(value) => {
+                setSearch(value);
+                resetPage();
+              }}
+              onDateChange={(value) => {
+                setDate(value);
+                resetPage();
+              }}
+              onDepartmentChange={(value) => {
+                setDepartment(value);
+                resetPage();
+              }}
+              onStatusChange={(value) => {
+                setStatus(value);
+                resetPage();
+              }}
+              onAdd={canCreate ? () => setModalOpen(true) : undefined}
+              onExport={canExport ? () => void handleExport() : undefined}
+              onBulkUpload={canImport ? () => importInputRef.current?.click() : undefined}
+            />
 
-        <AttendanceTable
-          records={filteredRecords}
-          isLoading={isLoading}
-          selectedIds={selectedIds}
-          page={page}
-          totalPages={totalPages}
-          officersMap={officersMap}
-          onAdd={canCreate ? () => setModalOpen(true) : undefined}
-          onDetails={(record) => {
-            setSelectedAttendance(record);
-            setDetailOpen(true);
-          }}
-          onEdit={
-            canEdit
-              ? (record) => {
-                  setEditingAttendance(record);
-                  setModalOpen(true);
-                }
-              : undefined
-          }
-          onToggleSelect={(id) =>
-            setSelectedIds((current) =>
-              current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
-            )
-          }
-          onToggleSelectAll={() =>
-            setSelectedIds((current) =>
-              current.length === filteredRecords.length
-                ? []
-                : filteredRecords.map((item) => item.id),
-            )
-          }
-          onPageChange={setPage}
-        />
+            <AttendanceViewControls
+              viewMode={viewMode}
+              selectedCount={selectedIds.length}
+              onViewModeChange={setViewMode}
+            />
 
-        <AttendanceFormDialog
-          open={modalOpen}
-          onOpenChange={(open) => {
-            setModalOpen(open);
-            if (!open) setEditingAttendance(null);
-          }}
-          attendance={editingAttendance}
-          onSubmit={handleSubmitAttendance}
-        />
+            <AttendanceTable
+              records={filteredRecords}
+              isLoading={isLoading}
+              selectedIds={selectedIds}
+              page={page}
+              totalPages={totalPages}
+              officersMap={officersMap}
+              onAdd={canCreate ? () => setModalOpen(true) : undefined}
+              onDetails={(record) => {
+                setSelectedAttendance(record);
+                setDetailOpen(true);
+              }}
+              onEdit={
+                canEdit
+                  ? (record) => {
+                      setEditingAttendance(record);
+                      setModalOpen(true);
+                    }
+                  : undefined
+              }
+              onToggleSelect={(id) =>
+                setSelectedIds((current) =>
+                  current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
+                )
+              }
+              onToggleSelectAll={() =>
+                setSelectedIds((current) =>
+                  current.length === filteredRecords.length
+                    ? []
+                    : filteredRecords.map((item) => item.id),
+                )
+              }
+              onPageChange={setPage}
+            />
 
-        <AttendanceDetailsDialog
-          open={detailOpen}
-          onOpenChange={setDetailOpen}
-          attendance={selectedAttendance}
-        />
+            <AttendanceFormDialog
+              open={modalOpen}
+              onOpenChange={(open) => {
+                setModalOpen(open);
+                if (!open) setEditingAttendance(null);
+              }}
+              attendance={editingAttendance}
+              onSubmit={handleSubmitAttendance}
+            />
+
+            <AttendanceDetailsDialog
+              open={detailOpen}
+              onOpenChange={setDetailOpen}
+              attendance={selectedAttendance}
+            />
+          </TabsContent>
+
+          <TabsContent value="locations" className="space-y-6 mt-0">
+            <AttendanceLocationManagement />
+          </TabsContent>
+        </Tabs>
       </div>
     </RequireAccess>
   );
