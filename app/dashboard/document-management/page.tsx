@@ -391,7 +391,6 @@ export default function DocumentManagementPage() {
                   placeholder="ស្វែងរកឯកសារ..."
                 />
               </div>
-
               <div className="flex items-center gap-2">
                 <Select value={typeFilter} onValueChange={setTypeFilter}>
                   <SelectTrigger className="w-[190px] bg-white text-slate-700">

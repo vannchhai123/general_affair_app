@@ -39,7 +39,6 @@ const statsConfig = [
     iconColor: 'text-rose-700',
     iconBg: 'bg-rose-100',
   },
-
 ] as const;
 
 export function InvitationStats({
@@ -71,7 +70,9 @@ export function InvitationStats({
                   </>
                 ) : (
                   <>
-                    <p className="mt-1 text-sm text-muted-foreground font-khmer-moul-light">{item.label}</p>
+                    <p className="mt-1 text-sm text-muted-foreground font-khmer-moul-light">
+                      {item.label}
+                    </p>
                     <CardNumber
                       value={counts[item.key]}
                       className="block text-3xl font-semibold tracking-tight"
