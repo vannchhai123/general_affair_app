@@ -1,18 +1,19 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { QrCode, Shield, UserCheck, UserX, Clock, Copy, ExternalLink } from 'lucide-react';
+import { QrCode, Shield, UserCheck, UserX, Clock, Copy, ExternalLink, MapPin } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { toast } from '@/lib/toast';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { QRDisplay } from '@/components/qr/qr-display';
 import { SessionControls } from '@/components/qr/session-controls';
 import { CheckInList } from '@/components/qr/checkin-list';
 import { SummaryCard } from '@/components/qr/summary-card';
+import { AttendanceLocationManagement } from '@/components/attendance/attendance-location-management';
 import { RequireAccess } from '@/components/auth/require-access';
 import { useUpdateQrSession } from '@/hooks/qr-sessions/use-qr-session-mutations';
 import { useCurrentQrSession } from '@/hooks/qr-sessions/use-qr-session';
@@ -57,6 +58,7 @@ function getSessionEndsAt(session: { endsAt?: string | null; ends_at?: string | 
 }
 
 export default function QRAttendancePage() {
+  const [activeTab, setActiveTab] = useState<'qr-session' | 'locations'>('qr-session');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [origin, setOrigin] = useState('');
 
@@ -124,7 +126,7 @@ export default function QRAttendancePage() {
         time: formatScanTime(checkIn.scannedAt ?? checkIn.scanned_at ?? checkIn.timestamp),
         status: normalizeCheckInStatus(checkIn),
       })),
-    [checkInsData],
+    [checkInsData, t],
   );
 
   const stats = useMemo(() => {
@@ -186,154 +188,181 @@ export default function QRAttendancePage() {
       description={t('restrictedDescription')}
     >
       <div className="flex flex-col gap-6">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <h1 className="page-title text-2xl tracking-tight font-bold">{t('pageTitle')}</h1>
-          </div>
-        </div>
-
-        <SessionControls
-          sessionStatus={sessionStatus}
-          message={sessionMessage}
-          timeRange={timeRange}
-          onRegenerateQR={regenerateQR}
-          disableRegenerate={!sessionId || sessionStatus !== 'active' || updateQrSession.isPending}
-        />
-
-        {currentSessionError && (
-          <Alert variant="destructive">
-            <AlertDescription className="flex items-center justify-between gap-3">
-              <span>
-                {currentSessionErrorData instanceof Error
-                  ? currentSessionErrorData.message
-                  : t('unableToLoadCurrentSession')}
-              </span>
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-7"
-                onClick={() => void refetchCurrentSession()}
-              >
-                {t('retryLabel')}
-              </Button>
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {sessionStatus === 'idle' ? (
-          <div className="flex flex-col items-center justify-center rounded-lg border bg-card py-24 text-center">
-            <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-muted">
-              <QrCode className="h-10 w-10 text-muted-foreground" />
+        <Tabs
+          value={activeTab}
+          onValueChange={(val) => setActiveTab(val as 'qr-session' | 'locations')}
+          className="w-full space-y-6"
+        >
+          <div className="flex flex-col gap-4 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
+              <h1 className="page-title text-2xl tracking-tight font-bold">{t('pageTitle')}</h1>
             </div>
-            <h3 className="text-lg font-medium">{t('sessionIdleTitle')}</h3>
-            <p className="mt-2 text-sm text-muted-foreground">{t('sessionIdleDescription')}</p>
-          </div>
-        ) : (
-          <>
-            <div className="grid gap-6 lg:grid-cols-3">
-              <div className="lg:col-span-2">
-                <QRDisplay
-                  errorMessage={qrScanDisplay.errorMessage}
-                  lastUpdatedAt={qrScanDisplay.lastUpdatedAt}
-                  qrAvailable={qrScanDisplay.qrAvailable}
-                  qrToken={qrScanDisplay.qrToken}
-                  sessionId={sessionId}
-                  sessionMessage={sessionMessage}
-                  timeRange={timeRange}
-                  isRefreshing={isRefreshing}
-                  isLoading={
-                    currentSessionLoading ||
-                    updateQrSession.isPending ||
-                    qrScanDisplay.sessionStatus === 'loading'
-                  }
-                />
-              </div>
 
-              <div className="lg:col-span-1">
-                {checkInsError && (
-                  <Alert variant="destructive" className="mb-3">
-                    <AlertDescription className="flex items-center justify-between gap-3">
-                      <span>
-                        {checkInsErrorData instanceof Error
-                          ? checkInsErrorData.message
-                          : t('unableToLoadCheckIns')}
-                      </span>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-7"
-                        onClick={() => {
-                          void refetchCheckIns();
-                        }}
-                      >
-                        {t('retryLabel')}
+            <TabsList className="bg-muted/60 p-1">
+              <TabsTrigger value="qr-session" className="gap-2 text-xs sm:text-sm">
+                <QrCode className="h-4 w-4" />
+                សម័យ QR
+              </TabsTrigger>
+              <TabsTrigger value="locations" className="gap-2 text-xs sm:text-sm">
+                <MapPin className="h-4 w-4" />
+                ការកំណត់ទីតាំង
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          {/* TAB 1: QR SESSION */}
+          <TabsContent value="qr-session" className="space-y-6 mt-0">
+            <SessionControls
+              sessionStatus={sessionStatus}
+              message={sessionMessage}
+              timeRange={timeRange}
+              onRegenerateQR={regenerateQR}
+              disableRegenerate={
+                !sessionId || sessionStatus !== 'active' || updateQrSession.isPending
+              }
+            />
+
+            {currentSessionError && (
+              <Alert variant="destructive">
+                <AlertDescription className="flex items-center justify-between gap-3">
+                  <span>
+                    {currentSessionErrorData instanceof Error
+                      ? currentSessionErrorData.message
+                      : t('unableToLoadCurrentSession')}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7"
+                    onClick={() => void refetchCurrentSession()}
+                  >
+                    {t('retryLabel')}
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {sessionStatus === 'idle' ? (
+              <div className="flex flex-col items-center justify-center rounded-lg border bg-card py-24 text-center">
+                <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+                  <QrCode className="h-10 w-10 text-muted-foreground" />
+                </div>
+                <h3 className="text-lg font-medium">{t('sessionIdleTitle')}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{t('sessionIdleDescription')}</p>
+              </div>
+            ) : (
+              <>
+                <div className="grid gap-6 lg:grid-cols-3">
+                  <div className="lg:col-span-2">
+                    <QRDisplay
+                      errorMessage={qrScanDisplay.errorMessage}
+                      lastUpdatedAt={qrScanDisplay.lastUpdatedAt}
+                      qrAvailable={qrScanDisplay.qrAvailable}
+                      qrToken={qrScanDisplay.qrToken}
+                      sessionId={sessionId}
+                      sessionMessage={sessionMessage}
+                      timeRange={timeRange}
+                      isRefreshing={isRefreshing}
+                      isLoading={
+                        currentSessionLoading ||
+                        updateQrSession.isPending ||
+                        qrScanDisplay.sessionStatus === 'loading'
+                      }
+                    />
+                  </div>
+
+                  <div className="lg:col-span-1">
+                    {checkInsError && (
+                      <Alert variant="destructive" className="mb-3">
+                        <AlertDescription className="flex items-center justify-between gap-3">
+                          <span>
+                            {checkInsErrorData instanceof Error
+                              ? checkInsErrorData.message
+                              : t('unableToLoadCheckIns')}
+                          </span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7"
+                            onClick={() => {
+                              void refetchCheckIns();
+                            }}
+                          >
+                            {t('retryLabel')}
+                          </Button>
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    <CheckInList checkIns={checkIns} isLoading={checkInsLoading} />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                  <SummaryCard
+                    label={t('totalScans')}
+                    value={stats.totalScans}
+                    icon={QrCode}
+                    color="text-slate-700"
+                    bg="bg-slate-50"
+                  />
+                  <SummaryCard
+                    label={t('checkedIn')}
+                    value={stats.checkedIn}
+                    icon={UserCheck}
+                    color="text-emerald-700"
+                    bg="bg-emerald-50"
+                  />
+                  <SummaryCard
+                    label={t('checkedOut')}
+                    value={stats.checkedOut}
+                    icon={UserX}
+                    color="text-blue-700"
+                    bg="bg-blue-50"
+                  />
+                  <SummaryCard
+                    label={t('late')}
+                    value={stats.late}
+                    icon={Clock}
+                    color="text-amber-700"
+                    bg="bg-amber-50"
+                  />
+                </div>
+
+                <div className="rounded-lg border bg-card p-5">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="space-y-1">
+                      <h3 className="font-khmer-moul-light text-base font-semibold text-foreground">
+                        {t('kioskDisplayTitle')}
+                      </h3>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      <Button variant="outline" onClick={copyDisplayUrl} disabled={!displayUrl}>
+                        <Copy className="mr-2 h-4 w-4" />
+                        {t('copyUrl')}
                       </Button>
-                    </AlertDescription>
-                  </Alert>
-                )}
-                <CheckInList checkIns={checkIns} isLoading={checkInsLoading} />
-              </div>
-            </div>
+                      <Button onClick={openDisplayPage} disabled={!displayUrl}>
+                        <ExternalLink className="mr-2 h-4 w-4" />
+                        {t('openDisplay')}
+                      </Button>
+                    </div>
+                  </div>
 
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-              <SummaryCard
-                label={t('totalScans')}
-                value={stats.totalScans}
-                icon={QrCode}
-                color="text-slate-700"
-                bg="bg-slate-50"
-              />
-              <SummaryCard
-                label={t('checkedIn')}
-                value={stats.checkedIn}
-                icon={UserCheck}
-                color="text-emerald-700"
-                bg="bg-emerald-50"
-              />
-              <SummaryCard
-                label={t('checkedOut')}
-                value={stats.checkedOut}
-                icon={UserX}
-                color="text-blue-700"
-                bg="bg-blue-50"
-              />
-              <SummaryCard
-                label={t('late')}
-                value={stats.late}
-                icon={Clock}
-                color="text-amber-700"
-                bg="bg-amber-50"
-              />
-            </div>
-
-            <div className="rounded-lg border bg-card p-5">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div className="space-y-1">
-                  <h3 className="font-khmer-moul-light text-base font-semibold text-foreground">
-                    {t('kioskDisplayTitle')}
-                  </h3>
+                  <div className="mt-4 rounded-md bg-muted/60 px-4 py-3">
+                    <p className="break-all font-mono text-sm text-foreground">
+                      {displayUrl || t('displayUrlFallback')}
+                    </p>
+                  </div>
                 </div>
+              </>
+            )}
+          </TabsContent>
 
-                <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" onClick={copyDisplayUrl} disabled={!displayUrl}>
-                    <Copy className="mr-2 h-4 w-4" />
-                    {t('copyUrl')}
-                  </Button>
-                  <Button onClick={openDisplayPage} disabled={!displayUrl}>
-                    <ExternalLink className="mr-2 h-4 w-4" />
-                    {t('openDisplay')}
-                  </Button>
-                </div>
-              </div>
-
-              <div className="mt-4 rounded-md bg-muted/60 px-4 py-3">
-                <p className="break-all font-mono text-sm text-foreground">
-                  {displayUrl || t('displayUrlFallback')}
-                </p>
-              </div>
-            </div>
-          </>
-        )}
+          {/* TAB 2: GEOFENCING & LOCATION MANAGEMENT */}
+          <TabsContent value="locations" className="space-y-6 mt-0">
+            <AttendanceLocationManagement />
+          </TabsContent>
+        </Tabs>
       </div>
     </RequireAccess>
   );

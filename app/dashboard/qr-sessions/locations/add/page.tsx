@@ -6,7 +6,7 @@ import { LocationFormPage } from '@/components/attendance/location-form-page';
 import { useCreateAttendanceLocation } from '@/hooks/attendance/use-attendance-locations';
 import type { CreateAttendanceLocationRequest } from '@/lib/schemas/attendance/attendance-location.schema';
 
-export default function AddAttendanceLocationPage() {
+export default function AddQrAttendanceLocationPage() {
   const router = useRouter();
   const createLocation = useCreateAttendanceLocation();
 
@@ -20,7 +20,7 @@ export default function AddAttendanceLocationPage() {
   };
 
   return (
-    <RequireAccess permission="ATTENDANCE_VIEW">
+    <RequireAccess permission="QR_SESSION_VIEW">
       <LocationFormPage
         pageTitle="បន្ថែមទីតាំងវត្តមានថ្មី"
         onSubmit={handleSubmit}

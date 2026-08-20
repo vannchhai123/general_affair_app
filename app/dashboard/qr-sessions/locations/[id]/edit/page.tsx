@@ -20,7 +20,7 @@ interface EditLocationPageProps {
   params: Promise<{ id: string }>;
 }
 
-export default function EditAttendanceLocationPage({ params }: EditLocationPageProps) {
+export default function EditQrAttendanceLocationPage({ params }: EditLocationPageProps) {
   const router = useRouter();
   const resolvedParams = use(params);
   const rawId = resolvedParams.id;
@@ -91,7 +91,7 @@ export default function EditAttendanceLocationPage({ params }: EditLocationPageP
   }
 
   return (
-    <RequireAccess permission="ATTENDANCE_VIEW">
+    <RequireAccess permission="QR_SESSION_VIEW">
       <LocationFormPage
         initialData={location}
         pageTitle={`កែប្រែទីតាំង៖ ${location.name}`}

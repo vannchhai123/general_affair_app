@@ -65,7 +65,7 @@ export function LocationFormPage({
           latitude: Number(pt.latitude) || 0,
           longitude: Number(pt.longitude) || 0,
         }))
-      : DEFAULT_COORDINATES,
+      : [],
   );
   const [touched, setTouched] = useState(false);
 
@@ -111,7 +111,7 @@ export function LocationFormPage({
   };
 
   const handleBack = () => {
-    router.push('/dashboard/attendance');
+    router.push('/dashboard/qr-sessions');
   };
 
   return (
@@ -220,9 +220,6 @@ export function LocationFormPage({
                   {boundary.length} vertices
                 </Badge>
               </div>
-              <CardDescription className="text-xs">
-                រាយនាមចំណុចជ្រុងទាំងអស់ដែលត្រូវបានដាក់លើផែនទី។
-              </CardDescription>
             </CardHeader>
 
             <CardContent className="p-0">

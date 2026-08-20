@@ -89,14 +89,14 @@ export function AttendanceLocationManagement() {
 
   // Navigate to Add Page
   const handleNavigateToAdd = () => {
-    router.push('/dashboard/attendance/locations/add');
+    router.push('/dashboard/qr-sessions/locations/add');
   };
 
   // Navigate to Edit Page
   const handleNavigateToEdit = (location: AttendanceLocation) => {
     const identifier =
       location.id !== undefined ? String(location.id) : encodeURIComponent(location.name);
-    router.push(`/dashboard/attendance/locations/${identifier}/edit`);
+    router.push(`/dashboard/qr-sessions/locations/${identifier}/edit`);
   };
 
   // Confirm Delete Handler

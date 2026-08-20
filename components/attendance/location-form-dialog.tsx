@@ -72,7 +72,7 @@ export function LocationFormDialog({
         );
       } else {
         setName('');
-        setBoundary(DEFAULT_COORDINATES);
+        setBoundary([]);
       }
       setTouched(false);
     }
