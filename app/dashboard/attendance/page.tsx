@@ -54,11 +54,14 @@ function getDateInputToday() {
 }
 
 const statusOptions = [
-  { value: 'all', label: 'ស្ថានភាព' },
+  { value: 'all', label: 'ស្ថានភាពទាំងអស់' },
   { value: 'Present', label: 'វត្តមាន' },
-  { value: 'Absent', label: 'អវត្តមាន' },
+  { value: 'Approved', label: 'បានអនុម័ត' },
   { value: 'Late', label: 'មកយឺត' },
+  { value: 'Absent', label: 'អវត្តមាន' },
   { value: 'Half-day', label: 'ពាក់កណ្តាលថ្ងៃ' },
+  { value: 'Rejected', label: 'បានបដិសេធ' },
+  { value: 'Leave', label: 'ច្បាប់ឈប់សម្រាក' },
 ];
 
 const viewModes = [
@@ -202,7 +205,7 @@ export default function AttendancePage() {
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-4">
           <div>
-            <h1 className="page-title text-2xl font-semibold tracking-tight text-slate-950">
+            <h1 className="page-title text-xl font-semibold tracking-tight text-slate-950">
               ការគ្រប់គ្រងវត្តមាន
             </h1>
           </div>

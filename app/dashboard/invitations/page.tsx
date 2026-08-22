@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { isAfter, isBefore, startOfDay } from 'date-fns';
 import { Plus } from 'lucide-react';
 import type { DateRange } from 'react-day-picker';
@@ -65,6 +66,9 @@ export default function InvitationsPage() {
   const updateInvitation = useUpdateInvitation();
   const deleteInvitation = useDeleteInvitation();
 
+  const searchParams = useSearchParams();
+  const invitationIdParam = searchParams.get('id');
+
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -83,6 +87,16 @@ export default function InvitationsPage() {
   const [formMode, setFormMode] = useState<'create' | 'edit' | 'assign'>('create');
 
   const pageSize = 7;
+
+  useEffect(() => {
+    if (invitationIdParam && invitations.length > 0) {
+      const target = invitations.find((inv) => String(inv.id) === invitationIdParam);
+      if (target) {
+        setSelectedInvitation(target);
+        setDetailOpen(true);
+      }
+    }
+  }, [invitationIdParam, invitations]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {

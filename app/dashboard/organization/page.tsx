@@ -775,7 +775,7 @@ export default function OrganizationPage() {
               {dialogMode === 'department'
                 ? editingDepartment
                   ? 'កែប្រែការិយាល័យ'
-                  : 'បង្កើតិការិយាល័យ'
+                  : 'បង្កើតការិយាល័យ'
                 : editingPosition
                   ? 'កែប្រែតួនាទី'
                   : 'បង្កើតតួនាទី'}

@@ -6,12 +6,34 @@ const statusTranslations: Record<string, string> = {
   absent: 'អវត្តមាន',
   late: 'មកយឺត',
   'half-day': 'ពាក់កណ្តាលថ្ងៃ',
+  half_day: 'ពាក់កណ្តាលថ្ងៃ',
+  approved: 'បានអនុម័ត',
+  rejected: 'បានបដិសេធ',
+  pending: 'រង់ចាំ',
+  leave: 'ច្បាប់ឈប់សម្រាក',
+  on_leave: 'ច្បាប់ឈប់សម្រាក',
+  'on leave': 'ច្បាប់ឈប់សម្រាក',
+  mission: 'បេសកកម្ម',
+  permission: 'សុំច្បាប់',
 };
 
-export function AttendanceStatusBadge({ status }: { status: string }) {
-  const displayStatus = statusTranslations[status.toLowerCase()] || status;
+export function AttendanceStatusBadge({ status }: { status?: string | null }) {
+  if (!status) {
+    return (
+      <Badge variant="secondary" className="bg-slate-100 text-slate-600 border-0">
+        --
+      </Badge>
+    );
+  }
+
+  const normalized = status.trim().toLowerCase();
+  const displayStatus = statusTranslations[normalized] || status;
+
   return (
-    <Badge variant="secondary" className={getAttendanceStatusColor(status)}>
+    <Badge
+      variant="secondary"
+      className={`border-0 font-medium ${getAttendanceStatusColor(status)}`}
+    >
       {displayStatus}
     </Badge>
   );

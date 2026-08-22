@@ -2,7 +2,16 @@ import { useQuery } from '@tanstack/react-query';
 import { queryKeys, fetchApi, type ApiError } from '@/lib/api/fetcher';
 import { attendanceResponseSchema, type AttendanceResponse } from '@/lib/schemas';
 
-export type AttendanceStatus = 'Present' | 'Absent' | 'Late' | 'Half-day';
+export type AttendanceStatus =
+  | 'Present'
+  | 'Absent'
+  | 'Late'
+  | 'Half-day'
+  | 'Approved'
+  | 'Rejected'
+  | 'Pending'
+  | 'Leave'
+  | string;
 export type AttendanceViewMode = 'daily' | 'monthly';
 
 export type AttendanceListParams = {

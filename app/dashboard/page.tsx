@@ -9,6 +9,7 @@ import { DashboardAnalyticsCards } from '@/components/dashboard/dashboard-analyt
 import { DashboardStatCard, type DashboardStatCardProps } from '@/components/dashboard/stat-card';
 import { useDashboard } from '@/hooks/dashboard/use-dashboard';
 import { useInvitations } from '@/hooks/invitations/use-invitations';
+import { useOfficers } from '@/hooks/officers/use-officers';
 import type { DashboardStats } from '@/lib/schemas';
 import { ClipboardCheck, QrCode, UserCheck, UserMinus, Users } from 'lucide-react';
 
@@ -30,9 +31,10 @@ function buildStatCards(
       title: t('stats.totalOfficers'),
       value: data.officers?.total ?? 0,
       icon: Users,
+      subtext: `${data.officers?.active ?? 0} មន្ត្រីសកម្ម`,
       tone: {
-        chip: 'border-sky-100 bg-sky-50',
-        icon: 'text-sky-700',
+        chip: 'border-blue-100 bg-blue-50',
+        icon: 'text-blue-600',
         value: 'text-slate-950',
       },
     },
@@ -40,9 +42,10 @@ function buildStatCards(
       title: t('stats.officersOnLeave'),
       value: data.officers?.on_leave ?? 0,
       icon: UserMinus,
+      subtext: 'កំពុងឈប់សម្រាក',
       tone: {
         chip: 'border-violet-100 bg-violet-50',
-        icon: 'text-violet-700',
+        icon: 'text-violet-600',
         value: 'text-slate-950',
       },
     },
@@ -50,9 +53,10 @@ function buildStatCards(
       title: t('stats.attendanceToday'),
       value: getTodayAttendanceCount(data),
       icon: ClipboardCheck,
+      subtext: 'បានឆែកវត្តមាន',
       tone: {
-        chip: 'border-blue-100 bg-blue-50',
-        icon: 'text-blue-700',
+        chip: 'border-emerald-100 bg-emerald-50',
+        icon: 'text-emerald-600',
         value: 'text-slate-950',
       },
     },
@@ -60,9 +64,10 @@ function buildStatCards(
       title: t('stats.qrSessions'),
       value: data.qr_sessions?.total ?? 0,
       icon: QrCode,
+      subtext: 'សម័យស្កេន',
       tone: {
         chip: 'border-amber-100 bg-amber-50',
-        icon: 'text-amber-700',
+        icon: 'text-amber-600',
         value: 'text-slate-950',
       },
     },
@@ -72,9 +77,10 @@ function buildStatCards(
 export default function DashboardPage() {
   const { data, isLoading, isError, error, refetch, isFetching } = useDashboard();
   const { data: invitationsData, isLoading: isInvitationsLoading } = useInvitations();
+  const { officers, isLoading: isOfficersLoading } = useOfficers({ pageSize: 150 });
   const t = useTranslations('dashboard');
 
-  if (isLoading || isInvitationsLoading) return <DashboardLoading />;
+  if (isLoading || isInvitationsLoading || isOfficersLoading) return <DashboardLoading />;
 
   if (isError || !data) {
     return (
@@ -94,11 +100,11 @@ export default function DashboardPage() {
 
   return (
     <RequireAccess permission="DASHBOARD_VIEW">
-      <div className="space-y-6">
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="space-y-6 w-full">
+        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm w-full">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="page-title mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+              <h1 className="page-title mt-2 text-xl font-semibold tracking-tight text-slate-950">
                 {t('pageSubtitle')}
               </h1>
             </div>
@@ -110,13 +116,17 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 w-full">
           {buildStatCards(data, t).map((stat) => (
             <DashboardStatCard key={stat.title} {...stat} />
           ))}
         </div>
 
-        <DashboardAnalyticsCards stats={data} records={data.recent_attendance ?? []} />
+        <DashboardAnalyticsCards
+          stats={data}
+          records={data.recent_attendance ?? []}
+          officers={officers}
+        />
         <RecentInvitationsCard
           invitations={invitationsData ?? []}
           labels={{

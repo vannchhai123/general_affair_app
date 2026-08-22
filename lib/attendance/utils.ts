@@ -121,17 +121,32 @@ export function calculateAttendanceHours(
   return formatAttendanceMinutes(Math.floor(diffMs / (1000 * 60)));
 }
 
-export function getAttendanceStatusColor(status: string): string {
-  switch (status.toLowerCase()) {
+export function getAttendanceStatusColor(status?: string | null): string {
+  if (!status) return 'bg-slate-100 text-slate-700 hover:bg-slate-100 border-0';
+
+  switch (status.trim().toLowerCase()) {
     case 'present':
-      return 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100';
+      return 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-0';
+    case 'approved':
+      return 'bg-teal-100 text-teal-800 hover:bg-teal-100 border-0';
     case 'absent':
-      return 'bg-red-100 text-red-700 hover:bg-red-100';
+      return 'bg-rose-100 text-rose-700 hover:bg-rose-100 border-0';
     case 'late':
-      return 'bg-amber-100 text-amber-700 hover:bg-amber-100';
+      return 'bg-amber-100 text-amber-700 hover:bg-amber-100 border-0';
     case 'half-day':
-      return 'bg-blue-100 text-blue-700 hover:bg-blue-100';
+    case 'half_day':
+      return 'bg-blue-100 text-blue-700 hover:bg-blue-100 border-0';
+    case 'rejected':
+      return 'bg-red-100 text-red-700 hover:bg-red-100 border-0';
+    case 'pending':
+      return 'bg-amber-100 text-amber-700 hover:bg-amber-100 border-0';
+    case 'leave':
+    case 'on_leave':
+    case 'on leave':
+      return 'bg-purple-100 text-purple-700 hover:bg-purple-100 border-0';
+    case 'mission':
+      return 'bg-indigo-100 text-indigo-700 hover:bg-indigo-100 border-0';
     default:
-      return 'bg-slate-100 text-slate-700 hover:bg-slate-100';
+      return 'bg-slate-100 text-slate-700 hover:bg-slate-100 border-0';
   }
 }
