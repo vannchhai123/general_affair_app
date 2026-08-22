@@ -28,8 +28,10 @@ function AttendanceDisplayContent() {
 
 export default function AttendanceDisplayPage() {
   return (
-    <Suspense fallback={<AttendanceDisplayFallback />}>
-      <AttendanceDisplayContent />
-    </Suspense>
+    <div className="fixed inset-0 h-screen h-[100dvh] w-screen overflow-hidden bg-slate-950">
+      <Suspense fallback={<AttendanceDisplayFallback />}>
+        <AttendanceDisplayContent />
+      </Suspense>
+    </div>
   );
 }
