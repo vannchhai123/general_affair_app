@@ -29,7 +29,7 @@ export function QRDisplay({
 }: QRDisplayProps) {
   if (isLoading) {
     return (
-      <div className="rounded-xl border bg-card p-8 shadow-sm">
+      <div className="flex h-full flex-col items-center justify-center rounded-xl border bg-card p-8 shadow-sm">
         <div className="flex flex-col items-center gap-5">
           <Skeleton className="aspect-square w-64 rounded-3xl sm:w-72" />
           <Skeleton className="h-5 w-48 rounded-full" />
@@ -40,7 +40,7 @@ export function QRDisplay({
   }
 
   return (
-    <div className="rounded-xl border bg-card p-6 sm:p-8 shadow-sm">
+    <div className="flex h-full flex-col items-center justify-center rounded-xl border bg-card p-6 sm:p-8 shadow-sm">
       <div className="flex flex-col items-center gap-6">
         {/* QR Code Card Wrapper */}
         <div className="relative group">

@@ -20,6 +20,15 @@ export function useQrSessionCheckIns(sessionId: string) {
   });
 }
 
+export function useTodayQrSessionCheckIns() {
+  return useQuery<QrSessionCheckIn[]>({
+    queryKey: queryKeys.qrSessions.todayCheckins(),
+    queryFn: () => fetchApi('/qr-sessions/today/checkins', z.array(qrSessionCheckInSchema)),
+    refetchInterval: 5000,
+    refetchIntervalInBackground: true,
+  });
+}
+
 export function useCreateQrSessionCheckIn() {
   const queryClient = useQueryClient();
 

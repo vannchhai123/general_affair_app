@@ -17,7 +17,7 @@ import { AttendanceLocationManagement } from '@/components/attendance/attendance
 import { RequireAccess } from '@/components/auth/require-access';
 import { useUpdateQrSession } from '@/hooks/qr-sessions/use-qr-session-mutations';
 import { useCurrentQrSession } from '@/hooks/qr-sessions/use-qr-session';
-import { useQrSessionCheckIns } from '@/hooks/qr-sessions/use-qr-checkins';
+import { useTodayQrSessionCheckIns } from '@/hooks/qr-sessions/use-qr-checkins';
 import { useQrScanDisplay } from '@/hooks/qr-sessions/use-qr-scan-display';
 
 export type SessionStatus = 'idle' | 'active' | 'expired' | 'error';
@@ -79,7 +79,7 @@ export default function QRAttendancePage() {
     isError: checkInsError,
     error: checkInsErrorData,
     refetch: refetchCheckIns,
-  } = useQrSessionCheckIns(sessionId);
+  } = useTodayQrSessionCheckIns();
 
   const updateQrSession = useUpdateQrSession();
 
@@ -252,8 +252,8 @@ export default function QRAttendancePage() {
               </div>
             ) : (
               <>
-                <div className="grid gap-6 lg:grid-cols-3">
-                  <div className="lg:col-span-2">
+                <div className="grid gap-6 lg:grid-cols-3 items-stretch">
+                  <div className="lg:col-span-2 flex flex-col">
                     <QRDisplay
                       errorMessage={qrScanDisplay.errorMessage}
                       lastUpdatedAt={qrScanDisplay.lastUpdatedAt}
@@ -271,9 +271,9 @@ export default function QRAttendancePage() {
                     />
                   </div>
 
-                  <div className="lg:col-span-1">
+                  <div className="lg:col-span-1 flex flex-col">
                     {checkInsError && (
-                      <Alert variant="destructive" className="mb-3">
+                      <Alert variant="destructive" className="mb-3 shrink-0">
                         <AlertDescription className="flex items-center justify-between gap-3">
                           <span>
                             {checkInsErrorData instanceof Error
@@ -293,7 +293,9 @@ export default function QRAttendancePage() {
                         </AlertDescription>
                       </Alert>
                     )}
-                    <CheckInList checkIns={checkIns} isLoading={checkInsLoading} />
+                    <div className="flex-1 min-h-0">
+                      <CheckInList checkIns={checkIns} isLoading={checkInsLoading} />
+                    </div>
                   </div>
                 </div>
 

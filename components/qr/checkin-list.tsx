@@ -37,17 +37,20 @@ function CheckInStatusBadge({ status }: { status: CheckInRecord['status'] }) {
 
 export function CheckInList({ checkIns, isLoading = false }: CheckInListProps) {
   return (
-    <div className="rounded-lg border bg-card">
-      <div className="border-b p-4">
-        <h3 className="font-khmer-moul-light flex items-center gap-2 text-base font-semibold">
+    <div className="flex h-full flex-col rounded-xl border bg-card shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between border-b p-4 shrink-0">
+        <h3 className="font-khmer-moul-light flex items-center gap-2 text-sm font-semibold leading-relaxed">
           <Users className="h-4 w-4 text-muted-foreground" />
-          ការឆែកចូលផ្ទាល់
+          <span>ការឆែកចូលផ្ទាល់</span>
         </h3>
+        <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700">
+          {checkIns.length} នាក់
+        </span>
       </div>
-      <ScrollArea className="h-[400px] p-4">
+      <ScrollArea className="flex-1 p-4 min-h-[300px]">
         {isLoading ? (
           <div className="space-y-4">
-            {Array.from({ length: 3 }).map((_, i) => (
+            {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="flex items-center gap-3">
                 <Skeleton className="h-8 w-8 rounded-full" />
                 <div className="flex-1 space-y-2">
@@ -59,20 +62,20 @@ export function CheckInList({ checkIns, isLoading = false }: CheckInListProps) {
             ))}
           </div>
         ) : checkIns.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="flex h-full min-h-[280px] flex-col items-center justify-center py-12 text-center">
             <Users className="h-8 w-8 text-muted-foreground" />
-            <p className="mt-2 text-sm text-muted-foreground">មិនទាន់មានការស្កេន</p>
-            <p className="text-xs text-muted-foreground">កំពុងរង់ចាំមន្ត្រីស្កេន</p>
+            <p className="mt-2 text-sm text-muted-foreground leading-relaxed">មិនទាន់មានការស្កេន</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">កំពុងរង់ចាំមន្ត្រីស្កេន</p>
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2.5">
             {checkIns.map((checkIn) => (
               <div
                 key={checkIn.id}
-                className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                className="flex items-center justify-between rounded-lg border p-2.5 transition-colors hover:bg-muted/50"
               >
                 <div className="flex items-center gap-3">
-                  <Avatar className="h-9 w-9">
+                  <Avatar className="h-8 w-8">
                     <AvatarFallback className="bg-primary/10 text-xs font-medium text-primary">
                       {getInitials(
                         checkIn.employeeName.split(' ')[0],
@@ -81,12 +84,12 @@ export function CheckInList({ checkIns, isLoading = false }: CheckInListProps) {
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="text-sm font-medium">{checkIn.employeeName}</p>
-                    <p className="text-xs text-muted-foreground">{checkIn.employeeCode}</p>
+                    <p className="text-xs font-medium leading-relaxed">{checkIn.employeeName}</p>
+                    <p className="text-[11px] text-muted-foreground">{checkIn.employeeCode}</p>
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-1">
-                  <p className="text-sm font-medium">{checkIn.time}</p>
+                  <p className="text-xs font-medium">{checkIn.time}</p>
                   <CheckInStatusBadge status={checkIn.status} />
                 </div>
               </div>
