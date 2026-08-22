@@ -175,17 +175,6 @@ export default function LeaveRequestsPage() {
 
           <div className="flex flex-wrap items-center gap-3">
             <Button
-              variant="outline"
-              size="sm"
-              onClick={() => refetch()}
-              disabled={isFetching}
-              className="h-10 rounded-xl border-slate-200 px-4 text-slate-700"
-            >
-              <RefreshCw className={`h-4 w-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
-              ធ្វើបច្ចុប្បន្នភាព
-            </Button>
-
-            <Button
               onClick={() => setCreateOpen(true)}
               className="h-10 rounded-xl bg-blue-600 px-4 font-medium text-white shadow-sm hover:bg-blue-700"
             >

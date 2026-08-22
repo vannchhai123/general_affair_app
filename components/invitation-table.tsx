@@ -182,6 +182,25 @@ export function InvitationTable({
                 <TableCell>
                   <div className="min-w-[220px]">
                     <p className="font-medium">{invitation.subject}</p>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      {invitation.type && (
+                        <span
+                          className={cn(
+                            'inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium',
+                            invitation.type === 'outgoing'
+                              ? 'bg-amber-50 text-amber-700 border border-amber-200/60'
+                              : 'bg-blue-50 text-blue-700 border border-blue-200/60',
+                          )}
+                        >
+                          {invitation.type === 'outgoing' ? '📤 លិខិតចេញ' : '📥 លិខិតចូល'}
+                        </span>
+                      )}
+                      {invitation.category && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-600">
+                          {invitation.category === 'external' ? 'ផ្ទៃក្រៅ' : 'ផ្ទៃក្នុង'}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </TableCell>
                 <TableCell className="text-sm">{invitation.organization}</TableCell>

@@ -1,8 +1,8 @@
 const baseToastOptions = {
   toast: true,
-  position: 'top-end',
+  position: 'bottom-end',
   showConfirmButton: false,
-  timer: 4500,
+  timer: 3000,
   timerProgressBar: true,
   background: 'var(--popover)',
   color: 'var(--popover-foreground)',

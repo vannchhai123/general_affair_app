@@ -14,6 +14,23 @@ interface SessionControlsProps {
   disableRegenerate?: boolean;
 }
 
+const KHMER_DAYS = ['អាទិត្យ', 'ចន្ទ', 'អង្គារ', 'ពុធ', 'ព្រហស្បតិ៍', 'សុក្រ', 'សៅរ៍'];
+
+const KHMER_MONTHS = [
+  'មករា',
+  'កុម្ភៈ',
+  'មីនា',
+  'មេសា',
+  'ឧសភា',
+  'មិថុនា',
+  'កក្កដា',
+  'សីហា',
+  'កញ្ញា',
+  'តុលា',
+  'វិច្ឆិកា',
+  'ធ្នូ',
+];
+
 export function SessionControls({
   sessionStatus,
   message,
@@ -24,14 +41,13 @@ export function SessionControls({
   const [currentDateLabel, setCurrentDateLabel] = useState('');
 
   useEffect(() => {
-    setCurrentDateLabel(
-      new Intl.DateTimeFormat('km-KH', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      }).format(new Date()),
-    );
+    const now = new Date();
+    const dayName = KHMER_DAYS[now.getDay()];
+    const monthName = KHMER_MONTHS[now.getMonth()];
+    const day = now.getDate();
+    const year = now.getFullYear();
+
+    setCurrentDateLabel(`${dayName}, ${monthName} ${day}, ${year}`);
   }, []);
 
   return (
@@ -45,18 +61,6 @@ export function SessionControls({
             <SessionStatusBadge status={sessionStatus} />
           </div>
           <div className="space-y-1"></div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={onRegenerateQR}
-            disabled={disableRegenerate}
-            className="flex-1 sm:flex-none"
-          >
-            <RefreshCw className="mr-2 h-4 w-4" />
-            ធ្វើបច្ចុប្បន្នភាព QR
-          </Button>
         </div>
       </div>
     </div>

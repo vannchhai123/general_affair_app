@@ -266,6 +266,7 @@ export function InvitationForm({
   const eligiblePriorityOfficers = activeOfficers.filter(
     (officer) => officer.invitation_priority === true,
   );
+  const allOfficersList = activeOfficers.length > 0 ? activeOfficers : officers;
 
   const form = useForm<InvitationFormValues>({
     resolver: zodResolver(invitationFormSchema),
@@ -284,19 +285,32 @@ export function InvitationForm({
     },
   });
 
+  const selectedCategory = form.watch('category') ?? category;
+  const isInternal = selectedCategory === 'internal';
+
+  // ផ្ទៃក្នុង (internal) = incoming -> only select eligible priority officers
+  // ផ្ទៃក្រៅ (external) = outgoing -> select all active officers
+  const currentOfficers = isInternal ? eligiblePriorityOfficers : allOfficersList;
+
   useEffect(() => {
     if (!open) {
       setPreviewUrls([]);
       return;
     }
 
-    const initialCategory = (invitation?.category as 'internal' | 'external') ?? 'internal';
+    const initialCategory =
+      (invitation?.category as 'internal' | 'external') ??
+      (invitation?.type === 'outgoing' ? 'external' : 'internal');
+    const initialType =
+      (invitation?.type as 'incoming' | 'outgoing') ??
+      (initialCategory === 'internal' ? 'incoming' : 'outgoing');
+
     setCategory(initialCategory);
 
     form.reset({
       subject: invitation?.subject ?? '',
       organization: invitation?.organization ?? '',
-      type: invitation?.type ?? 'incoming',
+      type: initialType,
       category: initialCategory,
       date: invitation?.date ?? '',
       time: invitation?.time ?? '',
@@ -314,7 +328,20 @@ export function InvitationForm({
 
   const isAssignMode = mode === 'assign';
 
-  const currentOfficers = activeOfficers.length > 0 ? activeOfficers : officers;
+  const handleCategorySelect = (selected: 'internal' | 'external') => {
+    setCategory(selected);
+    form.setValue('category', selected);
+    form.setValue('type', selected === 'internal' ? 'incoming' : 'outgoing');
+
+    if (selected === 'internal') {
+      const currentSelected = form.getValues('officers') ?? [];
+      const eligibleIds = new Set(eligiblePriorityOfficers.map((o) => o.id));
+      const validSelected = currentSelected.filter((id) => eligibleIds.has(id));
+      if (validSelected.length !== currentSelected.length) {
+        form.setValue('officers', validSelected);
+      }
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -342,6 +369,7 @@ export function InvitationForm({
           >
             {isAssignMode ? (
               <div className="space-y-5">
+                {/* Category Selection: ផ្ទៃក្នុង (Incoming) vs ផ្ទៃក្រៅ (Outgoing) */}
                 <FormField
                   control={form.control}
                   name="category"
@@ -352,10 +380,7 @@ export function InvitationForm({
                         <div className="grid grid-cols-2 gap-3">
                           <button
                             type="button"
-                            onClick={() => {
-                              field.onChange('internal');
-                              setCategory('internal');
-                            }}
+                            onClick={() => handleCategorySelect('internal')}
                             className={cn(
                               'flex flex-col items-start p-3 border-2 rounded-xl transition text-left cursor-pointer',
                               field.value === 'internal' || category === 'internal'
@@ -365,16 +390,16 @@ export function InvitationForm({
                           >
                             <div className="flex items-center gap-2 font-medium text-sm">
                               <Building2 className="h-4 w-4" />
-                              <span>លិខិតអញ្ជើញថ្មីផ្ទៃក្នុង</span>
+                              <span>លិខិតអញ្ជើញផ្ទៃក្នុង</span>
                             </div>
+                            <span className="text-xs text-muted-foreground mt-1">
+                              ជ្រើសរើសបានតែមន្ត្រីមានអាទិភាព
+                            </span>
                           </button>
 
                           <button
                             type="button"
-                            onClick={() => {
-                              field.onChange('external');
-                              setCategory('external');
-                            }}
+                            onClick={() => handleCategorySelect('external')}
                             className={cn(
                               'flex flex-col items-start p-3 border-2 rounded-xl transition text-left cursor-pointer',
                               field.value === 'external' || category === 'external'
@@ -384,8 +409,11 @@ export function InvitationForm({
                           >
                             <div className="flex items-center gap-2 font-medium text-sm">
                               <Globe className="h-4 w-4" />
-                              <span>លិខិតអញ្ជើញថ្មីផ្ទៃក្រៅ</span>
+                              <span>លិខិតអញ្ជើញផ្ទៃក្រៅ</span>
                             </div>
+                            <span className="text-xs text-muted-foreground mt-1">
+                              ជ្រើសរើសមន្ត្រីទាំងអស់បាន
+                            </span>
                           </button>
                         </div>
                       </FormControl>
@@ -402,7 +430,9 @@ export function InvitationForm({
                       <div className="flex items-center justify-between">
                         <FormLabel>សមាសភាពចូលរួម</FormLabel>
                         <span className="text-xs text-muted-foreground">
-                          (មន្ត្រីទាំងអស់ {currentOfficers.length} រូប)
+                          {isInternal
+                            ? `(មន្ត្រីមានអាទិភាព ${currentOfficers.length} រូប)`
+                            : `(មន្ត្រីទាំងអស់ ${currentOfficers.length} រូប)`}
                         </span>
                       </div>
                       <FormControl>
@@ -420,7 +450,7 @@ export function InvitationForm({
               </div>
             ) : (
               <div className="space-y-5">
-                {/* Category Selection: ផ្ទៃក្នុង vs ផ្ទៃក្រៅ */}
+                {/* Category Selection: ផ្ទៃក្នុង (Incoming) vs ផ្ទៃក្រៅ (Outgoing) */}
                 <FormField
                   control={form.control}
                   name="category"
@@ -431,10 +461,7 @@ export function InvitationForm({
                         <div className="grid grid-cols-2 gap-3">
                           <button
                             type="button"
-                            onClick={() => {
-                              field.onChange('internal');
-                              setCategory('internal');
-                            }}
+                            onClick={() => handleCategorySelect('internal')}
                             className={cn(
                               'flex flex-col items-start p-3 border-2 rounded-xl transition text-left cursor-pointer',
                               field.value === 'internal' || category === 'internal'
@@ -444,16 +471,16 @@ export function InvitationForm({
                           >
                             <div className="flex items-center gap-2 font-medium text-sm">
                               <Building2 className="h-4 w-4" />
-                              <span>លិខិតអញ្ជើញថ្មីផ្ទៃក្នុង</span>
+                              <span>លិខិតអញ្ជើញផ្ទៃក្នុង</span>
                             </div>
+                            <span className="text-xs text-muted-foreground mt-1">
+                              ជ្រើសរើសបានតែមន្ត្រីមានអាទិភាព
+                            </span>
                           </button>
 
                           <button
                             type="button"
-                            onClick={() => {
-                              field.onChange('external');
-                              setCategory('external');
-                            }}
+                            onClick={() => handleCategorySelect('external')}
                             className={cn(
                               'flex flex-col items-start p-3 border-2 rounded-xl transition text-left cursor-pointer',
                               field.value === 'external' || category === 'external'
@@ -463,8 +490,11 @@ export function InvitationForm({
                           >
                             <div className="flex items-center gap-2 font-medium text-sm">
                               <Globe className="h-4 w-4" />
-                              <span>លិខិតអញ្ជើញថ្មីផ្ទៃក្រៅ</span>
+                              <span>លិខិតអញ្ជើញផ្ទៃក្រៅ</span>
                             </div>
+                            <span className="text-xs text-muted-foreground mt-1">
+                              ជ្រើសរើសមន្ត្រីទាំងអស់បាន
+                            </span>
                           </button>
                         </div>
                       </FormControl>
@@ -482,7 +512,9 @@ export function InvitationForm({
                       <div className="flex items-center justify-between">
                         <FormLabel>សមាសភាពចូលរួម</FormLabel>
                         <span className="text-xs text-muted-foreground">
-                          (មន្ត្រីទាំងអស់ {currentOfficers.length} រូប)
+                          {isInternal
+                            ? `(មន្ត្រីមានអាទិភាព ${currentOfficers.length} រូប)`
+                            : `(មន្ត្រីទាំងអស់ ${currentOfficers.length} រូប)`}
                         </span>
                       </div>
                       <FormControl>

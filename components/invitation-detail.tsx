@@ -76,10 +76,15 @@ export function InvitationDetail({
                 <SheetTitle className="text-xl font-semibold font-khmer-moul-light text-slate-900">
                   {invitation.subject}
                 </SheetTitle>
-                <SheetDescription className="mt-1 flex items-center gap-2">
+                <SheetDescription className="mt-1 flex items-center gap-2 flex-wrap">
                   <span>
                     លិខិតអញ្ជើញលេខ #{invitation.id} របស់ {invitation.organization}
                   </span>
+                  {invitation.type && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                      {invitation.type === 'outgoing' ? '📤 លិខិតចេញ' : '📥 លិខិតចូល'}
+                    </span>
+                  )}
                   {invitation.category && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
                       {invitation.category === 'external' ? '🌐 ផ្ទៃក្រៅ' : '🏢 ផ្ទៃក្នុង'}
