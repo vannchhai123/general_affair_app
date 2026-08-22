@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { format } from 'date-fns';
 import {
   Building2,
@@ -25,7 +26,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { InvitationStatusBadge } from '@/components/invitation-status-badge';
 import { OfficerAvatarGroup } from '@/components/officer-avatar-group';
 import { getOfficerImageUrl, getOfficerInitials } from '@/lib/image-utils';
-import type { Invitation } from '@/lib/schemas';
+import { useOfficers } from '@/hooks/officers/use-officers';
+import type { Invitation, Officer } from '@/lib/schemas';
 
 function DetailItem({
   icon: Icon,
@@ -64,6 +66,12 @@ export function InvitationDetail({
   onEdit: (invitation: Invitation) => void;
   onChangeStatus: (invitation: Invitation) => void;
 }) {
+  const { officers = [] } = useOfficers({ pageSize: 500 });
+  const officersMap = useMemo(
+    () => new Map<number, Officer>(officers.map((o: Officer) => [o.id, o])),
+    [officers],
+  );
+
   if (!invitation) {
     return null;
   }
@@ -132,9 +140,18 @@ export function InvitationDetail({
                   <Separator className="my-4" />
                   <div className="space-y-3">
                     {invitation.assigned_officers.map((officer) => {
+                      const fullOfficer = officersMap.get(officer.id) || officer;
+                      const imageUrl =
+                        getOfficerImageUrl(fullOfficer) || getOfficerImageUrl(officer);
+                      const initials = getOfficerInitials(fullOfficer || officer);
+
                       const fullNameKh =
-                        `${officer.first_name_kh || ''} ${officer.last_name_kh || ''}`.trim();
-                      const fullNameEn = `${officer.first_name} ${officer.last_name}`.trim();
+                        `${fullOfficer.last_name_kh || officer.last_name_kh || ''} ${
+                          fullOfficer.first_name_kh || officer.first_name_kh || ''
+                        }`.trim();
+                      const fullNameEn = `${fullOfficer.first_name || officer.first_name || ''} ${
+                        fullOfficer.last_name || officer.last_name || ''
+                      }`.trim();
                       const displayName = fullNameKh ? `${fullNameKh} (${fullNameEn})` : fullNameEn;
 
                       return (
@@ -145,18 +162,19 @@ export function InvitationDetail({
                           <div className="flex items-center gap-3">
                             <Avatar className="h-8 w-8 border border-slate-200">
                               <AvatarImage
-                                src={getOfficerImageUrl(officer)}
+                                src={imageUrl}
                                 alt={displayName}
                                 className="object-cover"
                               />
                               <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
-                                {getOfficerInitials(officer)}
+                                {initials}
                               </AvatarFallback>
                             </Avatar>
                             <div>
                               <p className="text-sm font-medium text-slate-900">{displayName}</p>
                               <p className="text-xs text-muted-foreground">
-                                {officer.position} · {officer.department}
+                                {fullOfficer.position || officer.position} ·{' '}
+                                {fullOfficer.department || officer.department}
                               </p>
                             </div>
                           </div>
