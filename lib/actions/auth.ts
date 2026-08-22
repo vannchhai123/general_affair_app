@@ -28,7 +28,7 @@ export async function loginAction(formData: FormData) {
 
   try {
     const apiBaseUrl = buildApiBaseUrl(process.env.NEXT_PUBLIC_API_URL as string);
-    const response = await fetch(`${apiBaseUrl}/auth/login`, {
+    const response = await fetch(`${apiBaseUrl}/auth/admin/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
