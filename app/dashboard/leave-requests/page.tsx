@@ -19,7 +19,7 @@ import {
   X,
 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -43,6 +43,9 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CreateLeaveRequestDialog } from '@/components/leave-requests/create-leave-request-dialog';
 import { LeaveRequestDetailsDialog } from '@/components/leave-requests/leave-request-details-dialog';
 import { useLeaveRequests } from '@/hooks/leave-requests/use-leave-requests';
+import { useOfficers } from '@/hooks/officers/use-officers';
+import { getOfficerImageUrl, getOfficerInitials } from '@/lib/image-utils';
+import type { Officer } from '@/lib/schemas';
 import { useUpdateLeaveRequest } from '@/hooks/leave-requests/use-leave-request-mutations';
 import type { LeaveRequest } from '@/lib/schemas';
 import { toast } from '@/lib/toast';
@@ -105,7 +108,13 @@ function typeBadge(type: string) {
 
 export default function LeaveRequestsPage() {
   const { data: leaves = [], isLoading, isError, error, refetch, isFetching } = useLeaveRequests();
+  const { officers = [] } = useOfficers({ pageSize: 1000 });
   const updateLeaveRequest = useUpdateLeaveRequest();
+
+  const officersMap = useMemo(
+    () => new Map<number, Officer>(officers.map((o: Officer) => [o.id, o])),
+    [officers],
+  );
 
   // Dialog States
   const [createOpen, setCreateOpen] = useState(false);
@@ -379,25 +388,33 @@ export default function LeaveRequestsPage() {
                   </TableRow>
                 ) : (
                   filteredLeaves.map((leave: LeaveRequest) => {
-                    const initials =
-                      `${leave.first_name?.[0] || ''}${leave.last_name?.[0] || ''}`.toUpperCase() ||
-                      'OFF';
+                    const officer = officersMap.get(leave.officer_id);
+                    const imageUrl = getOfficerImageUrl(officer) || getOfficerImageUrl(leave);
+                    const initials = getOfficerInitials(officer || leave);
+                    const fullNameKh = officer
+                      ? `${officer.last_name_kh || officer.last_name || ''} ${
+                          officer.first_name_kh || officer.first_name || ''
+                        }`.trim()
+                      : `${leave.first_name} ${leave.last_name}`.trim();
 
                     return (
                       <TableRow key={leave.id} className="hover:bg-slate-50/60 transition-colors">
                         <TableCell className="pl-6 py-3.5">
                           <div className="flex items-center gap-3">
                             <Avatar className="h-9 w-9 border border-slate-200">
+                              <AvatarImage
+                                src={imageUrl}
+                                alt={fullNameKh}
+                                className="object-cover"
+                              />
                               <AvatarFallback className="bg-blue-600 text-xs font-semibold text-white">
                                 {initials}
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <p className="font-semibold text-sm text-slate-900">
-                                {leave.first_name} {leave.last_name}
-                              </p>
+                              <p className="font-semibold text-sm text-slate-900">{fullNameKh}</p>
                               <p className="text-xs text-slate-500">
-                                {leave.department || 'General'}
+                                {officer?.department || leave.department || 'General'}
                               </p>
                             </div>
                           </div>

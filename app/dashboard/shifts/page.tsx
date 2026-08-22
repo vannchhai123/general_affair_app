@@ -353,7 +353,7 @@ export default function ShiftsPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">ស្ថានភាពទាំងអស់</SelectItem>
+                      <SelectItem value="all">ស្ថានភាព</SelectItem>
                       <SelectItem value="active">សកម្ម</SelectItem>
                       <SelectItem value="inactive">មិនសកម្ម</SelectItem>
                     </SelectContent>

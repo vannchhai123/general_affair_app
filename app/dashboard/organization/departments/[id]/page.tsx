@@ -23,6 +23,7 @@ import {
 import { RequireAccess } from '@/components/auth/require-access';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { getOfficerImageUrl, getOfficerInitials } from '@/lib/image-utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CardNumber } from '@/components/ui/card-number';
@@ -51,18 +52,6 @@ import type { Department, Office, Officer } from '@/lib/schemas';
 import { OfficerDialog, type OfficerFormData } from '@/components/officers/officer-dialog';
 import { OfficerDetailDialog } from '@/components/officers/officer-detail-dialog';
 import { getOfficerFormData, compareOfficerPositions } from '@/lib/officers/page-utils';
-
-function getOfficerInitials(officer: Officer) {
-  const initials = [
-    officer.first_name_kh || officer.first_name,
-    officer.last_name_kh || officer.last_name,
-  ]
-    .filter(Boolean)
-    .map((name) => name[0])
-    .join('');
-
-  return initials || 'OF';
-}
 
 function StatusBadge({ status }: { status: string }) {
   if (status === 'active') {
@@ -412,11 +401,12 @@ export default function DepartmentDetailPage({ params }: { params: Promise<{ id:
                           <div className="flex items-center gap-3">
                             <Avatar className="h-10 w-10 border border-slate-200">
                               <AvatarImage
-                                src={officer.photo_url || officer.profile_image || undefined}
+                                src={getOfficerImageUrl(officer)}
                                 alt={fullNameKh}
+                                className="object-cover"
                               />
                               <AvatarFallback className="bg-indigo-50 font-semibold text-indigo-700 text-xs">
-                                {initials}
+                                {getOfficerInitials(officer)}
                               </AvatarFallback>
                             </Avatar>
                             <div>

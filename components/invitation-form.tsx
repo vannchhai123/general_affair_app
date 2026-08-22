@@ -495,7 +495,7 @@ export function InvitationForm({
                           >
                             <div className="flex items-center gap-2 font-medium text-sm">
                               <Building2 className="h-4 w-4" />
-                              <span>លិខិតអញ្ជើញផ្ទៃក្នុង</span>
+                              <span>លិខិតអញ្ជើញគណអភិបាល</span>
                             </div>
                             <span className="text-xs text-muted-foreground mt-1">
                               ជ្រើសរើសបានតែមន្ត្រីមានអាទិភាព
@@ -514,7 +514,7 @@ export function InvitationForm({
                           >
                             <div className="flex items-center gap-2 font-medium text-sm">
                               <Globe className="h-4 w-4" />
-                              <span>លិខិតអញ្ជើញផ្ទៃក្រៅ</span>
+                              <span>លិខិតអញ្ជើញផ្ទៃក្នុង</span>
                             </div>
                             <span className="text-xs text-muted-foreground mt-1">
                               ជ្រើសរើសមន្ត្រីទាំងអស់បាន
@@ -576,7 +576,7 @@ export function InvitationForm({
                           >
                             <div className="flex items-center gap-2 font-medium text-sm">
                               <Building2 className="h-4 w-4" />
-                              <span>លិខិតអញ្ជើញផ្ទៃក្នុង</span>
+                              <span>លិខិតអញ្ជើញគណអភិបាល</span>
                             </div>
                             <span className="text-xs text-muted-foreground mt-1">
                               ជ្រើសរើសបានតែមន្ត្រីមានអាទិភាព
@@ -595,7 +595,7 @@ export function InvitationForm({
                           >
                             <div className="flex items-center gap-2 font-medium text-sm">
                               <Globe className="h-4 w-4" />
-                              <span>លិខិតអញ្ជើញផ្ទៃក្រៅ</span>
+                              <span>លិខិតអញ្ជើញផ្ទៃក្នុង</span>
                             </div>
                             <span className="text-xs text-muted-foreground mt-1">
                               ជ្រើសរើសមន្ត្រីទាំងអស់បាន

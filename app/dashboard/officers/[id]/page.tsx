@@ -101,27 +101,7 @@ function getEducationLevelLabel(level?: string | null) {
   }
 }
 
-function getOfficerImageUrl(officer: Officer) {
-  return (
-    officer.image_url ||
-    officer.imageUrl ||
-    officer.avatar_url ||
-    officer.profileImage ||
-    officer.profile_image ||
-    officer.photoUrl ||
-    officer.photo_url ||
-    undefined
-  );
-}
-
-function getOfficerInitials(officer: Officer) {
-  const initials = [officer.first_name, officer.last_name]
-    .filter(Boolean)
-    .map((name) => name[0])
-    .join('');
-
-  return initials || 'ម';
-}
+import { getOfficerImageUrl, getOfficerInitials } from '@/lib/image-utils';
 
 function DetailItem({
   icon: Icon,

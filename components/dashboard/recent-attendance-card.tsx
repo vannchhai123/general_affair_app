@@ -1,6 +1,6 @@
 import { ClipboardCheck, TrendingUp } from 'lucide-react';
 
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -11,7 +11,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { formatDashboardMinutes, formatKhmerNumerals, getInitials } from '@/lib/dashboard/utils';
+import { formatDashboardMinutes, formatKhmerNumerals } from '@/lib/dashboard/utils';
+import { getOfficerImageUrl, getOfficerInitials } from '@/lib/image-utils';
 import type { Attendance } from '@/lib/schemas';
 
 type RecentAttendanceLabels = {
@@ -74,9 +75,14 @@ function RecentAttendanceTable({
             <TableRow key={record.id} className="hover:bg-slate-50/70">
               <TableCell>
                 <div className="flex items-center gap-3">
-                  <Avatar className="h-9 w-9">
+                  <Avatar className="h-9 w-9 border border-slate-200">
+                    <AvatarImage
+                      src={getOfficerImageUrl(record)}
+                      alt={`${record.firstName} ${record.lastName}`}
+                      className="object-cover"
+                    />
                     <AvatarFallback className="bg-primary/10 text-xs font-medium text-primary">
-                      {getInitials(record.firstName, record.lastName)}
+                      {getOfficerInitials(record)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">

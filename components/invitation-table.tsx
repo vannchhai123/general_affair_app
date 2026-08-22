@@ -141,7 +141,7 @@ export function InvitationTable({
               className="text-blue-900"
             />
             <SortableHead
-              label="អង្គភាព/ស្ថាប័ន"
+              label="ក្រោមអធិបតីភាព"
               sortKey="organization"
               activeSort={sortKey}
               direction={sortDirection}

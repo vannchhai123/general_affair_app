@@ -20,6 +20,7 @@ import {
   getAttendanceInitials,
   getAttendanceOfficerName,
 } from '@/lib/attendance/utils';
+import { getOfficerImageUrl } from '@/lib/image-utils';
 
 export function AttendanceTable({
   records,
@@ -149,7 +150,11 @@ function AttendanceTableRow({
       <TableCell className="px-4 py-3.5 align-middle">
         <div className="flex items-center gap-3">
           <Avatar className="h-9 w-9">
-            <AvatarImage src={record.imageUrl || undefined} alt={officerNameKh} />
+            <AvatarImage
+              src={getOfficerImageUrl(record)}
+              alt={officerNameKh}
+              className="object-cover"
+            />
             <AvatarFallback className="bg-indigo-50 text-xs font-semibold text-indigo-700">
               {initials}
             </AvatarFallback>

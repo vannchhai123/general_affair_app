@@ -21,8 +21,10 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { InvitationStatusBadge } from '@/components/invitation-status-badge';
 import { OfficerAvatarGroup } from '@/components/officer-avatar-group';
+import { getOfficerImageUrl, getOfficerInitials } from '@/lib/image-utils';
 import type { Invitation } from '@/lib/schemas';
 
 function DetailItem({
@@ -77,9 +79,9 @@ export function InvitationDetail({
                   {invitation.subject}
                 </SheetTitle>
                 <SheetDescription className="mt-1 flex items-center gap-2 flex-wrap">
-                  <span>
+                  {/* <span>
                     លិខិតអញ្ជើញលេខ #{invitation.id} របស់ {invitation.organization}
-                  </span>
+                  </span> */}
                   {invitation.type && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
                       {invitation.type === 'outgoing' ? '📤 លិខិតចេញ' : '📥 លិខិតចូល'}
@@ -138,13 +140,25 @@ export function InvitationDetail({
                       return (
                         <div
                           key={officer.id}
-                          className="flex items-center justify-between rounded-lg bg-muted/20 px-3 py-2"
+                          className="flex items-center justify-between rounded-xl bg-slate-50 border border-slate-100 p-2.5 px-3"
                         >
-                          <div>
-                            <p className="text-sm font-medium">{displayName}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {officer.position} · {officer.department}
-                            </p>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8 border border-slate-200">
+                              <AvatarImage
+                                src={getOfficerImageUrl(officer)}
+                                alt={displayName}
+                                className="object-cover"
+                              />
+                              <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
+                                {getOfficerInitials(officer)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="text-sm font-medium text-slate-900">{displayName}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {officer.position} · {officer.department}
+                              </p>
+                            </div>
                           </div>
                           <UserRoundCog className="h-4 w-4 text-muted-foreground" />
                         </div>

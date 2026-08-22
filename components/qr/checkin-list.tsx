@@ -2,9 +2,10 @@
 
 import { Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getOfficerImageUrl } from '@/lib/image-utils';
 
 interface CheckInRecord {
   id: number;
@@ -12,6 +13,9 @@ interface CheckInRecord {
   employeeCode: string;
   time: string;
   status: 'checked-in' | 'checked-out' | 'late';
+  imageUrl?: string;
+  image_url?: string;
+  avatar_url?: string;
 }
 
 interface CheckInListProps {
@@ -24,15 +28,24 @@ function getInitials(firstName: string, lastName: string) {
 }
 
 function CheckInStatusBadge({ status }: { status: CheckInRecord['status'] }) {
-  const config = {
-    'checked-in': { label: 'បានឆែកចូល', color: 'bg-emerald-100 text-emerald-700' },
-    'checked-out': { label: 'បានឆែកចេញ', color: 'bg-blue-100 text-blue-700' },
-    late: { label: 'មកយឺត', color: 'bg-amber-100 text-amber-700' },
-  };
-
-  const { label, color } = config[status];
-
-  return <Badge className={`px-2 py-0.5 ${color} border-0 text-xs`}>{label}</Badge>;
+  switch (status) {
+    case 'checked-in':
+      return (
+        <Badge className="bg-green-600 text-white font-khmer-moul-light text-[10px]">វត្តមាន</Badge>
+      );
+    case 'checked-out':
+      return (
+        <Badge variant="secondary" className="font-khmer-moul-light text-[10px]">
+          ចេញ
+        </Badge>
+      );
+    case 'late':
+      return (
+        <Badge variant="destructive" className="font-khmer-moul-light text-[10px]">
+          មកយឺត
+        </Badge>
+      );
+  }
 }
 
 export function CheckInList({ checkIns, isLoading = false }: CheckInListProps) {
@@ -75,7 +88,12 @@ export function CheckInList({ checkIns, isLoading = false }: CheckInListProps) {
                 className="flex items-center justify-between rounded-lg border p-2.5 transition-colors hover:bg-muted/50"
               >
                 <div className="flex items-center gap-3">
-                  <Avatar className="h-8 w-8">
+                  <Avatar className="h-8 w-8 border border-slate-200">
+                    <AvatarImage
+                      src={getOfficerImageUrl(checkIn)}
+                      alt={checkIn.employeeName}
+                      className="object-cover"
+                    />
                     <AvatarFallback className="bg-primary/10 text-xs font-medium text-primary">
                       {getInitials(
                         checkIn.employeeName.split(' ')[0],

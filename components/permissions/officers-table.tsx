@@ -4,8 +4,9 @@ import { MoreHorizontal, Eye, Key, ChevronLeft, ChevronRight, Search, Shield } f
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { getOfficerImageUrl, getOfficerInitials } from '@/lib/image-utils';
 import {
   Table,
   TableBody,
@@ -139,9 +140,14 @@ export default function OfficersTable({ ctx }: OfficersTableProps) {
                     <TableRow key={o.id}>
                       <TableCell className="px-4 py-2">
                         <div className="flex items-center gap-3">
-                          <Avatar>
+                          <Avatar className="h-9 w-9 border border-slate-200">
+                            <AvatarImage
+                              src={getOfficerImageUrl(o)}
+                              alt={`${o.first_name} ${o.last_name}`}
+                              className="object-cover"
+                            />
                             <AvatarFallback className="bg-primary/10 text-xs font-medium text-primary">
-                              {getInitials(o.first_name, o.last_name)}
+                              {getOfficerInitials(o)}
                             </AvatarFallback>
                           </Avatar>
                           <div className="min-w-0">
