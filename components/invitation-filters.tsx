@@ -78,8 +78,8 @@ export function InvitationFilters({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">ប្រភេទ</SelectItem>
-            <SelectItem value="incoming">លិខិតចូល</SelectItem>
-            <SelectItem value="outgoing">លិខិតចេញ</SelectItem>
+            <SelectItem value="incoming">លិខិតអញ្ជើញគណៈអភិបាល</SelectItem>
+            <SelectItem value="outgoing">លិខិតអញ្ជើញផ្ទៃក្នុង</SelectItem>
           </SelectContent>
         </Select>
 
