@@ -19,6 +19,7 @@ import {
   Shield,
   AlertTriangle,
   Eye,
+  CheckCircle2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -127,6 +128,28 @@ export default function DocumentDetailPage({ params }: PageProps) {
     fetchDocDetails();
   }, [id]);
 
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+
+  const handleUpdateStatus = async (newStatus: 'PENDING' | 'LOGGED') => {
+    if (!doc) return;
+    try {
+      setUpdatingStatus(true);
+      const response = await apiFetch(`/documents/${doc.id}/status?status=${newStatus}`, {
+        method: 'PATCH',
+      });
+      if (response.ok) {
+        setDoc((prev) => (prev ? { ...prev, status: newStatus } : null));
+      } else {
+        alert('មិនអាចផ្លាស់ប្តូរស្ថានភាពឯកសារបានឡើយ');
+      }
+    } catch (err) {
+      console.error('Failed to update status:', err);
+      alert('មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ម៉ាស៊ីនបម្រើ');
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-slate-500 space-y-4 bg-white rounded-3xl border border-slate-200 shadow-sm max-w-xl mx-auto mt-10">
@@ -175,11 +198,33 @@ export default function DocumentDetailPage({ params }: PageProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {doc.status === 'PENDING' ? (
+            <Button
+              variant="outline"
+              disabled={updatingStatus}
+              onClick={() => handleUpdateStatus('LOGGED')}
+              className="border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 hover:text-indigo-800 transition-all font-medium text-xs h-9"
+            >
+              <CheckCircle2 className="mr-1.5 h-4 w-4 text-indigo-600" />
+              {updatingStatus ? 'កំពុងប្តូរ...' : 'ប្តូរទៅជា Logged'}
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              disabled={updatingStatus}
+              onClick={() => handleUpdateStatus('PENDING')}
+              className="border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800 transition-all font-medium text-xs h-9"
+            >
+              <Clock className="mr-1.5 h-4 w-4 text-amber-600" />
+              {updatingStatus ? 'កំពុងប្តូរ...' : 'ប្តូរទៅជា Pending'}
+            </Button>
+          )}
+
           <Button
             onClick={() => router.push(`/dashboard/document-management/${doc.id}/edit`)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-all"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-all h-9 text-xs"
           >
-            <Pencil className="mr-2 h-4 w-4" />
+            <Pencil className="mr-1.5 h-3.5 w-3.5" />
             កែប្រែព័ត៌មាន
           </Button>
         </div>

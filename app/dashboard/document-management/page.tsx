@@ -280,6 +280,23 @@ export default function DocumentManagementPage() {
     }
   };
 
+  const handleToggleStatus = async (id: number, currentStatus: string) => {
+    const nextStatus = currentStatus === 'LOGGED' ? 'PENDING' : 'LOGGED';
+    try {
+      const response = await apiFetch(`/documents/${id}/status?status=${nextStatus}`, {
+        method: 'PATCH',
+      });
+      if (response.ok) {
+        setDocuments((prev) => prev.map((d) => (d.id === id ? { ...d, status: nextStatus } : d)));
+      } else {
+        alert('មិនអាចផ្លាស់ប្តូរស្ថានភាពឯកសារបានឡើយ');
+      }
+    } catch (err) {
+      console.error('Failed to toggle status:', err);
+      alert('មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ម៉ាស៊ីនបម្រើ');
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* 1. Statistics Cards Row */}
@@ -505,16 +522,26 @@ export default function DocumentManagementPage() {
                         </Badge>
                       </TableCell>
 
-                      <TableCell className="text-center px-6 py-4">
-                        <Badge
-                          className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                            doc.status === 'LOGGED'
-                              ? 'bg-indigo-100 text-indigo-800'
-                              : 'bg-amber-100 text-amber-800'
-                          }`}
+                      <TableCell
+                        className="text-center px-6 py-4"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => handleToggleStatus(doc.id, doc.status)}
+                          title="ចុចដើម្បីប្តូរស្ថានភាព"
+                          className="cursor-pointer transition-transform hover:scale-105 active:scale-95 focus:outline-none"
                         >
-                          {doc.status === 'LOGGED' ? 'Logged' : 'Pending'}
-                        </Badge>
+                          <Badge
+                            className={`rounded-full px-2.5 py-0.5 text-xs font-semibold select-none cursor-pointer ${
+                              doc.status === 'LOGGED'
+                                ? 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200'
+                                : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                            }`}
+                          >
+                            {doc.status === 'LOGGED' ? 'Logged' : 'Pending'}
+                          </Badge>
+                        </button>
                       </TableCell>
                       <TableCell className="text-right px-6 py-4">
                         <span className="inline-block text-slate-800 text-xs font-bold font-mono bg-slate-50 border border-slate-200/60 px-2.5 py-1 rounded-lg shadow-2xs">
