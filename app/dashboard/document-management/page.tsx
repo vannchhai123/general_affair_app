@@ -121,11 +121,10 @@ export default function DocumentManagementPage() {
 
   const [loading, setLoading] = useState(true);
 
-  const fetchDocuments = async (status?: string) => {
+  const fetchDocuments = async () => {
     try {
       setLoading(true);
-      const queryParam = status && status !== 'all' ? `?status=${status}` : '';
-      const response = await apiFetch(`/documents${queryParam}`);
+      const response = await apiFetch('/documents');
       if (response.ok) {
         const data = await response.json();
         const mappedDocs = data.map((d: any) => ({
@@ -180,52 +179,23 @@ export default function DocumentManagementPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
   useEffect(() => {
-    fetchDocuments(statusFilter);
-  }, [statusFilter]);
+    fetchDocuments();
+  }, []);
 
   // Metrics calculations
   const stats = useMemo(() => {
     const total = documents.length;
     const pending = documents.filter((d) => d.status === 'PENDING').length;
+    const logged = documents.filter((d) => d.status === 'LOGGED').length;
     const urgent = documents.filter(
       (d) => d.priority === 'CRITICAL' || d.priority === 'HIGH',
     ).length;
 
-    let totalBytes = 0;
-    documents.forEach((d) => {
-      (d.files || []).forEach((f: any) => {
-        if (!f.fileSize) return;
-        if (typeof f.fileSize === 'number') {
-          totalBytes += f.fileSize;
-        } else if (typeof f.fileSize === 'string') {
-          const str = f.fileSize.trim().toUpperCase();
-          const num = parseFloat(str);
-          if (!isNaN(num)) {
-            if (str.includes('GB')) totalBytes += num * 1024 * 1024 * 1024;
-            else if (str.includes('MB')) totalBytes += num * 1024 * 1024;
-            else if (str.includes('KB')) totalBytes += num * 1024;
-            else totalBytes += num;
-          }
-        }
-      });
-    });
-
-    let storageFormatted = '0 KB';
-    if (totalBytes >= 1024 * 1024 * 1024) {
-      storageFormatted = `${(totalBytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
-    } else if (totalBytes >= 1024 * 1024) {
-      storageFormatted = `${(totalBytes / (1024 * 1024)).toFixed(2)} MB`;
-    } else if (totalBytes >= 1024) {
-      storageFormatted = `${(totalBytes / 1024).toFixed(2)} KB`;
-    } else if (totalBytes > 0) {
-      storageFormatted = `${totalBytes} B`;
-    }
-
     return {
       total,
       pending,
+      logged,
       urgent,
-      storage: storageFormatted,
     };
   }, [documents]);
 
@@ -241,9 +211,11 @@ export default function DocumentManagementPage() {
 
       const matchesDate = !dateFilter || doc.documentDate === dateFilter;
 
-      return matchesSearch && matchesType && matchesDate;
+      const matchesStatus = statusFilter === 'all' || doc.status === statusFilter;
+
+      return matchesSearch && matchesType && matchesDate && matchesStatus;
     });
-  }, [documents, searchQuery, typeFilter, dateFilter]);
+  }, [documents, searchQuery, typeFilter, dateFilter, statusFilter]);
 
   // Pagination states & calculations
   const [currentPage, setCurrentPage] = useState(1);
@@ -280,21 +252,30 @@ export default function DocumentManagementPage() {
     }
   };
 
-  const handleToggleStatus = async (id: number, currentStatus: string) => {
-    const nextStatus = currentStatus === 'LOGGED' ? 'PENDING' : 'LOGGED';
+  const [updatingId, setUpdatingId] = useState<number | null>(null);
+
+  const handleStatusChange = async (id: number, newStatus: 'PENDING' | 'LOGGED') => {
     try {
-      const response = await apiFetch(`/documents/${id}/status?status=${nextStatus}`, {
+      setUpdatingId(id);
+      const response = await apiFetch(`/documents/${id}/status?status=${newStatus}`, {
         method: 'PATCH',
       });
       if (response.ok) {
-        setDocuments((prev) => prev.map((d) => (d.id === id ? { ...d, status: nextStatus } : d)));
+        setDocuments((prev) => prev.map((d) => (d.id === id ? { ...d, status: newStatus } : d)));
       } else {
         alert('មិនអាចផ្លាស់ប្តូរស្ថានភាពឯកសារបានឡើយ');
       }
     } catch (err) {
-      console.error('Failed to toggle status:', err);
+      console.error('Failed to update status:', err);
       alert('មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ម៉ាស៊ីនបម្រើ');
+    } finally {
+      setUpdatingId(null);
     }
+  };
+
+  const handleToggleStatus = (id: number, currentStatus: string) => {
+    const nextStatus = currentStatus === 'LOGGED' ? 'PENDING' : 'LOGGED';
+    handleStatusChange(id, nextStatus);
   };
 
   return (
@@ -337,37 +318,19 @@ export default function DocumentManagementPage() {
           </CardContent>
         </Card>
 
-        {/* <Card className="relative overflow-hidden border-slate-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider font-khmer-moul-light">
-                  អាទិភាព
-                </p>
-                <h3 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
-                  {stats.urgent}
-                </h3>
-              </div>
-              <div className="rounded-2xl bg-rose-50 border border-rose-100 p-3 text-rose-600 shadow-sm">
-                <ShieldAlert className="h-6 w-6" />
-              </div>
-            </div>
-          </CardContent>
-        </Card> */}
-
         <Card className="relative overflow-hidden border-slate-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider font-khmer-moul-light">
-                  ទំហំផ្ទុកសរុប
+                  បានចុះបញ្ជី
                 </p>
                 <h3 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
-                  {stats.storage}
+                  {stats.logged}
                 </h3>
               </div>
-              <div className="rounded-2xl bg-cyan-50 border border-cyan-100 p-3 text-cyan-600 shadow-sm">
-                <FileCheck2 className="h-6 w-6" />
+              <div className="rounded-2xl bg-emerald-50 border border-emerald-100 p-3 text-emerald-600 shadow-sm">
+                <CheckCircle2 className="h-6 w-6" />
               </div>
             </div>
           </CardContent>
@@ -526,22 +489,52 @@ export default function DocumentManagementPage() {
                         className="text-center px-6 py-4"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <button
-                          type="button"
-                          onClick={() => handleToggleStatus(doc.id, doc.status)}
-                          title="ចុចដើម្បីប្តូរស្ថានភាព"
-                          className="cursor-pointer transition-transform hover:scale-105 active:scale-95 focus:outline-none"
-                        >
-                          <Badge
-                            className={`rounded-full px-2.5 py-0.5 text-xs font-semibold select-none cursor-pointer ${
-                              doc.status === 'LOGGED'
-                                ? 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200'
-                                : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
-                            }`}
+                        <div className="flex items-center justify-center">
+                          <Select
+                            value={doc.status}
+                            onValueChange={(val: 'PENDING' | 'LOGGED') =>
+                              handleStatusChange(doc.id, val)
+                            }
+                            disabled={updatingId === doc.id}
                           >
-                            {doc.status === 'LOGGED' ? 'Logged' : 'Pending'}
-                          </Badge>
-                        </button>
+                            <SelectTrigger
+                              className={`h-7 w-[108px] text-xs font-semibold rounded-full border shadow-none transition-all px-2.5 ${
+                                doc.status === 'LOGGED'
+                                  ? 'bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100'
+                                  : 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100'
+                              }`}
+                            >
+                              <SelectValue>
+                                {updatingId === doc.id ? (
+                                  <span className="text-2xs text-slate-500">កំពុងប្តូរ...</span>
+                                ) : (
+                                  <span className="flex items-center gap-1">
+                                    <span
+                                      className={`h-1.5 w-1.5 rounded-full ${
+                                        doc.status === 'LOGGED' ? 'bg-indigo-600' : 'bg-amber-600'
+                                      }`}
+                                    />
+                                    {doc.status === 'LOGGED' ? 'Logged' : 'Pending'}
+                                  </span>
+                                )}
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent align="center">
+                              <SelectItem
+                                value="PENDING"
+                                className="text-xs font-medium text-amber-700"
+                              >
+                                🟡 Pending
+                              </SelectItem>
+                              <SelectItem
+                                value="LOGGED"
+                                className="text-xs font-medium text-indigo-700"
+                              >
+                                🔵 Logged
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </TableCell>
                       <TableCell className="text-right px-6 py-4">
                         <span className="inline-block text-slate-800 text-xs font-bold font-mono bg-slate-50 border border-slate-200/60 px-2.5 py-1 rounded-lg shadow-2xs">
@@ -553,6 +546,26 @@ export default function DocumentManagementPage() {
                         onClick={(e) => e.stopPropagation()}
                       >
                         <div className="flex items-center justify-center gap-0.5">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className={`h-8 w-8 ${
+                              doc.status === 'LOGGED'
+                                ? 'text-amber-600 hover:bg-amber-50'
+                                : 'text-emerald-600 hover:bg-emerald-50'
+                            }`}
+                            onClick={() => handleToggleStatus(doc.id, doc.status)}
+                            title={
+                              doc.status === 'LOGGED' ? 'ប្តូរទៅជា Pending' : 'ប្តូរទៅជា Logged'
+                            }
+                            disabled={updatingId === doc.id}
+                          >
+                            {doc.status === 'LOGGED' ? (
+                              <Clock className="h-4 w-4" />
+                            ) : (
+                              <CheckCircle2 className="h-4 w-4" />
+                            )}
+                          </Button>
                           <Button
                             size="icon"
                             variant="ghost"
