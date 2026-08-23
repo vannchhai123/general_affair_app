@@ -3,8 +3,9 @@
 import { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { isAfter, isBefore, startOfDay } from 'date-fns';
-import { Plus } from 'lucide-react';
+import { Plus, AlertCircle, RefreshCw } from 'lucide-react';
 import type { DateRange } from 'react-day-picker';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,7 +51,7 @@ import type { InvitationFormValues } from '@/lib/schemas/invitation/invitation';
 type SortKey = 'id' | 'subject' | 'organization' | 'date' | 'status';
 
 export default function InvitationsPage() {
-  const { data: invitationsData, isLoading } = useInvitations();
+  const { data: invitationsData, isLoading, isError, error, refetch } = useInvitations();
   const invitations: Invitation[] = invitationsData ?? [];
   const { officers = [] } = useOfficers({
     page: 1,
@@ -122,24 +123,31 @@ export default function InvitationsPage() {
     search.length > 0 || statusFilter !== 'all' || typeFilter !== 'all' || Boolean(dateRange?.from);
 
   const filteredInvitations = invitations.filter((invitation: Invitation) => {
-    const officerMatch = invitation.assigned_officers.some(
+    const officerMatch = (invitation.assigned_officers || []).some(
       (officer: Invitation['assigned_officers'][number]) =>
-        `${officer.first_name} ${officer.last_name}`.toLowerCase().includes(debouncedSearch),
+        `${officer.first_name || ''} ${officer.last_name || ''}`
+          .toLowerCase()
+          .includes(debouncedSearch),
     );
 
     const textMatch =
       !debouncedSearch ||
-      invitation.subject.toLowerCase().includes(debouncedSearch) ||
-      invitation.organization.toLowerCase().includes(debouncedSearch) ||
-      invitation.location.toLowerCase().includes(debouncedSearch) ||
+      (invitation.subject || '').toLowerCase().includes(debouncedSearch) ||
+      (invitation.organization || '').toLowerCase().includes(debouncedSearch) ||
+      (invitation.location || '').toLowerCase().includes(debouncedSearch) ||
       officerMatch;
 
     const statusMatch = statusFilter === 'all' || invitation.status === statusFilter;
     const typeMatch = typeFilter === 'all' || invitation.type === typeFilter;
 
-    const invitationDate = startOfDay(new Date(invitation.date));
-    const fromMatch = !dateRange?.from || !isBefore(invitationDate, startOfDay(dateRange.from));
-    const toMatch = !dateRange?.to || !isAfter(invitationDate, startOfDay(dateRange.to));
+    const rawDate = invitation.date ? new Date(invitation.date) : null;
+    const isValidDate = rawDate && !isNaN(rawDate.getTime());
+    const invitationDate = isValidDate ? startOfDay(rawDate) : null;
+
+    const fromMatch =
+      !dateRange?.from || !invitationDate || !isBefore(invitationDate, startOfDay(dateRange.from));
+    const toMatch =
+      !dateRange?.to || !invitationDate || !isAfter(invitationDate, startOfDay(dateRange.to));
 
     return textMatch && statusMatch && typeMatch && fromMatch && toMatch;
   });
@@ -149,19 +157,22 @@ export default function InvitationsPage() {
 
     switch (sortKey) {
       case 'id':
-        comparison = left.id - right.id;
+        comparison = (left.id || 0) - (right.id || 0);
         break;
-      case 'date':
-        comparison = new Date(left.date).getTime() - new Date(right.date).getTime();
+      case 'date': {
+        const timeA = left.date ? new Date(left.date).getTime() : 0;
+        const timeB = right.date ? new Date(right.date).getTime() : 0;
+        comparison = (isNaN(timeA) ? 0 : timeA) - (isNaN(timeB) ? 0 : timeB);
         break;
+      }
       case 'subject':
-        comparison = left.subject.localeCompare(right.subject);
+        comparison = (left.subject || '').localeCompare(right.subject || '');
         break;
       case 'organization':
-        comparison = left.organization.localeCompare(right.organization);
+        comparison = (left.organization || '').localeCompare(right.organization || '');
         break;
       case 'status':
-        comparison = left.status.localeCompare(right.status);
+        comparison = (left.status || '').localeCompare(right.status || '');
         break;
     }
 
@@ -277,6 +288,28 @@ export default function InvitationsPage() {
           បង្កើតលិខិតអញ្ជើញ
         </Button>
       </div>
+
+      {isError && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>បរាជ័យក្នុងការទាញយកលិខិតអញ្ជើញ</AlertTitle>
+          <AlertDescription className="flex items-center justify-between gap-3 mt-1">
+            <span>
+              {error?.message ||
+                'មិនអាចភ្ជាប់ទៅកាន់ប្រព័ន្ធ API បានទេ។ សូមពិនិត្យមើល Backend Server ឬ ព្យាយាមម្ដងទៀត។'}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void refetch()}
+              className="ml-auto bg-transparent hover:bg-destructive/10 shrink-0"
+            >
+              <RefreshCw className="mr-2 h-3.5 w-3.5" />
+              ព្យាយាមម្តងទៀត
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       <InvitationStats
         invitations={invitations}
