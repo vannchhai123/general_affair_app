@@ -59,7 +59,7 @@ export function AttendanceTable({
         <>
           <Table>
             <TableHeader>
-              <TableRow className="font-khmer-moul-light">
+              <TableRow className="">
                 <TableHead className="w-12">
                   <Checkbox
                     checked={selectedIds.length === records.length && records.length > 0}

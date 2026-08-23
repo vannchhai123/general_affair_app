@@ -10,21 +10,122 @@ import { DashboardStatCard, type DashboardStatCardProps } from '@/components/das
 import { useDashboard } from '@/hooks/dashboard/use-dashboard';
 import { useInvitations } from '@/hooks/invitations/use-invitations';
 import { useOfficers } from '@/hooks/officers/use-officers';
-import type { DashboardStats } from '@/lib/schemas';
+import { useAttendance } from '@/hooks/attendance/use-attendance';
+import { useLeaveRequests } from '@/hooks/leave-requests/use-leave-requests';
+import type { DashboardStats, LeaveRequest } from '@/lib/schemas';
 import { ClipboardCheck, QrCode, UserCheck, UserMinus, Users } from 'lucide-react';
 
-function getTodayAttendanceCount(data: DashboardStats) {
-  const today = new Date();
+function getTodayDateString() {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
-  return data.recent_attendance.filter((record) => {
+function getTodayAttendanceCount(
+  data: DashboardStats,
+  todayAttendanceData?: { totalElements?: number; content?: any[] },
+) {
+  // 1. If today's attendance API returned a count
+  if (todayAttendanceData) {
+    if (typeof todayAttendanceData.totalElements === 'number') {
+      return todayAttendanceData.totalElements;
+    }
+    if (Array.isArray(todayAttendanceData.content)) {
+      return todayAttendanceData.content.length;
+    }
+  }
+
+  // 2. Count from recent_attendance strictly for today's date
+  const today = new Date();
+  const todayDateString = today.toDateString();
+  const todayYMD = today.toISOString().slice(0, 10);
+  const localTodayYMD = getTodayDateString();
+
+  const matchedRecent = (data.recent_attendance ?? []).filter((record) => {
+    if (!record.date) return false;
     const recordDate = new Date(record.date);
-    return recordDate.toDateString() === today.toDateString();
+    if (!isNaN(recordDate.getTime()) && recordDate.toDateString() === todayDateString) {
+      return true;
+    }
+    const cleanDate = record.date.slice(0, 10);
+    return cleanDate === todayYMD || cleanDate === localTodayYMD;
   }).length;
+
+  return matchedRecent;
+}
+
+function calculateOnLeaveCount(
+  data: DashboardStats,
+  leaveRequests: LeaveRequest[],
+  officersList?: any[],
+): number {
+  // 1. Calculate from actual leave requests data
+  if (leaveRequests && leaveRequests.length > 0) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const activeTodayLeaves = leaveRequests.filter((leave) => {
+      const status = (leave.status || '').trim().toLowerCase();
+      if (status === 'rejected') return false;
+
+      if (leave.start_date && leave.end_date) {
+        const start = new Date(leave.start_date);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(leave.end_date);
+        end.setHours(23, 59, 59, 999);
+
+        if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+          return today >= start && today <= end;
+        }
+      }
+      return status === 'approved';
+    });
+
+    if (activeTodayLeaves.length > 0) {
+      return activeTodayLeaves.length;
+    }
+
+    const approvedCount = leaveRequests.filter(
+      (l) => (l.status || '').trim().toLowerCase() === 'approved',
+    ).length;
+    if (approvedCount > 0) {
+      return approvedCount;
+    }
+
+    const pendingOrAllCount = leaveRequests.filter(
+      (l) => (l.status || '').trim().toLowerCase() !== 'rejected',
+    ).length;
+    if (pendingOrAllCount > 0) {
+      return pendingOrAllCount;
+    }
+
+    return leaveRequests.length;
+  }
+
+  // 2. Count from officers list where status is on_leave
+  if (officersList && officersList.length > 0) {
+    const onLeaveOfficers = officersList.filter((o) => {
+      const s = (o.status || '').toLowerCase().trim();
+      return s === 'on_leave' || s === 'onleave' || s === 'leave';
+    });
+    if (onLeaveOfficers.length > 0) {
+      return onLeaveOfficers.length;
+    }
+  }
+
+  // 3. Fallback to dashboard API data
+  return (
+    data.officers?.on_leave || data.leave_requests?.approved || data.leave_requests?.total || 0
+  );
 }
 
 function buildStatCards(
   data: DashboardStats,
   t: (key: string) => string,
+  leaveCount: number,
+  todayAttendanceCount: number,
 ): DashboardStatCardProps[] {
   return [
     {
@@ -40,7 +141,7 @@ function buildStatCards(
     },
     {
       title: t('stats.officersOnLeave'),
-      value: data.officers?.on_leave ?? 0,
+      value: leaveCount,
       icon: UserMinus,
       subtext: 'កំពុងឈប់សម្រាក',
       tone: {
@@ -51,7 +152,7 @@ function buildStatCards(
     },
     {
       title: t('stats.attendanceToday'),
-      value: getTodayAttendanceCount(data),
+      value: todayAttendanceCount,
       icon: ClipboardCheck,
       subtext: 'បានឆែកវត្តមាន',
       tone: {
@@ -75,10 +176,23 @@ function buildStatCards(
 }
 
 export default function DashboardPage() {
+  const todayStr = getTodayDateString();
   const { data, isLoading, isError, error, refetch, isFetching } = useDashboard();
   const { data: invitationsData, isLoading: isInvitationsLoading } = useInvitations();
+  const { data: leaveRequestsData = [] } = useLeaveRequests();
+  const { data: todayAttendanceData } = useAttendance({ date: todayStr, size: 1000 });
   const { officers, isLoading: isOfficersLoading } = useOfficers({ pageSize: 150 });
   const t = useTranslations('dashboard');
+
+  const onLeaveCount = calculateOnLeaveCount(
+    data ?? ({} as DashboardStats),
+    leaveRequestsData,
+    officers,
+  );
+  const todayAttendanceCount = getTodayAttendanceCount(
+    data ?? ({} as DashboardStats),
+    todayAttendanceData,
+  );
 
   if (isLoading || isInvitationsLoading || isOfficersLoading) return <DashboardLoading />;
 
@@ -117,7 +231,7 @@ export default function DashboardPage() {
         </section>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 w-full">
-          {buildStatCards(data, t).map((stat) => (
+          {buildStatCards(data, t, onLeaveCount, todayAttendanceCount).map((stat) => (
             <DashboardStatCard key={stat.title} {...stat} />
           ))}
         </div>

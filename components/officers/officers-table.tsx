@@ -118,7 +118,7 @@ export function OfficersTable({
     <div className="flex flex-col gap-4">
       <Table>
         <TableHeader>
-          <TableRow className="hover:bg-transparent font-khmer-moul-light">
+          <TableRow className="hover:bg-transparent ">
             <TableHead className="px-4 py-2 text-blue-900">កូដមន្រ្តី</TableHead>
             <TableHead className="px-4 py-2 text-blue-900">នាមត្រកូល</TableHead>
             <TableHead className="px-4 py-2 text-blue-900">នាមខ្លួន</TableHead>

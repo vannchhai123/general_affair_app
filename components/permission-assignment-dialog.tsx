@@ -53,9 +53,23 @@ export function PermissionAssignmentDialog({
     toRemove: Set<number>;
   }>({ toAdd: new Set(), toRemove: new Set() });
 
-  // Group permissions by category
+  const HIDDEN_CATEGORIES = new Set([
+    'permission',
+    'role',
+    'officer',
+    'officerpermission',
+    'dashboard',
+  ]);
+
+  // Group permissions by category (hiding administrative categories: Permission, Role, Officer, OfficerPermission)
   const categoriesMap = permissions.reduce<Record<string, Permission[]>>((acc, perm) => {
     const category = perm.category || 'General';
+    const normalizedCategory = category.toLowerCase().replace(/[\s_-]+/g, '');
+
+    if (HIDDEN_CATEGORIES.has(normalizedCategory)) {
+      return acc;
+    }
+
     if (!acc[category]) acc[category] = [];
     acc[category].push(perm);
     return acc;
