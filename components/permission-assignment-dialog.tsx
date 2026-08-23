@@ -59,6 +59,8 @@ export function PermissionAssignmentDialog({
     'officer',
     'officerpermission',
     'dashboard',
+    'shiftassignment',
+    'organization',
   ]);
 
   // Group permissions by category (hiding administrative categories: Permission, Role, Officer, OfficerPermission)
