@@ -229,6 +229,20 @@ export default function DocumentDetailPage({ params }: PageProps) {
                   </span>
                 </div>
                 <div className="space-y-1">
+                  <span className="text-xs text-slate-500 block">ស្ថានភាព</span>
+                  <div>
+                    <Badge
+                      className={`text-xs px-2.5 py-0.5 rounded-full font-semibold ${
+                        doc.status === 'LOGGED'
+                          ? 'bg-indigo-100 text-indigo-800'
+                          : 'bg-amber-100 text-amber-800'
+                      }`}
+                    >
+                      {doc.status === 'LOGGED' ? 'Logged' : 'Pending'}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="space-y-1">
                   <span className="text-xs text-slate-500 block">កម្រិតអាទិភាព</span>
                   <div>
                     <Badge
