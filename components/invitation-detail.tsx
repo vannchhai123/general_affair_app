@@ -95,8 +95,8 @@ export function InvitationDetail({
       : invitation.category === 'external'
         ? 'លិខិតអញ្ជើញផ្ទៃក្នុង'
         : invitation.type === 'outgoing'
-          ? 'លិខិតអញ្ជើញចេញ'
-          : 'លិខិតអញ្ជើញចូល';
+          ? 'លិខិតអញ្ជើញផ្ទៃក្នុង'
+          : 'លិខិតអញ្ជើញគណៈអភិបាល';
 
   return (
     <div className="space-y-6">
