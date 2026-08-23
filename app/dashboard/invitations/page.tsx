@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useEffect, useState, useRef } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { isAfter, isBefore, startOfDay } from 'date-fns';
 import { Plus } from 'lucide-react';
 import type { DateRange } from 'react-day-picker';
@@ -66,8 +66,10 @@ export default function InvitationsPage() {
   const updateInvitation = useUpdateInvitation();
   const deleteInvitation = useDeleteInvitation();
 
+  const router = useRouter();
   const searchParams = useSearchParams();
   const invitationIdParam = searchParams.get('id');
+  const hasAutoOpenedRef = useRef(false);
 
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -89,14 +91,24 @@ export default function InvitationsPage() {
   const pageSize = 7;
 
   useEffect(() => {
-    if (invitationIdParam && invitations.length > 0) {
+    if (invitationIdParam && invitations.length > 0 && !hasAutoOpenedRef.current) {
       const target = invitations.find((inv) => String(inv.id) === invitationIdParam);
       if (target) {
+        hasAutoOpenedRef.current = true;
         setSelectedInvitation(target);
         setDetailOpen(true);
       }
     }
   }, [invitationIdParam, invitations]);
+
+  const handleDetailOpenChange = (open: boolean) => {
+    setDetailOpen(open);
+    if (!open) {
+      if (invitationIdParam) {
+        router.replace('/dashboard/invitations', { scroll: false });
+      }
+    }
+  };
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -305,13 +317,13 @@ export default function InvitationsPage() {
       <InvitationDetail
         invitation={selectedInvitation}
         open={detailOpen}
-        onOpenChange={setDetailOpen}
+        onOpenChange={handleDetailOpenChange}
         onEdit={(invitation) => {
-          setDetailOpen(false);
+          handleDetailOpenChange(false);
           openEditDialog(invitation);
         }}
         onChangeStatus={(invitation) => {
-          setDetailOpen(false);
+          handleDetailOpenChange(false);
           openStatusDialog(invitation);
         }}
       />
