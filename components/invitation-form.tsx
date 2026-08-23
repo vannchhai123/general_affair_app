@@ -60,6 +60,7 @@ import {
   invitationFormSchema,
   type InvitationFormValues,
 } from '@/lib/schemas/invitation/invitation';
+import { resolveImageUrl } from '@/lib/image-utils';
 import type { Invitation, Officer } from '@/lib/schemas';
 
 function OfficerMultiSelect({
@@ -128,11 +129,11 @@ function OfficerMultiSelect({
             type="button"
             variant="outline"
             className={cn(
-              'w-full justify-between h-11 px-3.5 text-left font-normal border-slate-200 rounded-xl bg-white leading-relaxed',
+              'w-full justify-between min-h-11 h-auto py-2.5 px-3.5 text-left font-normal border-slate-200 rounded-xl bg-white leading-relaxed',
               selectedOfficers.length > 0 && 'border-blue-200 bg-blue-50/20',
             )}
           >
-            <span className="flex items-center gap-2.5 truncate text-left">
+            <span className="flex items-center gap-2.5 min-w-0 text-left py-0.5">
               <div
                 className={cn(
                   'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border text-xs font-semibold',
@@ -143,9 +144,11 @@ function OfficerMultiSelect({
               >
                 <Users className="h-3.5 w-3.5" />
               </div>
-              <span className="truncate text-sm font-medium text-slate-900">{label}</span>
+              <span className="truncate text-sm font-medium text-slate-900 leading-relaxed py-0.5">
+                {label}
+              </span>
             </span>
-            <ChevronsUpDown className="h-4 w-4 shrink-0 text-slate-400" />
+            <ChevronsUpDown className="h-4 w-4 shrink-0 text-slate-400 ml-2" />
           </Button>
         </PopoverTrigger>
         <PopoverContent
@@ -532,9 +535,11 @@ export function InvitationForm({
                   name="officers"
                   render={({ field }) => (
                     <FormItem>
-                      <div className="flex items-center justify-between">
-                        <FormLabel>សមាសភាពចូលរួម</FormLabel>
-                        <span className="text-xs text-muted-foreground">
+                      <div className="flex items-baseline justify-between gap-2 py-0.5">
+                        <FormLabel className="text-sm font-medium leading-relaxed text-slate-800">
+                          សមាសភាពចូលរួម
+                        </FormLabel>
+                        <span className="text-xs text-muted-foreground font-normal leading-relaxed whitespace-nowrap">
                           {isInternal
                             ? `(មន្ត្រីមានអាទិភាព ${currentOfficers.length} រូប)`
                             : `(មន្ត្រីទាំងអស់ ${currentOfficers.length} រូប)`}
@@ -614,9 +619,11 @@ export function InvitationForm({
                   name="officers"
                   render={({ field }) => (
                     <FormItem>
-                      <div className="flex items-center justify-between">
-                        <FormLabel>សមាសភាពចូលរួម</FormLabel>
-                        <span className="text-xs text-muted-foreground">
+                      <div className="flex items-baseline justify-between gap-2 py-0.5">
+                        <FormLabel className="text-sm font-medium leading-relaxed text-slate-800">
+                          សមាសភាពចូលរួម
+                        </FormLabel>
+                        <span className="text-xs text-muted-foreground font-normal leading-relaxed whitespace-nowrap">
                           {isInternal
                             ? `(មន្ត្រីមានអាទិភាព ${currentOfficers.length} រូប)`
                             : `(មន្ត្រីទាំងអស់ ${currentOfficers.length} រូប)`}
@@ -810,38 +817,41 @@ export function InvitationForm({
 
                             {previewUrls.length > 0 && (
                               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
-                                {previewUrls.map((url, index) => (
-                                  <div
-                                    key={url}
-                                    className="relative rounded-lg border overflow-hidden bg-slate-50 flex justify-center items-center p-2 h-[150px]"
-                                  >
-                                    <img
-                                      src={url}
-                                      alt={`Invitation Document ${index + 1}`}
-                                      className="h-full object-contain rounded"
-                                    />
-                                    <Button
-                                      type="button"
-                                      variant="destructive"
-                                      size="icon"
-                                      className="absolute top-1.5 right-1.5 h-6 w-6 rounded-full shadow hover:bg-destructive/90"
-                                      onClick={() => {
-                                        const currentIds = field.value ?? [];
-                                        const nextIds = currentIds.filter(
-                                          (_, idx) => idx !== index,
-                                        );
-                                        const nextUrls = previewUrls.filter(
-                                          (_, idx) => idx !== index,
-                                        );
-
-                                        field.onChange(nextIds);
-                                        setPreviewUrls(nextUrls);
-                                      }}
+                                {previewUrls.map((url, index) => {
+                                  const resolvedUrl = resolveImageUrl(url) || url;
+                                  return (
+                                    <div
+                                      key={url + index}
+                                      className="relative rounded-lg border overflow-hidden bg-slate-50 flex justify-center items-center p-2 h-[150px]"
                                     >
-                                      <Trash2 className="h-3.5 w-3.5" />
-                                    </Button>
-                                  </div>
-                                ))}
+                                      <img
+                                        src={resolvedUrl}
+                                        alt={`Invitation Document ${index + 1}`}
+                                        className="h-full object-contain rounded"
+                                      />
+                                      <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="icon"
+                                        className="absolute top-1.5 right-1.5 h-6 w-6 rounded-full shadow hover:bg-destructive/90"
+                                        onClick={() => {
+                                          const currentIds = field.value ?? [];
+                                          const nextIds = currentIds.filter(
+                                            (_, idx) => idx !== index,
+                                          );
+                                          const nextUrls = previewUrls.filter(
+                                            (_, idx) => idx !== index,
+                                          );
+
+                                          field.onChange(nextIds);
+                                          setPreviewUrls(nextUrls);
+                                        }}
+                                      >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                      </Button>
+                                    </div>
+                                  );
+                                })}
                               </div>
                             )}
                           </div>

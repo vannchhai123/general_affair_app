@@ -25,6 +25,8 @@ import {
   DocumentType as AppDocumentType,
 } from '../document-store';
 import { apiFetch } from '@/lib/client';
+import { parseApiError } from '@/lib/api-error';
+import { showAlert } from '@/lib/toast';
 
 export default function AddDocumentPage() {
   const router = useRouter();
@@ -100,12 +102,12 @@ export default function AddDocumentPage() {
               },
             ]);
           } else {
-            alert('ផ្ទុកឡើងឯកសារបរាជ័យ៖ ' + file.name);
+            showAlert.error('ផ្ទុកឡើងឯកសារបរាជ័យ', file.name);
           }
         }
       } catch (err) {
         console.error(err);
-        alert('មានកំហុសក្នុងការផ្ទុកឡើងឯកសារ');
+        showAlert.error('មានកំហុសក្នុងការផ្ទុកឡើងឯកសារ');
       } finally {
         setIsUploading(false);
       }
@@ -115,15 +117,15 @@ export default function AddDocumentPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formType) {
-      alert('សូមជ្រើសរើសប្រភេទលិខិត!');
+      showAlert.warning('សូមជ្រើសរើសប្រភេទលិខិត!');
       return;
     }
     if (!formNumber || !formSubject || !formDate) {
-      alert('សូមបំពេញលេខឯកសារ កម្មវត្ថុ និងកាលបរិច្ឆេទឱ្យបានត្រឹមត្រូវ!');
+      showAlert.warning('សូមបំពេញលេខឯកសារ កម្មវត្ថុ និងកាលបរិច្ឆេទឱ្យបានត្រឹមត្រូវ!');
       return;
     }
     if (uploadedFiles.length === 0) {
-      alert('សូមផ្ទុកឡើងឯកសារលិខិត (PDF / IMAGES) យ៉ាងហោចណាស់មួយ!');
+      showAlert.warning('សូមផ្ទុកឡើងឯកសារលិខិត (PDF / IMAGES) យ៉ាងហោចណាស់មួយ!');
       return;
     }
 
@@ -134,13 +136,15 @@ export default function AddDocumentPage() {
       const payload = {
         direction: formDirection,
         documentTypeId: parseInt(formType, 10),
-        receiverOrganizationName: formReceiver,
-        documentNumber: formNumber,
+        receiverOrganizationName: formReceiver?.trim() || undefined,
+        documentNumber: formNumber.trim(),
         documentDate: formDate,
-        subject: formSubject,
-        summary: formSubject,
+        subject: formSubject.trim(),
+        summary: formSubject.trim(),
+        confidentiality: formConfidentiality,
+        priority: formPriority,
         status: formStatus,
-        remarks: formRemarks,
+        remarks: formRemarks?.trim() || undefined,
         fileIds: fileIds,
       };
 
@@ -153,8 +157,8 @@ export default function AddDocumentPage() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'បង្កើតឯកសារបរាជ័យ');
+        const errorMsg = await parseApiError(response, 'បង្កើតឯកសារបរាជ័យ');
+        throw new Error(errorMsg);
       }
 
       // Sync mock list so it updates locally as well if local storage is used elsewhere
@@ -211,11 +215,11 @@ export default function AddDocumentPage() {
       const currentList = getStoredDocuments();
       saveStoredDocuments([newDoc, ...currentList]);
 
-      alert('បានចុះបញ្ជីឯកសារជោគជ័យ!');
+      await showAlert.success('បានចុះបញ្ជីឯកសារជោគជ័យ!');
       router.push('/dashboard/document-management');
     } catch (err: any) {
       console.error(err);
-      alert('មានកំហុសក្នុងការចុះបញ្ជីឯកសារ៖ ' + err.message);
+      showAlert.error('មានកំហុសក្នុងការចុះបញ្ជីឯកសារ', err.message);
     } finally {
       setIsSubmitting(false);
     }

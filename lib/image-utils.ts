@@ -6,21 +6,28 @@ export function resolveImageUrl(url: string | null | undefined): string | undefi
   const trimmed = url.trim();
   if (!trimmed) return undefined;
 
-  // If already a data URI or full absolute HTTP(S) URL
-  if (
-    trimmed.startsWith('data:') ||
-    trimmed.startsWith('http://') ||
-    trimmed.startsWith('https://') ||
-    trimmed.startsWith('blob:')
-  ) {
+  // If already a data URI or blob URL
+  if (trimmed.startsWith('data:') || trimmed.startsWith('blob:')) {
+    return trimmed;
+  }
+
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8090/api/v1';
+  const backendBase = apiUrl.replace(/\/api\/v1\/?$/, '').replace(/\/api\/?$/, '');
+
+  // If URL points to localhost/127.0.0.1 (e.g., stored as http://localhost:8080/uploads/... by backend)
+  // rewrite host to current active backend origin so it works in both local and production environments
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?\//i.test(trimmed)) {
+    const pathPart = trimmed.replace(/^https?:\/\/[^\/]+/, '');
+    return `${backendBase}${pathPart}`;
+  }
+
+  // If it's an external full URL (e.g. S3, Cloudinary, etc.)
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
     return trimmed;
   }
 
   // If it's a relative backend path (e.g., /uploads/... or uploads/...)
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8090/api/v1';
-  const backendBase = apiUrl.replace(/\/api\/v1\/?$/, '').replace(/\/api\/?$/, '');
   const cleanPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
-
   return `${backendBase}${cleanPath}`;
 }
 

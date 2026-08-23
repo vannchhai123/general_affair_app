@@ -41,10 +41,11 @@ export const appNavigation: NavItem[] = [
     permission: 'OFFICER_VIEW',
   },
   {
-    title: 'Download ទិន្នន័យវត្តមាន',
-    href: '/dashboard/attendance',
-    icon: ClipboardCheck,
-    permission: 'ATTENDANCE_VIEW',
+    title: 'វត្តមាន',
+    href: '/dashboard/qr-sessions',
+    icon: QrCode,
+    roles: ['ROLE_ADMIN'],
+    permission: 'QR_SESSION_VIEW',
   },
   {
     title: 'សំណើច្បាប់ឈប់សម្រាក',
@@ -52,18 +53,11 @@ export const appNavigation: NavItem[] = [
     icon: FileText,
   },
   {
-    title: 'វត្តមាន',
-    href: '/dashboard/qr-sessions',
-    icon: QrCode,
-    roles: ['ROLE_ADMIN'],
-    permission: 'QR_SESSION_VIEW',
+    title: 'Download ទិន្នន័យវត្តមាន',
+    href: '/dashboard/attendance',
+    icon: ClipboardCheck,
+    permission: 'ATTENDANCE_VIEW',
   },
-  // {
-  //   title: 'សង្ខេបវត្តមាន',
-  //   href: '/dashboard/attendance-summary',
-  //   icon: BarChart3,
-  //   permission: 'ATTENDANCE_VIEW',
-  // },
   {
     title: 'លិខិតអញ្ជើញ គណៈអភិបាល',
     href: '/dashboard/invitations',

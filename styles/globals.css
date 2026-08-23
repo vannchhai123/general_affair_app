@@ -75,8 +75,11 @@
 }
 
 @theme inline {
-  --font-sans: 'Geist', 'Geist Fallback';
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --font-sans: var(--font-khmer), 'Geist', 'Geist Fallback', sans-serif;
+  --font-khmer: var(--font-khmer), sans-serif;
+  --font-khmer-moul-light: var(--font-khmer-moul-light), serif;
+  --font-khmer-bokor: var(--font-khmer-bokor), cursive;
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback', monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -119,7 +122,9 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html,
   body {
+    font-family: var(--font-khmer), 'Geist', sans-serif;
     @apply bg-background text-foreground;
   }
 }

@@ -24,6 +24,8 @@ import {
   DocumentType as AppDocumentType,
 } from '../../document-store';
 import { apiFetch } from '@/lib/client';
+import { parseApiError } from '@/lib/api-error';
+import { showAlert } from '@/lib/toast';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -201,12 +203,12 @@ export default function EditDocumentPage({ params }: PageProps) {
               },
             ]);
           } else {
-            alert('ផ្ទុកឡើងឯកសារបរាជ័យ៖ ' + file.name);
+            showAlert.error('ផ្ទុកឡើងឯកសារបរាជ័យ', file.name);
           }
         }
       } catch (err) {
         console.error(err);
-        alert('មានកំហុសក្នុងការផ្ទុកឡើងឯកសារ');
+        showAlert.error('មានកំហុសក្នុងការផ្ទុកឡើងឯកសារ');
       } finally {
         setIsUploading(false);
       }
@@ -218,16 +220,16 @@ export default function EditDocumentPage({ params }: PageProps) {
     if (!doc) return;
 
     if (!formNumber || !formSubject || !formDate) {
-      alert('សូមបំពេញលេខឯកសារ កម្មវត្ថុ និងកាលបរិច្ឆេទឱ្យបានត្រឹមត្រូវ!');
+      showAlert.warning('សូមបំពេញលេខឯកសារ កម្មវត្ថុ និងកាលបរិច្ឆេទឱ្យបានត្រឹមត្រូវ!');
       return;
     }
     if (uploadedFiles.length === 0) {
-      alert('សូមផ្ទុកឡើងឯកសារលិខិត (PDF / IMAGES) យ៉ាងហោចណាស់មួយ!');
+      showAlert.warning('សូមផ្ទុកឡើងឯកសារលិខិត (PDF / IMAGES) យ៉ាងហោចណាស់មួយ!');
       return;
     }
 
     if (!formType) {
-      alert('សូមជ្រើសរើសប្រភេទលិខិត!');
+      showAlert.warning('សូមជ្រើសរើសប្រភេទលិខិត!');
       return;
     }
 
@@ -257,14 +259,15 @@ export default function EditDocumentPage({ params }: PageProps) {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'ធ្វើបច្ចុប្បន្នភាពឯកសារបរាជ័យ');
+        const errorMsg = await parseApiError(response, 'ធ្វើបច្ចុប្បន្នភាពឯកសារបរាជ័យ');
+        throw new Error(errorMsg);
       }
 
+      await showAlert.success('បានធ្វើបច្ចុប្បន្នភាពឯកសារជោគជ័យ!');
       router.push(`/dashboard/document-management/${doc.id}`);
     } catch (err: any) {
       console.error(err);
-      alert(err.message || 'មានកំហុសក្នុងការធ្វើបច្ចុប្បន្នភាពឯកសារ');
+      showAlert.error('មានកំហុសក្នុងការធ្វើបច្ចុប្បន្នភាពឯកសារ', err.message);
     } finally {
       setIsSubmitting(false);
     }

@@ -1,6 +1,5 @@
-'use client';
-
 import { apiFetch } from '@/lib/client';
+import { parseApiError } from '@/lib/api-error';
 import { invitationsResponseSchema, invitationSchema, type Invitation } from '@/lib/schemas';
 import type { InvitationFormValues } from '@/lib/schemas/invitation/invitation';
 
@@ -17,16 +16,12 @@ async function request<T>(
     },
   });
 
-  const payload = await response.json().catch(() => null);
-
   if (!response.ok) {
-    const message =
-      payload && typeof payload === 'object' && 'error' in payload
-        ? String(payload.error)
-        : 'Invitation request failed';
+    const message = await parseApiError(response, 'សំណើលិខិតអញ្ជើញបរាជ័យ');
     throw new Error(message);
   }
 
+  const payload = await response.json().catch(() => null);
   return parser.parse(payload);
 }
 

@@ -25,7 +25,7 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { InvitationStatusBadge } from '@/components/invitation-status-badge';
 import { OfficerAvatarGroup } from '@/components/officer-avatar-group';
-import { getOfficerImageUrl, getOfficerInitials } from '@/lib/image-utils';
+import { getOfficerImageUrl, getOfficerInitials, resolveImageUrl } from '@/lib/image-utils';
 import { useOfficers } from '@/hooks/officers/use-officers';
 import type { Invitation, Officer } from '@/lib/schemas';
 
@@ -204,21 +204,24 @@ export function InvitationDetail({
                   រូបភាពលិខិតអញ្ជើញ ({invitation.imageUrls.length})
                 </p>
                 <div className="grid grid-cols-2 gap-3">
-                  {invitation.imageUrls.map((url, index) => (
-                    <a
-                      key={url}
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group relative rounded-lg border overflow-hidden bg-slate-50 flex justify-center items-center p-2 h-[180px] hover:border-primary transition"
-                    >
-                      <img
-                        src={url}
-                        alt={`Invitation Document ${index + 1}`}
-                        className="h-full object-contain rounded group-hover:scale-[1.02] transition-transform duration-300"
-                      />
-                    </a>
-                  ))}
+                  {invitation.imageUrls.map((rawUrl, index) => {
+                    const resolvedUrl = resolveImageUrl(rawUrl) || rawUrl;
+                    return (
+                      <a
+                        key={rawUrl + index}
+                        href={resolvedUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group relative rounded-lg border overflow-hidden bg-slate-50 flex justify-center items-center p-2 h-[180px] hover:border-primary transition"
+                      >
+                        <img
+                          src={resolvedUrl}
+                          alt={`Invitation Document ${index + 1}`}
+                          className="h-full object-contain rounded group-hover:scale-[1.02] transition-transform duration-300"
+                        />
+                      </a>
+                    );
+                  })}
                 </div>
               </div>
             )}

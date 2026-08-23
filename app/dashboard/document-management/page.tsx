@@ -57,6 +57,8 @@ import {
   Organization,
 } from './document-store';
 import { apiFetch } from '@/lib/client';
+import { parseApiError } from '@/lib/api-error';
+import { showAlert } from '@/lib/toast';
 
 const getPageNumbers = (currentPage: number, totalPages: number) => {
   const pages: (number | string)[] = [];
@@ -235,19 +237,29 @@ export default function DocumentManagementPage() {
   }, [filteredDocs]);
 
   const handleDeleteDoc = async (id: number) => {
-    if (confirm('តើអ្នកពិតជាចង់លុបឯកសារនេះមែនទេ?')) {
+    const res = await showAlert.confirm(
+      'តើអ្នកពិតជាចង់លុបឯកសារនេះមែនទេ?',
+      'ឯកសារដែលបានលុបមិនអាចទាញយកមកវិញបានឡើយ។',
+      'លុបចេញ',
+    );
+    if (res.isConfirmed) {
       try {
         const response = await apiFetch(`/documents/${id}`, {
           method: 'DELETE',
         });
         if (response.ok) {
           setDocuments((prev) => prev.filter((d) => d.id !== id));
+          showAlert.success('បានលុបឯកសារដោយជោគជ័យ!');
         } else {
-          alert('មានបញ្ហាក្នុងការលុបឯកសារនេះពីម៉ាស៊ីនបម្រើ');
+          const errorMsg = await parseApiError(
+            response,
+            'មានបញ្ហាក្នុងការលុបឯកសារនេះពីម៉ាស៊ីនបម្រើ',
+          );
+          showAlert.error('មិនអាចលុបឯកសារបានឡើយ', errorMsg);
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('Failed to delete document:', err);
-        alert('មិនអាចភ្ជាប់ទៅកាន់ម៉ាស៊ីនបម្រើដើម្បីលុបបានឡើយ');
+        showAlert.error('មិនអាចភ្ជាប់ទៅកាន់ម៉ាស៊ីនបម្រើដើម្បីលុបបានឡើយ', err.message);
       }
     }
   };
@@ -262,12 +274,14 @@ export default function DocumentManagementPage() {
       });
       if (response.ok) {
         setDocuments((prev) => prev.map((d) => (d.id === id ? { ...d, status: newStatus } : d)));
+        showAlert.success('បានផ្លាស់ប្តូរស្ថានភាពឯកសារដោយជោគជ័យ!');
       } else {
-        alert('មិនអាចផ្លាស់ប្តូរស្ថានភាពឯកសារបានឡើយ');
+        const errorMsg = await parseApiError(response, 'មិនអាចផ្លាស់ប្តូរស្ថានភាពឯកសារបានឡើយ');
+        showAlert.error('មិនអាចផ្លាស់ប្តូរស្ថានភាពឯកសារបានឡើយ', errorMsg);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to update status:', err);
-      alert('មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ម៉ាស៊ីនបម្រើ');
+      showAlert.error('មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ម៉ាស៊ីនបម្រើ', err.message);
     } finally {
       setUpdatingId(null);
     }

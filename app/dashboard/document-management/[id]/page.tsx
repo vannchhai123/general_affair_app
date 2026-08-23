@@ -45,6 +45,8 @@ import {
   Organization,
 } from '../document-store';
 import { apiFetch } from '@/lib/client';
+import { parseApiError } from '@/lib/api-error';
+import { showAlert } from '@/lib/toast';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -139,12 +141,14 @@ export default function DocumentDetailPage({ params }: PageProps) {
       });
       if (response.ok) {
         setDoc((prev) => (prev ? { ...prev, status: newStatus } : null));
+        showAlert.success('បានផ្លាស់ប្តូរស្ថានភាពឯកសារដោយជោគជ័យ!');
       } else {
-        alert('មិនអាចផ្លាស់ប្តូរស្ថានភាពឯកសារបានឡើយ');
+        const errorMsg = await parseApiError(response, 'មិនអាចផ្លាស់ប្តូរស្ថានភាពឯកសារបានឡើយ');
+        showAlert.error('មិនអាចផ្លាស់ប្តូរស្ថានភាពឯកសារបានឡើយ', errorMsg);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to update status:', err);
-      alert('មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ម៉ាស៊ីនបម្រើ');
+      showAlert.error('មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ម៉ាស៊ីនបម្រើ', err.message);
     } finally {
       setUpdatingStatus(false);
     }
