@@ -210,7 +210,7 @@ export default function LeaveRequestsPage() {
         <Card className="rounded-2xl border-slate-200 shadow-sm bg-white">
           <CardContent className="p-5 flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold text-slate-500">សំណើសរុប</p>
+              <p className="text-md font-bold text-slate-500">សំណើសរុប</p>
               <h3 className="text-2xl font-bold text-slate-900 mt-1">{stats.total}</h3>
             </div>
             <div className="h-12 w-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
@@ -222,7 +222,7 @@ export default function LeaveRequestsPage() {
         <Card className="rounded-2xl border-slate-200 shadow-sm bg-white">
           <CardContent className="p-5 flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold text-slate-500">រង់ចាំការអនុម័ត</p>
+              <p className="text-md font-bold text-slate-500">រង់ចាំការអនុម័ត</p>
               <h3 className="text-2xl font-bold text-amber-600 mt-1">{stats.pending}</h3>
             </div>
             <div className="h-12 w-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
@@ -234,7 +234,7 @@ export default function LeaveRequestsPage() {
         <Card className="rounded-2xl border-slate-200 shadow-sm bg-white">
           <CardContent className="p-5 flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold text-slate-500">បានអនុម័ត</p>
+              <p className="text-md font-bold text-slate-500">បានអនុម័ត</p>
               <h3 className="text-2xl font-bold text-emerald-600 mt-1">{stats.approved}</h3>
             </div>
             <div className="h-12 w-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
@@ -246,7 +246,7 @@ export default function LeaveRequestsPage() {
         <Card className="rounded-2xl border-slate-200 shadow-sm bg-white">
           <CardContent className="p-5 flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold text-slate-500">បានបដិសេធ</p>
+              <p className="text-md font-bold text-slate-500">បានបដិសេធ</p>
               <h3 className="text-2xl font-bold text-red-600 mt-1">{stats.rejected}</h3>
             </div>
             <div className="h-12 w-12 rounded-2xl bg-red-50 flex items-center justify-center text-red-600">

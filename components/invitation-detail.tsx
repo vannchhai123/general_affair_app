@@ -27,27 +27,40 @@ import { InvitationStatusBadge } from '@/components/invitation-status-badge';
 import { OfficerAvatarGroup } from '@/components/officer-avatar-group';
 import { getOfficerImageUrl, getOfficerInitials, resolveImageUrl } from '@/lib/image-utils';
 import { useOfficers } from '@/hooks/officers/use-officers';
+import { cn } from '@/lib/utils';
 import type { Invitation, Officer } from '@/lib/schemas';
 
 function DetailItem({
   icon: Icon,
   label,
   value,
+  className,
 }: {
   icon: typeof Building2;
   label: string;
   value: string;
+  className?: string;
 }) {
   return (
-    <div className="flex items-start gap-3 rounded-xl border bg-muted/20 p-4">
-      <div className="rounded-lg bg-background p-2 shadow-sm">
+    <div
+      className={cn(
+        'flex items-start gap-3 rounded-xl border border-slate-200/80 bg-muted/20 p-3.5 min-w-0',
+        className,
+      )}
+    >
+      <div className="rounded-lg bg-background p-2 shadow-sm shrink-0 mt-0.5 border border-slate-200/60">
         <Icon className="h-4 w-4 text-muted-foreground" />
       </div>
-      <div>
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
           {label}
         </p>
-        <CardNumber value={value} className="mt-1 block text-sm font-medium text-foreground" />
+        <p
+          className="mt-1 text-sm font-medium text-foreground break-words leading-relaxed"
+          title={value}
+        >
+          {value}
+        </p>
       </div>
     </div>
   );
@@ -76,28 +89,32 @@ export function InvitationDetail({
     return null;
   }
 
+  const typeTitle =
+    invitation.category === 'internal'
+      ? 'លិខិតអញ្ជើញគណៈអភិបាល'
+      : invitation.category === 'external'
+        ? 'លិខិតអញ្ជើញផ្ទៃក្នុង'
+        : invitation.type === 'outgoing'
+          ? 'លិខិតអញ្ជើញចេញ'
+          : 'លិខិតអញ្ជើញចូល';
+
   return (
     <div className="space-y-6">
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent className="h-dvh w-full gap-0 overflow-hidden sm:max-w-xl">
-          <SheetHeader className="shrink-0 border-b pb-5">
-            <div className="flex items-start justify-between gap-4 pr-10">
-              <div>
-                <SheetTitle className="text-xl font-semibold font-khmer-moul-light text-slate-900">
-                  {invitation.subject}
+        <SheetContent className="h-dvh w-full gap-0 overflow-hidden sm:max-w-xl flex flex-col">
+          <SheetHeader className="shrink-0 border-b pb-4 px-5">
+            <div className="flex items-start justify-between gap-4 pr-8">
+              <div className="min-w-0 flex-1">
+                <SheetTitle className="text-base sm:text-lg font-bold text-slate-900 leading-snug">
+                  {typeTitle}
                 </SheetTitle>
                 <SheetDescription className="mt-1 flex items-center gap-2 flex-wrap">
-                  {/* <span>
-                    លិខិតអញ្ជើញលេខ #{invitation.id} របស់ {invitation.organization}
-                  </span> */}
+                  <span className="text-xs text-slate-500 font-medium font-mono">
+                    INV-{String(invitation.id).padStart(3, '0')}
+                  </span>
                   {invitation.type && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 border border-blue-200/60">
                       {invitation.type === 'outgoing' ? '📤 លិខិតចេញ' : '📥 លិខិតចូល'}
-                    </span>
-                  )}
-                  {invitation.category && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
-                      {invitation.category === 'external' ? '🌐 ផ្ទៃក្រៅ' : '🏢 ផ្ទៃក្នុង'}
                     </span>
                   )}
                 </SheetDescription>
@@ -106,20 +123,43 @@ export function InvitationDetail({
             </div>
           </SheetHeader>
 
-          <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-4 py-5">
+          <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5">
+            {/* Subject Card (កម្មវត្ថុ) */}
+            <div className="rounded-xl border border-slate-200/90 bg-slate-50/70 p-4">
+              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500 mb-1.5 flex items-center gap-1.5">
+                <FileText className="h-3.5 w-3.5 text-indigo-600" />
+                កម្មវត្ថុ
+              </p>
+              <p className="text-sm font-medium text-slate-900 leading-relaxed break-words">
+                {invitation.subject}
+              </p>
+            </div>
+
+            {/* Metadata Info Grid */}
             <div className="grid gap-3 sm:grid-cols-2">
+              {/* Presided By / Organization - Full Width to handle long titles */}
               <DetailItem
                 icon={Building2}
-                label="អង្គភាព / ស្ថាប័ន"
+                label="ក្រោមអធិបតីភាព"
                 value={invitation.organization}
+                className="sm:col-span-2"
               />
+
+              {/* Date & Time */}
               <DetailItem
                 icon={CalendarDays}
                 label="កាលបរិច្ឆេទ"
                 value={format(new Date(invitation.date), 'dd/MM/yyyy')}
               />
               <DetailItem icon={Clock3} label="ម៉ោង" value={invitation.time || 'មិនទាន់កំណត់'} />
-              <DetailItem icon={MapPin} label="ទីតាំង" value={invitation.location} />
+
+              {/* Location - Full Width */}
+              <DetailItem
+                icon={MapPin}
+                label="ទីតាំង"
+                value={invitation.location}
+                className="sm:col-span-2"
+              />
             </div>
 
             <div className="rounded-xl border p-4">

@@ -110,8 +110,11 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-khmer), sans-serif;
-  --font-mono: var(--font-khmer), sans-serif;
+  --font-sans: var(--font-khmer), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-khmer: var(--font-khmer), sans-serif;
+  --font-khmer-moul-light: var(--font-khmer-moul-light), serif;
+  --font-khmer-bokor: var(--font-khmer-bokor), cursive;
+  --font-mono: 'Geist Mono', monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

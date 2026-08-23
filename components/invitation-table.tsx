@@ -51,16 +51,16 @@ function SortableHead({
   className?: string;
 }) {
   return (
-    <TableHead className={className}>
+    <TableHead className={cn('py-3 px-3', className)}>
       <button
         type="button"
         onClick={() => onSort(sortKey)}
-        className="inline-flex items-center gap-1 text-left font-medium"
+        className="inline-flex items-center gap-1.5 text-left font-medium leading-[1.8] py-0.5"
       >
-        {label}
+        <span className="leading-[1.8]">{label}</span>
         <ArrowUpDown
           className={cn(
-            'h-3.5 w-3.5 text-muted-foreground',
+            'h-3.5 w-3.5 text-muted-foreground shrink-0',
             activeSort === sortKey && 'text-foreground',
           )}
         />
@@ -123,7 +123,7 @@ export function InvitationTable({
     <div className="rounded-xl border bg-card shadow-sm">
       <Table>
         <TableHeader>
-          <TableRow className="hover:bg-transparent font-khmer-moul-light text-xs text-blue-900">
+          <TableRow className="hover:bg-transparent text-xs text-blue-900 font-semibold leading-[1.8]">
             <SortableHead
               label="អត្តសញ្ញាណ"
               sortKey="id"
@@ -156,8 +156,8 @@ export function InvitationTable({
               onSort={onSort}
               className="text-blue-900"
             />
-            <TableHead className="text-blue-900">ទីតាំង</TableHead>
-            <TableHead className="text-blue-900">មន្ត្រីចាត់តាំង</TableHead>
+            <TableHead className="text-blue-900 py-3 px-3 leading-[1.8]">ទីតាំង</TableHead>
+            <TableHead className="text-blue-900 py-3 px-3 leading-[1.8]">មន្ត្រីចាត់តាំង</TableHead>
             <SortableHead
               label="ស្ថានភាព"
               sortKey="status"
@@ -166,7 +166,9 @@ export function InvitationTable({
               onSort={onSort}
               className="text-blue-900"
             />
-            <TableHead className="w-[80px] text-right text-blue-900">សកម្មភាព</TableHead>
+            <TableHead className="w-[80px] text-right text-blue-900 py-3 px-3 leading-[1.8]">
+              សកម្មភាព
+            </TableHead>
           </TableRow>
         </TableHeader>
 
@@ -175,42 +177,34 @@ export function InvitationTable({
             <TableSkeleton />
           ) : invitations.length > 0 ? (
             invitations.map((invitation) => (
-              <TableRow key={invitation.id}>
-                <TableCell className="font-mono text-sm text-muted-foreground">
+              <TableRow key={invitation.id} className="hover:bg-slate-50/60">
+                <TableCell className="font-mono text-sm text-muted-foreground whitespace-nowrap">
                   INV-{String(invitation.id).padStart(3, '0')}
                 </TableCell>
-                <TableCell>
-                  <div className="min-w-[220px]">
-                    <p className="font-medium">{invitation.subject}</p>
-                    <div className="flex items-center gap-1.5 mt-1">
-                      {invitation.type && (
-                        <span
-                          className={cn(
-                            'inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium',
-                            invitation.type === 'outgoing'
-                              ? 'bg-amber-50 text-amber-700 border border-amber-200/60'
-                              : 'bg-blue-50 text-blue-700 border border-blue-200/60',
-                          )}
-                        >
-                          {invitation.type === 'outgoing' ? '📤 លិខិតចេញ' : '📥 លិខិតចូល'}
-                        </span>
-                      )}
-                      {invitation.category && (
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-600">
-                          {invitation.category === 'external' ? 'ផ្ទៃក្រៅ' : 'ផ្ទៃក្នុង'}
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                <TableCell className="max-w-[360px] min-w-[200px]">
+                  <p
+                    className="font-medium text-sm text-slate-900 leading-normal truncate"
+                    title={invitation.subject}
+                  >
+                    {invitation.subject}
+                  </p>
                 </TableCell>
-                <TableCell className="text-sm">{invitation.organization}</TableCell>
-                <TableCell className="text-sm">
+                <TableCell
+                  className="max-w-[180px] truncate text-sm font-medium text-slate-700 leading-[1.7]"
+                  title={invitation.organization}
+                >
+                  {invitation.organization}
+                </TableCell>
+                <TableCell className="text-sm whitespace-nowrap leading-[1.6]">
                   {format(new Date(invitation.date), 'dd/MM/yyyy')}
                   <p className="text-xs text-muted-foreground">
                     {invitation.time || 'មិនទាន់កំណត់ម៉ោង'}
                   </p>
                 </TableCell>
-                <TableCell className="max-w-[220px] truncate text-sm">
+                <TableCell
+                  className="max-w-[160px] truncate text-sm text-slate-600 leading-[1.7]"
+                  title={invitation.location}
+                >
                   {invitation.location}
                 </TableCell>
                 <TableCell>

@@ -257,7 +257,7 @@ export default function InvitationsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="page-title text-2xl tracking-tight">ការគ្រប់គ្រងការអញ្ជើញ</h1>
+          <h1 className="page-title text-xl tracking-tight">ការគ្រប់គ្រងការអញ្ជើញ</h1>
         </div>
 
         <Button className="rounded-lg shadow-sm" onClick={openCreateDialog}>
@@ -266,7 +266,12 @@ export default function InvitationsPage() {
         </Button>
       </div>
 
-      <InvitationStats invitations={invitations} isLoading={isLoading} />
+      <InvitationStats
+        invitations={invitations}
+        isLoading={isLoading}
+        selectedStatus={statusFilter}
+        onSelectStatus={setStatusFilter}
+      />
 
       <InvitationFilters
         search={search}
@@ -370,9 +375,7 @@ export default function InvitationsPage() {
               លុបលិខិតអញ្ជើញ
             </AlertDialogTitle>
             <AlertDialogDescription>
-              តើអ្នកពិតជាចង់លុបលិខិតអញ្ជើញ «
-              <span className="font-medium text-foreground">{deleteTarget?.subject}</span>»
-              នេះមែនទេ?
+              តើអ្នកពិតជាចង់លុបលិខិតអញ្ជើញនេះមែនទេ?
               សកម្មភាពនេះនឹងលុបគណនីចាត់តាំងមន្ត្រីដែលពាក់ព័ន្ធទាំងអស់ដោយមិនអាចសង្គ្រោះវិញបានឡើយ។
             </AlertDialogDescription>
           </AlertDialogHeader>

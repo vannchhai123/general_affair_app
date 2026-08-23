@@ -498,7 +498,7 @@ export function InvitationForm({
                           >
                             <div className="flex items-center gap-2 font-medium text-sm">
                               <Building2 className="h-4 w-4" />
-                              <span>លិខិតអញ្ជើញគណអភិបាល</span>
+                              <span>លិខិតអញ្ជើញគណៈអភិបាល</span>
                             </div>
                             <span className="text-xs text-muted-foreground mt-1">
                               ជ្រើសរើសបានតែមន្ត្រីមានអាទិភាព
@@ -581,7 +581,7 @@ export function InvitationForm({
                           >
                             <div className="flex items-center gap-2 font-medium text-sm">
                               <Building2 className="h-4 w-4" />
-                              <span>លិខិតអញ្ជើញគណអភិបាល</span>
+                              <span>លិខិតអញ្ជើញគណៈអភិបាល</span>
                             </div>
                             <span className="text-xs text-muted-foreground mt-1">
                               ជ្រើសរើសបានតែមន្ត្រីមានអាទិភាព

@@ -195,13 +195,13 @@ export default function QRAttendancePage() {
         >
           <div className="flex flex-col gap-4 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
-              <h1 className="page-title text-2xl tracking-tight font-bold">{t('pageTitle')}</h1>
+              <h1 className="page-title text-xl tracking-tight font-bold">{t('pageTitle')}</h1>
             </div>
 
             <TabsList className="bg-muted/60 p-1">
               <TabsTrigger value="qr-session" className="gap-2 text-xs sm:text-sm">
                 <QrCode className="h-4 w-4" />
-                សម័យ QR
+                QR
               </TabsTrigger>
               <TabsTrigger value="locations" className="gap-2 text-xs sm:text-sm">
                 <MapPin className="h-4 w-4" />

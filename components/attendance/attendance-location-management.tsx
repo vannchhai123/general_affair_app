@@ -189,7 +189,7 @@ export function AttendanceLocationManagement() {
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <Building className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg font-bold text-foreground">
+                <CardTitle className="text-md font-bold text-foreground">
                   បញ្ជីទីតាំងវត្តមាន ({locations.length})
                 </CardTitle>
               </div>

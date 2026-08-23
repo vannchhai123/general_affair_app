@@ -1,13 +1,15 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
+import { Kantumruy_Pro } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import './globals.css';
 import QueryProvider from '@/providers/query-provider';
 
-const khmerFont = localFont({
-  src: '../public/fonts/KhmerOSSiemreap.ttf',
+const khmerFont = Kantumruy_Pro({
+  subsets: ['khmer', 'latin'],
+  weight: ['400', '500', '600', '700'],
   variable: '--font-khmer',
   display: 'swap',
 });
