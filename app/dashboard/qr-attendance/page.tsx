@@ -195,7 +195,7 @@ export default function QRAttendancePage() {
         >
           <div className="flex flex-col gap-4 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
-              <h1 className="page-title text-xl tracking-tight font-bold">{t('pageTitle')}</h1>
+              <h1 className="page-title text-md tracking-tight font-bold">{t('pageTitle')}</h1>
             </div>
 
             <TabsList className="bg-muted/60 p-1">

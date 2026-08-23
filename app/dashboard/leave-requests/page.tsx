@@ -177,7 +177,7 @@ export default function LeaveRequestsPage() {
       <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="page-title text-xl font-bold tracking-tight text-slate-950">
+            <h1 className="page-title text-md font-bold tracking-tight text-slate-950">
               សំណើច្បាប់ឈប់សម្រាក
             </h1>
           </div>

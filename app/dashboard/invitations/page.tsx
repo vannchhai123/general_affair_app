@@ -269,7 +269,7 @@ export default function InvitationsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="page-title text-xl tracking-tight">ការគ្រប់គ្រងការអញ្ជើញ</h1>
+          <h1 className="page-title text-md tracking-tight">ការគ្រប់គ្រងការអញ្ជើញ</h1>
         </div>
 
         <Button className="rounded-lg shadow-sm" onClick={openCreateDialog}>

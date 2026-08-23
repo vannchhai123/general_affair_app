@@ -457,7 +457,7 @@ export default function OrganizationPage() {
             ការរៀបចំរចនាសម្ព័ន្ធអង្គភាព
           </Badge> */}
           <div>
-            <h1 className="page-title text-xl tracking-tight">ការិយាល័យ និងតួនាទីការងារ</h1>
+            <h1 className="page-title text-md tracking-tight">ការិយាល័យ និងតួនាទីការងារ</h1>
           </div>
         </div>
 

@@ -195,7 +195,7 @@ export default function ProfilePage() {
               គណនី និងសុវត្ថិភាព
             </Badge>
             <div className="space-y-2">
-              <h1 className="page-title text-2xl font-semibold tracking-tight text-slate-950">
+              <h1 className="page-title text-md font-semibold tracking-tight text-slate-950">
                 ប្រវត្តិរូប និងការកំណត់
               </h1>
             </div>

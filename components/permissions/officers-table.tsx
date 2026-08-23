@@ -180,7 +180,7 @@ export default function OfficersTable({ ctx }: OfficersTableProps) {
                             {openRoleDialog && (
                               <DropdownMenuItem onClick={() => openRoleDialog(o.id)}>
                                 <Shield className="mr-2 h-4 w-4 text-emerald-600" />
-                                កំណត់តួនាទី (Assign Role)
+                                កំណត់តួនាទី
                               </DropdownMenuItem>
                             )}
                           </DropdownMenuContent>

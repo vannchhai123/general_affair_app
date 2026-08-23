@@ -205,7 +205,7 @@ export default function AttendancePage() {
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-4">
           <div>
-            <h1 className="page-title text-xl font-semibold tracking-tight text-slate-950">
+            <h1 className="page-title text-md font-semibold tracking-tight text-slate-950">
               ការគ្រប់គ្រងវត្តមាន
             </h1>
           </div>

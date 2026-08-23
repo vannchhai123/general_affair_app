@@ -11,7 +11,7 @@ export function OfficersPageHeader({ isRefreshing, onRefresh, onAdd }: OfficersP
   return (
     <div className="flex flex-col gap-4 border-b pb-5 lg:flex-row lg:items-end lg:justify-between">
       <div>
-        <h1 className="page-title text-xl font-semibold tracking-tight text-slate-950">
+        <h1 className="page-title text-md font-semibold tracking-tight text-slate-950">
           គ្រប់គ្រងមន្រ្តី
         </h1>
       </div>

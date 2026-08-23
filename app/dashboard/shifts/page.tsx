@@ -326,7 +326,7 @@ export default function ShiftsPage() {
             <CardHeader className="gap-4 border-b bg-slate-50/70">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div className="space-y-1">
-                  <CardTitle className="page-title text-lg">ផ្ទាំងគ្រប់គ្រងវេន</CardTitle>
+                  <CardTitle className="page-title text-md">ផ្ទាំងគ្រប់គ្រងវេន</CardTitle>
                 </div>
               </div>
 

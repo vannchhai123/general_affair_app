@@ -357,7 +357,7 @@ export default function DocumentManagementPage() {
           <CardHeader className="gap-4 border-b bg-slate-50/70 p-5">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div className="space-y-1">
-                <h3 className="page-title text-lg font-bold text-slate-900">
+                <h3 className="page-title text-md font-bold text-slate-900">
                   ផ្ទាំងគ្រប់គ្រងឯកសារ
                 </h3>
               </div>
