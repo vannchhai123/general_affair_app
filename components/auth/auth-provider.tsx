@@ -24,17 +24,17 @@ export function AuthProvider({
 }) {
   const [user, setUser] = useState<SessionUser | null>(initialUser);
 
-  const value = useMemo<AuthContextValue>(
-    () => ({
+  const value = useMemo<AuthContextValue>(() => {
+    const userRoles = user?.roleCodes?.length ? user.roleCodes : user?.role ? [user.role] : [];
+    return {
       user,
       setUser,
       hasPermission: (permission?: string | null) =>
-        hasPermission(user?.role, user?.permissions, permission),
-      isAdmin: isAdminRole(user?.role),
-      isSuperAdmin: isSuperAdminRole(user?.role),
-    }),
-    [user],
-  );
+        hasPermission(userRoles, user?.permissions, permission),
+      isAdmin: userRoles.some((r) => isAdminRole(r)),
+      isSuperAdmin: userRoles.some((r) => isSuperAdminRole(r)),
+    };
+  }, [user]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

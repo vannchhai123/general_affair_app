@@ -498,7 +498,7 @@ export default function OrganizationPage() {
         <CardHeader className="border-b bg-muted/20 pb-4">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <CardTitle className="text-base">បញ្ជីរចនាសម្ព័ន្ធអង្គភាព</CardTitle>
+              <CardTitle className="text-base text-md">បញ្ជីរចនាសម្ព័ន្ធអង្គភាព</CardTitle>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row">
               <div className="relative min-w-0 sm:w-72">

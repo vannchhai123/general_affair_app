@@ -144,21 +144,126 @@ export const shiftSchema = shiftApiSchema;
 
 export const shiftsResponseSchema = z.array(shiftSchema);
 
-export const paginatedShiftResponseSchema = paginationSchema.extend({
-  content: z.array(shiftSchema),
-});
+export const paginatedShiftResponseSchema = z
+  .object({
+    content: z.array(shiftSchema),
+    page: z.number().optional().default(0),
+    size: z.number().optional().default(10),
+    totalElements: z.number().optional().default(0),
+    totalPages: z.number().optional().default(1),
+    last: z.boolean().optional().default(true),
+  })
+  .passthrough();
 
-export const shiftListResponseSchema = z.union([
-  paginatedShiftResponseSchema,
-  shiftsResponseSchema.transform((content) => ({
-    content,
-    page: 0,
-    size: content.length,
-    totalElements: content.length,
-    totalPages: content.length > 0 ? 1 : 0,
-    last: true,
-  })),
-]);
+export const shiftListResponseSchema = z
+  .union([
+    z
+      .object({
+        content: z.array(z.any()),
+        page: z.number().optional().default(0),
+        size: z.number().optional().default(10),
+        totalElements: z.number().optional().default(0),
+        totalPages: z.number().optional().default(1),
+        last: z.boolean().optional().default(true),
+      })
+      .passthrough(),
+    z
+      .object({
+        data: z.union([
+          z.array(z.any()),
+          z
+            .object({
+              content: z.array(z.any()).optional(),
+              totalElements: z.number().optional(),
+              totalPages: z.number().optional(),
+              page: z.number().optional(),
+              size: z.number().optional(),
+              last: z.boolean().optional(),
+            })
+            .passthrough(),
+        ]),
+      })
+      .passthrough(),
+    z.array(z.any()),
+  ])
+  .transform((raw: any) => {
+    let rawList: any[] = [];
+    let totalElements = 0;
+    let totalPages = 1;
+    let page = 0;
+    let size = 10;
+    let last = true;
+
+    if (Array.isArray(raw)) {
+      rawList = raw;
+      totalElements = raw.length;
+      totalPages = raw.length > 0 ? 1 : 0;
+    } else if (raw.content && Array.isArray(raw.content)) {
+      rawList = raw.content;
+      totalElements = raw.totalElements ?? raw.content.length;
+      totalPages = raw.totalPages ?? 1;
+      page = raw.page ?? 0;
+      size = raw.size ?? 10;
+      last = raw.last ?? true;
+    } else if (raw.data) {
+      if (Array.isArray(raw.data)) {
+        rawList = raw.data;
+        totalElements = raw.data.length;
+        totalPages = raw.data.length > 0 ? 1 : 0;
+      } else if (raw.data.content && Array.isArray(raw.data.content)) {
+        rawList = raw.data.content;
+        totalElements = raw.data.totalElements ?? raw.data.content.length;
+        totalPages = raw.data.totalPages ?? 1;
+        page = raw.data.page ?? 0;
+        size = raw.data.size ?? 10;
+        last = raw.data.last ?? true;
+      }
+    }
+
+    const content = rawList.map((item) => {
+      const parsed = shiftSchema.safeParse(item);
+      if (parsed.success) return parsed.data;
+      return {
+        id: item.id || 0,
+        name: item.name || item.shift_name || item.shiftName || 'Shift',
+        code: item.code || item.shift_code || item.shiftCode || `SHIFT-${item.id || 0}`,
+        startTime: (item.startTime || item.start_time || '08:00').slice(0, 5),
+        endTime: (item.endTime || item.end_time || '17:00').slice(0, 5),
+        status:
+          item.status === 'inactive' || item.isActive === false || item.is_active === false
+            ? 'inactive'
+            : 'active',
+        isActive:
+          item.status === 'inactive' || item.isActive === false || item.is_active === false
+            ? false
+            : true,
+        crossMidnight: Boolean(item.crossMidnight || item.cross_midnight),
+        graceMinutes: item.graceMinutes || item.grace_minutes || 0,
+        checkInOpenBeforeMinutes:
+          item.checkInOpenBeforeMinutes || item.check_in_open_before_minutes || 15,
+        checkOutCloseAfterMinutes:
+          item.checkOutCloseAfterMinutes || item.check_out_close_after_minutes || 30,
+        effectiveFrom: item.effectiveFrom || item.effective_from || '2026-01-01',
+        effectiveTo: item.effectiveTo || item.effective_to || null,
+        description: item.description || '',
+        assignedDepartmentsCount:
+          item.assignedDepartmentsCount || item.assigned_departments_count || 0,
+        assignedPositionsCount: item.assignedPositionsCount || item.assigned_positions_count || 0,
+        assignedEmployeesCount: item.assignedEmployeesCount || item.assigned_employees_count || 0,
+        createdAt: item.createdAt || item.created_at || null,
+        updatedAt: item.updatedAt || item.updated_at || null,
+      } as Shift;
+    });
+
+    return {
+      content,
+      totalElements,
+      totalPages,
+      page,
+      size,
+      last,
+    };
+  });
 
 export const shiftFormSchema = z
   .object({

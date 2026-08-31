@@ -44,7 +44,7 @@ export const appNavigation: NavItem[] = [
     title: 'វត្តមាន',
     href: '/dashboard/qr-sessions',
     icon: QrCode,
-    roles: ['ROLE_ADMIN'],
+    roles: ['ROLE_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_ADMIN_DIRECTOR', 'ROLE_OFFICE_CHIEF'],
     permission: 'QR_SESSION_VIEW',
   },
   {
@@ -62,6 +62,7 @@ export const appNavigation: NavItem[] = [
     title: 'លិខិតអញ្ជើញ គណៈអភិបាល',
     href: '/dashboard/invitations',
     icon: Mail,
+    permission: 'INVITATION_VIEW',
   },
   {
     title: 'គ្រប់គ្រងឯកសារ',
@@ -72,21 +73,20 @@ export const appNavigation: NavItem[] = [
     title: 'កំណត់ការចុះវត្តមាន',
     href: '/dashboard/shift-management',
     icon: Workflow,
-    roles: ['ROLE_ADMIN'],
+    roles: ['ROLE_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_ADMIN_DIRECTOR'],
     permission: 'SHIFT_VIEW',
   },
   {
     title: 'ការិយាល័យ',
     href: '/dashboard/organization/departments',
     icon: Building2,
-    roles: ['ROLE_ADMIN'],
+    roles: ['ROLE_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_ADMIN_DIRECTOR'],
     permission: 'ORGANIZATION_VIEW',
   },
   {
     title: 'កំណត់សិទ្ធិប្រើប្រាស់',
     href: '/dashboard/access-control/officer-permissions',
     icon: KeyRound,
-    roles: ['ROLE_ADMIN'],
     permission: 'OFFICER_VIEW_PERMISSION',
   },
   {
@@ -98,8 +98,25 @@ export const appNavigation: NavItem[] = [
 
 export function canAccessNavItem(user: SessionUser | null, item: NavItem) {
   if (!user || !user.enabled) return false;
-  if (item.roles?.length && !item.roles.includes(user.role)) return false;
-  return hasPermission(user.role, user.permissions, item.permission);
+
+  const userRoles = user.roleCodes?.length ? user.roleCodes : user.role ? [user.role] : [];
+  const isSuper = userRoles.some((r) => isSuperAdminRole(r));
+
+  // If super admin, allow all nav items
+  if (isSuper) return true;
+
+  // Check roles filter if item has role restrictions
+  if (item.roles?.length) {
+    const hasRole = item.roles.some((r) => userRoles.includes(r));
+    if (!hasRole) return false;
+  }
+
+  // Check permission filter if item requires specific permission
+  if (item.permission) {
+    return hasPermission(userRoles, user.permissions, item.permission);
+  }
+
+  return true;
 }
 
 export function getVisibleNavigation(user: SessionUser | null) {
@@ -134,8 +151,11 @@ export function getPageTitle(pathname: string) {
 }
 
 export function getPageDescription(pathname: string, user: SessionUser | null) {
+  const userRoles = user?.roleCodes?.length ? user.roleCodes : user?.role ? [user.role] : [];
+  const isSuper = userRoles.some((r) => isSuperAdminRole(r));
+
   if (pathname === '/dashboard') {
-    return isSuperAdminRole(user?.role)
+    return isSuper
       ? 'System-wide operational overview, access control, and shift administration.'
       : 'Daily operations overview for officers, attendance, QR sessions, and organization data.';
   }

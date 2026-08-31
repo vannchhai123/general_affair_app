@@ -48,7 +48,16 @@ export async function fetchApi<T, S extends z.ZodType<T, z.ZodTypeDef, any>>(
       );
     }
 
-    const data = await response.json();
+    const text = await response.text();
+    let data: any = {};
+    if (text && text.trim().length > 0) {
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = { message: text };
+      }
+    }
+
     const parsed = schema.safeParse(data);
 
     if (!parsed.success) {

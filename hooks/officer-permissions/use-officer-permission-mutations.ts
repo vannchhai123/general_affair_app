@@ -3,11 +3,7 @@ import { toast } from '@/lib/toast';
 import { z } from 'zod';
 import { queryKeys, fetchApi, ApiError } from '@/lib/api/fetcher';
 import { backendOfficerPermissionSchema, successResponseSchema } from '@/lib/schemas';
-
-const roleAssignResponseSchema = z.object({
-  success: z.boolean().optional(),
-  message: z.string().optional(),
-});
+import { PRESET_ROLES } from '@/lib/auth/permissions';
 
 export function useAssignPermission() {
   const queryClient = useQueryClient();
@@ -51,18 +47,42 @@ export function useAssignRoleToOfficer() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: { officerId: number; roleName: string }) =>
-      fetchApi(`/officer-permissions/officers/${data.officerId}/role`, roleAssignResponseSchema, {
+    mutationFn: async (data: {
+      officerId: number;
+      userId?: number | null;
+      roleIds?: number[];
+      roleCodes?: string[];
+      roleName?: string;
+    }) => {
+      const targetUserId = data.userId || data.officerId;
+
+      let resolvedRoleIds = data.roleIds;
+      if (!resolvedRoleIds || resolvedRoleIds.length === 0) {
+        if (data.roleCodes?.length) {
+          resolvedRoleIds = data.roleCodes
+            .map((c) => PRESET_ROLES.find((r) => r.code === c)?.id)
+            .filter((id): id is number => typeof id === 'number');
+        } else if (data.roleName) {
+          const found = PRESET_ROLES.find((r) => r.code === data.roleName);
+          if (found) resolvedRoleIds = [found.id];
+        }
+      }
+
+      return await fetchApi(`/super-admin/users/${targetUserId}/roles`, z.any(), {
         method: 'PUT',
-        body: JSON.stringify({ roleName: data.roleName }),
-      }),
+        body: JSON.stringify({
+          roleIds: resolvedRoleIds ?? [7],
+        }),
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.officerPermissions.all });
       queryClient.invalidateQueries({ queryKey: ['officers'] });
-      toast.success('កំណត់តួនាទីជោគជ័យ');
+      queryClient.invalidateQueries({ queryKey: queryKeys.officers.all });
+      queryClient.invalidateQueries({ queryKey: ['officer'] });
     },
     onError: (error: ApiError) => {
-      toast.error(error.message);
+      toast.error(error.message || 'Error assigning roles');
     },
   });
 }

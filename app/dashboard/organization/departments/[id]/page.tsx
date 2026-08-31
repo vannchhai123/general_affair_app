@@ -179,7 +179,7 @@ export default function DepartmentDetailPage({ params }: { params: Promise<{ id:
               <ArrowLeft className="h-4 w-4 text-slate-700" />
             </Button>
             <div>
-              <h1 className="page-title text-2xl font-bold tracking-tight text-slate-900 mt-1">
+              <h1 className="page-title text-lg font-bold tracking-tight text-slate-900 mt-1">
                 {isDeptLoading ? <Skeleton className="h-7 w-48" /> : department?.name}
               </h1>
             </div>
@@ -298,7 +298,7 @@ export default function DepartmentDetailPage({ params }: { params: Promise<{ id:
           <CardHeader className="gap-4 border-b bg-slate-50/70 p-5">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <CardTitle className="text-lg font-bold text-slate-900">
+                <CardTitle className="text-md font-bold text-slate-900">
                   បញ្ជីមន្ត្រីក្នុង{department?.name || 'ការិយាល័យ'}
                 </CardTitle>
               </div>

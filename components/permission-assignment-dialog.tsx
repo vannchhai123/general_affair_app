@@ -19,6 +19,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import type { Officer, OfficerPermission, Permission } from '@/lib/schemas';
+import { PRESET_ROLES } from '@/lib/auth/permissions';
 
 interface PermissionCategory {
   name: string;
@@ -46,6 +47,7 @@ export function PermissionAssignmentDialog({
 }: PermissionAssignmentDialogProps) {
   const t = useTranslations('officerPermissions');
   const [search, setSearch] = useState('');
+  const [selectedPreset, setSelectedPreset] = useState<string>('');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pendingChanges, setPendingChanges] = useState<{
@@ -211,7 +213,36 @@ export function PermissionAssignmentDialog({
   const handleCancel = () => {
     if (isSubmitting) return;
     setPendingChanges({ toAdd: new Set(), toRemove: new Set() });
+    setSelectedPreset('');
     onOpenChange(false);
+  };
+
+  const handleApplyPreset = (roleCode: string) => {
+    setSelectedPreset(roleCode);
+    if (!roleCode) {
+      setPendingChanges({ toAdd: new Set(), toRemove: new Set() });
+      return;
+    }
+
+    const targetRole = PRESET_ROLES.find((r) => r.code === roleCode);
+    if (!targetRole) return;
+
+    const targetPermNames = new Set(targetRole.permissions);
+    const toAdd = new Set<number>();
+    const toRemove = new Set<number>();
+
+    permissions.forEach((perm) => {
+      const shouldHave = targetPermNames.has(perm.permission_name);
+      const isCurrentlyAssigned = assignedPermissionIds.has(perm.id);
+
+      if (shouldHave && !isCurrentlyAssigned) {
+        toAdd.add(perm.id);
+      } else if (!shouldHave && isCurrentlyAssigned) {
+        toRemove.add(perm.id);
+      }
+    });
+
+    setPendingChanges({ toAdd, toRemove });
   };
 
   // Filter categories based on search
@@ -237,7 +268,10 @@ export function PermissionAssignmentDialog({
     <Dialog
       open={open}
       onOpenChange={(nextOpen) => {
-        if (!isSubmitting) onOpenChange(nextOpen);
+        if (!isSubmitting) {
+          if (!nextOpen) setSelectedPreset('');
+          onOpenChange(nextOpen);
+        }
       }}
     >
       <DialogContent className="flex h-[90dvh] flex-col overflow-hidden sm:max-w-[600px]">
@@ -248,6 +282,33 @@ export function PermissionAssignmentDialog({
           </DialogTitle>
           <DialogDescription>{officerDisplayName}</DialogDescription>
         </DialogHeader>
+
+        {/* Role Preset Quick Selector */}
+        <div className="mb-2 p-3 bg-muted/40 rounded-lg border flex flex-col gap-1.5 shrink-0">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-semibold text-foreground">
+              ជ្រើសរើសតាមមុខតំណែង (Role Preset):
+            </label>
+            {selectedPreset && (
+              <span className="text-[11px] text-emerald-600 font-medium">
+                ✓ បានកំណត់សិទ្ធិតាមមុខតំណែង
+              </span>
+            )}
+          </div>
+          <select
+            value={selectedPreset}
+            onChange={(e) => handleApplyPreset(e.target.value)}
+            className="w-full bg-background border border-input rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            disabled={isSubmitting}
+          >
+            <option value="">-- ជ្រើសរើសមុខតំណែងដើម្បីកំណត់សិទ្ធិស្វ័យប្រវត្តិ --</option>
+            {PRESET_ROLES.map((role) => (
+              <option key={role.code} value={role.code}>
+                {role.nameKm} ({role.nameEn}) • {role.permissions.length} សិទ្ធិ
+              </option>
+            ))}
+          </select>
+        </div>
 
         {/* Search */}
         <Input
