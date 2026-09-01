@@ -65,9 +65,8 @@ export default function RolePermissionsPage() {
   return (
     <RequireAccess
       permission="ROLE_ASSIGN_PERMISSION"
-      roles={['ROLE_ADMIN']}
       title="Role permission assignment is restricted"
-      description="Only super administrators can assign permissions to roles."
+      description="You do not have permission to assign permissions to roles."
     >
       <div className="space-y-5">
         <PageHeader

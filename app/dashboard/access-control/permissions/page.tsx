@@ -20,16 +20,19 @@ import { Button } from '@/components/ui/button';
 import { usePermissionsPage } from '@/hooks/permissions/use-permissions-page';
 import type { Permission } from '@/lib/schemas';
 
+import { useAuth } from '@/components/auth/auth-provider';
+
 export default function AccessControlPermissionsPage() {
   const ctx = usePermissionsPage();
+  const { hasPermission } = useAuth();
+  const canCreate = hasPermission('PERMISSION_CREATE');
   const [deletePermissionData, setDeletePermissionData] = useState<Permission | null>(null);
 
   return (
     <RequireAccess
       permission="PERMISSION_VIEW"
-      roles={['ROLE_ADMIN']}
       title="Access control is restricted"
-      description="Only super administrators can manage system permissions."
+      description="You do not have permission to view or manage system permissions."
     >
       <div className="space-y-5">
         <PageHeader
@@ -37,10 +40,12 @@ export default function AccessControlPermissionsPage() {
           title="Permissions"
           description="Create, update, and remove permission definitions used by the backend authorization layer."
           actions={
-            <Button onClick={() => ctx.setDialogOpen(true)}>
-              <Shield className="mr-2 h-4 w-4" />
-              New Permission
-            </Button>
+            canCreate ? (
+              <Button onClick={() => ctx.setDialogOpen(true)}>
+                <Shield className="mr-2 h-4 w-4" />
+                New Permission
+              </Button>
+            ) : undefined
           }
         />
 

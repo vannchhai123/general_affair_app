@@ -58,6 +58,8 @@ import {
 } from './document-store';
 import { apiFetch } from '@/lib/client';
 import { parseApiError } from '@/lib/api-error';
+import { RequireAccess } from '@/components/auth/require-access';
+import { useAuth } from '@/components/auth/auth-provider';
 import { showAlert } from '@/lib/toast';
 
 const getPageNumbers = (currentPage: number, totalPages: number) => {
@@ -93,6 +95,10 @@ const getPageNumbers = (currentPage: number, totalPages: number) => {
 
 export default function DocumentManagementPage() {
   const router = useRouter();
+  const { hasPermission } = useAuth();
+  const canCreate = hasPermission('DOCUMENT_CREATE');
+  const canUpdate = hasPermission('DOCUMENT_UPDATE');
+  const canDelete = hasPermission('DOCUMENT_DELETE');
 
   // Lists
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
@@ -293,428 +299,435 @@ export default function DocumentManagementPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* 1. Statistics Cards Row */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <Card className="relative overflow-hidden border-slate-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider font-khmer-moul-light">
-                  ឯកសារសរុប
-                </p>
-                <h3 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
-                  {stats.total}
-                </h3>
+    <RequireAccess permission="DOCUMENT_VIEW">
+      <div className="space-y-6">
+        {/* 1. Statistics Cards Row */}
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <Card className="relative overflow-hidden border-slate-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider font-khmer-moul-light">
+                    ឯកសារសរុប
+                  </p>
+                  <h3 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+                    {stats.total}
+                  </h3>
+                </div>
+                <div className="rounded-2xl bg-indigo-50 border border-indigo-100 p-3 text-indigo-600 shadow-sm">
+                  <FolderOpen className="h-6 w-6" />
+                </div>
               </div>
-              <div className="rounded-2xl bg-indigo-50 border border-indigo-100 p-3 text-indigo-600 shadow-sm">
-                <FolderOpen className="h-6 w-6" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card className="relative overflow-hidden border-slate-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider font-khmer-moul-light">
-                  កំពុងពិនិត្យ
-                </p>
-                <h3 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
-                  {stats.pending}
-                </h3>
+          <Card className="relative overflow-hidden border-slate-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider font-khmer-moul-light">
+                    កំពុងពិនិត្យ
+                  </p>
+                  <h3 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+                    {stats.pending}
+                  </h3>
+                </div>
+                <div className="rounded-2xl bg-amber-50 border border-amber-100 p-3 text-amber-600 shadow-sm">
+                  <Clock className="h-6 w-6" />
+                </div>
               </div>
-              <div className="rounded-2xl bg-amber-50 border border-amber-100 p-3 text-amber-600 shadow-sm">
-                <Clock className="h-6 w-6" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card className="relative overflow-hidden border-slate-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider font-khmer-moul-light">
-                  បានចុះបញ្ជី
-                </p>
-                <h3 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
-                  {stats.logged}
-                </h3>
+          <Card className="relative overflow-hidden border-slate-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider font-khmer-moul-light">
+                    បានចុះបញ្ជី
+                  </p>
+                  <h3 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+                    {stats.logged}
+                  </h3>
+                </div>
+                <div className="rounded-2xl bg-emerald-50 border border-emerald-100 p-3 text-emerald-600 shadow-sm">
+                  <CheckCircle2 className="h-6 w-6" />
+                </div>
               </div>
-              <div className="rounded-2xl bg-emerald-50 border border-emerald-100 p-3 text-emerald-600 shadow-sm">
-                <CheckCircle2 className="h-6 w-6" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* 2. Main Workspace Layout */}
-      <div className="space-y-4">
-        <Card className="border-slate-200 shadow-sm">
-          <CardHeader className="gap-4 border-b bg-slate-50/70 p-5">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div className="space-y-1">
-                <h3 className="page-title text-md font-bold text-slate-900">
-                  ផ្ទាំងគ្រប់គ្រងឯកសារ
-                </h3>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={() => {
-                    router.push('/dashboard/document-management/add');
-                  }}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-all"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  ចុះបញ្ជីឯកសារថ្មី
-                </Button>
-              </div>
-            </div>
-
-            {/* Filtering Controls */}
-            <div className="flex flex-col md:flex-row md:items-center gap-3 pt-2">
-              <div className="relative w-full md:w-[280px]">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 bg-white"
-                  placeholder="ស្វែងរកឯកសារ..."
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <Select value={typeFilter} onValueChange={setTypeFilter}>
-                  <SelectTrigger className="w-[190px] bg-white text-slate-700">
-                    <SelectValue placeholder="ប្រភេទលិខិត" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">ប្រភេទ</SelectItem>
-                    {documentTypes.map((t) => (
-                      <SelectItem key={t.id} value={t.id.toString()}>
-                        {t.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[160px] bg-white text-slate-700">
-                    <SelectValue placeholder="ស្ថានភាព" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">ស្ថានភាព</SelectItem>
-                    <SelectItem value="PENDING">Pending</SelectItem>
-                    <SelectItem value="LOGGED">Logged</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Input
-                  type="date"
-                  value={dateFilter}
-                  onChange={(e) => setDateFilter(e.target.value)}
-                  className="w-[180px] bg-white text-slate-700"
-                  placeholder="កាលបរិច្ឆេទ"
-                />
-
-                {(searchQuery || typeFilter !== 'all' || dateFilter || statusFilter !== 'all') && (
-                  <Button
-                    variant="ghost"
-                    className="text-indigo-600 hover:text-indigo-750 hover:bg-indigo-50"
-                    onClick={() => {
-                      setSearchQuery('');
-                      setTypeFilter('all');
-                      setDateFilter('');
-                      setStatusFilter('all');
-                    }}
-                  >
-                    សម្អាតតម្រង
-                  </Button>
+        {/* 2. Main Workspace Layout */}
+        <div className="space-y-4">
+          <Card className="border-slate-200 shadow-sm">
+            <CardHeader className="gap-4 border-b bg-slate-50/70 p-5">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div className="space-y-1">
+                  <h3 className="page-title text-md font-bold text-slate-900">
+                    ផ្ទាំងគ្រប់គ្រងឯកសារ
+                  </h3>
+                </div>
+                {canCreate && (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={() => {
+                        router.push('/dashboard/document-management/add');
+                      }}
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-all"
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      ចុះបញ្ជីឯកសារថ្មី
+                    </Button>
+                  </div>
                 )}
               </div>
-            </div>
-          </CardHeader>
 
-          {/* Document Data Table */}
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader className="bg-slate-50/70 font-khmer-moul-light">
-                <TableRow>
-                  <TableHead className="w-[160px] font-bold px-6 py-4">លេខឯកសារ</TableHead>
-                  <TableHead className="font-bold px-6 py-4">កម្មវត្ថុឯកសារ</TableHead>
-                  <TableHead className="w-[180px] font-bold px-6 py-4">ប្រភេទ</TableHead>
-                  <TableHead className="w-[130px] font-bold text-center px-6 py-4">
-                    ស្ថានភាព
-                  </TableHead>
-                  <TableHead className="w-[140px] font-bold text-right px-6 py-4">
-                    កាលបរិច្ឆេទ
-                  </TableHead>
-                  <TableHead className="w-[120px] text-center font-bold px-6 py-4">
-                    សកម្មភាព
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-10 text-slate-400">
-                      <div className="flex flex-col items-center justify-center gap-2">
-                        <div className="h-6 w-6 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
-                        កំពុងទាញយកទិន្នន័យ...
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ) : filteredDocs.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-10 text-slate-400">
-                      <FolderOpen className="mx-auto h-10 w-10 text-slate-300 mb-2" />
-                      មិនមានឯកសារស្របតាមលក្ខខណ្ឌស្វែងរកឡើយ
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  paginatedDocs.map((doc) => (
-                    <TableRow
-                      key={doc.id}
+              {/* Filtering Controls */}
+              <div className="flex flex-col md:flex-row md:items-center gap-3 pt-2">
+                <div className="relative w-full md:w-[280px]">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9 bg-white"
+                    placeholder="ស្វែងរកឯកសារ..."
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Select value={typeFilter} onValueChange={setTypeFilter}>
+                    <SelectTrigger className="w-[190px] bg-white text-slate-700">
+                      <SelectValue placeholder="ប្រភេទលិខិត" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">ប្រភេទ</SelectItem>
+                      {documentTypes.map((t) => (
+                        <SelectItem key={t.id} value={t.id.toString()}>
+                          {t.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-[160px] bg-white text-slate-700">
+                      <SelectValue placeholder="ស្ថានភាព" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">ស្ថានភាព</SelectItem>
+                      <SelectItem value="PENDING">Pending</SelectItem>
+                      <SelectItem value="LOGGED">Logged</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Input
+                    type="date"
+                    value={dateFilter}
+                    onChange={(e) => setDateFilter(e.target.value)}
+                    className="w-[180px] bg-white text-slate-700"
+                    placeholder="កាលបរិច្ឆេទ"
+                  />
+
+                  {(searchQuery ||
+                    typeFilter !== 'all' ||
+                    dateFilter ||
+                    statusFilter !== 'all') && (
+                    <Button
+                      variant="ghost"
+                      className="text-indigo-600 hover:text-indigo-750 hover:bg-indigo-50"
                       onClick={() => {
-                        router.push(`/dashboard/document-management/${doc.id}`);
+                        setSearchQuery('');
+                        setTypeFilter('all');
+                        setDateFilter('');
+                        setStatusFilter('all');
                       }}
-                      className="cursor-pointer transition-colors hover:bg-slate-50/60"
                     >
-                      <TableCell className="font-semibold text-slate-700 px-6 py-4">
-                        {doc.documentNumber}
-                      </TableCell>
-                      <TableCell className="max-w-[340px] px-6 py-4 align-middle">
-                        <div
-                          className="font-medium text-slate-900 leading-relaxed text-sm line-clamp-2 py-0.5"
-                          title={doc.subject}
-                        >
-                          {doc.subject}
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-6 py-4">
-                        <Badge variant="outline" className="bg-white text-xs border-slate-200">
-                          {doc.documentType.name}
-                        </Badge>
-                      </TableCell>
+                      សម្អាតតម្រង
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </CardHeader>
 
-                      <TableCell
-                        className="text-center px-6 py-4"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <div className="flex items-center justify-center">
-                          <Select
-                            value={doc.status}
-                            onValueChange={(val: 'PENDING' | 'LOGGED') =>
-                              handleStatusChange(doc.id, val)
-                            }
-                            disabled={updatingId === doc.id}
-                          >
-                            <SelectTrigger
-                              className={`h-7 w-[108px] text-xs font-semibold rounded-full border shadow-none transition-all px-2.5 ${
-                                doc.status === 'LOGGED'
-                                  ? 'bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100'
-                                  : 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100'
-                              }`}
-                            >
-                              <SelectValue>
-                                {updatingId === doc.id ? (
-                                  <span className="text-2xs text-slate-500">កំពុងប្តូរ...</span>
-                                ) : (
-                                  <span className="flex items-center gap-1">
-                                    <span
-                                      className={`h-1.5 w-1.5 rounded-full ${
-                                        doc.status === 'LOGGED' ? 'bg-indigo-600' : 'bg-amber-600'
-                                      }`}
-                                    />
-                                    {doc.status === 'LOGGED' ? 'Logged' : 'Pending'}
-                                  </span>
-                                )}
-                              </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent align="center">
-                              <SelectItem
-                                value="PENDING"
-                                className="text-xs font-medium text-amber-700"
-                              >
-                                🟡 Pending
-                              </SelectItem>
-                              <SelectItem
-                                value="LOGGED"
-                                className="text-xs font-medium text-indigo-700"
-                              >
-                                🔵 Logged
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right px-6 py-4">
-                        <span className="inline-block text-slate-800 text-xs font-bold font-mono bg-slate-50 border border-slate-200/60 px-2.5 py-1 rounded-lg shadow-2xs">
-                          {doc.documentDate}
-                        </span>
-                      </TableCell>
-                      <TableCell
-                        className="text-center px-6 py-4"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <div className="flex items-center justify-center gap-0.5">
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className={`h-8 w-8 ${
-                              doc.status === 'LOGGED'
-                                ? 'text-amber-600 hover:bg-amber-50'
-                                : 'text-emerald-600 hover:bg-emerald-50'
-                            }`}
-                            onClick={() => handleToggleStatus(doc.id, doc.status)}
-                            title={
-                              doc.status === 'LOGGED' ? 'ប្តូរទៅជា Pending' : 'ប្តូរទៅជា Logged'
-                            }
-                            disabled={updatingId === doc.id}
-                          >
-                            {doc.status === 'LOGGED' ? (
-                              <Clock className="h-4 w-4" />
-                            ) : (
-                              <CheckCircle2 className="h-4 w-4" />
-                            )}
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 text-indigo-600 hover:bg-indigo-50"
-                            onClick={() => {
-                              router.push(`/dashboard/document-management/${doc.id}`);
-                            }}
-                            title="មើលលម្អិត"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 text-indigo-600 hover:bg-indigo-50"
-                            onClick={() => {
-                              router.push(`/dashboard/document-management/${doc.id}/edit`);
-                            }}
-                            title="កែប្រែ"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 text-rose-600 hover:bg-rose-50"
-                            onClick={() => handleDeleteDoc(doc.id)}
-                            title="លុប"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+            {/* Document Data Table */}
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader className="bg-slate-50/70 font-khmer-moul-light">
+                  <TableRow>
+                    <TableHead className="w-[160px] font-bold px-6 py-4">លេខឯកសារ</TableHead>
+                    <TableHead className="font-bold px-6 py-4">កម្មវត្ថុឯកសារ</TableHead>
+                    <TableHead className="w-[180px] font-bold px-6 py-4">ប្រភេទ</TableHead>
+                    <TableHead className="w-[130px] font-bold text-center px-6 py-4">
+                      ស្ថានភាព
+                    </TableHead>
+                    <TableHead className="w-[140px] font-bold text-right px-6 py-4">
+                      កាលបរិច្ឆេទ
+                    </TableHead>
+                    <TableHead className="w-[120px] text-center font-bold px-6 py-4">
+                      សកម្មភាព
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-10 text-slate-400">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <div className="h-6 w-6 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
+                          កំពុងទាញយកទិន្នន័យ...
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50/40 px-6 py-4 rounded-b-2xl">
-              <div className="flex flex-1 justify-between sm:hidden">
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="bg-white border-slate-200"
-                >
-                  ថយក្រោយ
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="bg-white border-slate-200"
-                >
-                  បន្ទាប់
-                </Button>
-              </div>
-              <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-xs text-slate-500">
-                    បង្ហាញលទ្ធផលពី{' '}
-                    <span className="font-semibold text-slate-900">
-                      {(currentPage - 1) * itemsPerPage + 1}
-                    </span>{' '}
-                    ដល់{' '}
-                    <span className="font-semibold text-slate-900">
-                      {Math.min(currentPage * itemsPerPage, filteredDocs.length)}
-                    </span>{' '}
-                    នៃ <span className="font-semibold text-slate-900">{filteredDocs.length}</span>{' '}
-                    ឯកសារ
-                  </p>
-                </div>
-                <div>
-                  <nav
-                    className="isolate inline-flex -space-x-px rounded-xl gap-1"
-                    aria-label="Pagination"
-                  >
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-8.5 w-8.5 rounded-lg border-slate-200 bg-white"
-                      onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                      disabled={currentPage === 1}
-                    >
-                      <ChevronLeft className="h-4 w-4 text-slate-600" />
-                    </Button>
-
-                    {getPageNumbers(currentPage, totalPages).map((page, index) => {
-                      if (page === '...') {
-                        return (
-                          <span
-                            key={`ellipsis-${index}`}
-                            className="h-8.5 w-8.5 flex items-center justify-center text-slate-400 text-xs font-semibold"
+                  ) : filteredDocs.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-10 text-slate-400">
+                        <FolderOpen className="mx-auto h-10 w-10 text-slate-300 mb-2" />
+                        មិនមានឯកសារស្របតាមលក្ខខណ្ឌស្វែងរកឡើយ
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    paginatedDocs.map((doc) => (
+                      <TableRow
+                        key={doc.id}
+                        onClick={() => {
+                          router.push(`/dashboard/document-management/${doc.id}`);
+                        }}
+                        className="cursor-pointer transition-colors hover:bg-slate-50/60"
+                      >
+                        <TableCell className="font-semibold text-slate-700 px-6 py-4">
+                          {doc.documentNumber}
+                        </TableCell>
+                        <TableCell className="max-w-[340px] px-6 py-4 align-middle">
+                          <div
+                            className="font-medium text-slate-900 leading-relaxed text-sm line-clamp-2 py-0.5"
+                            title={doc.subject}
                           >
-                            ...
-                          </span>
-                        );
-                      }
-                      const pageNum = page as number;
-                      return (
-                        <Button
-                          key={pageNum}
-                          variant={currentPage === pageNum ? 'default' : 'outline'}
-                          className={`h-8.5 w-8.5 rounded-lg font-semibold text-xs transition-all duration-150 ${
-                            currentPage === pageNum
-                              ? 'bg-indigo-600 hover:bg-indigo-700 text-white border-transparent'
-                              : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                          }`}
-                          onClick={() => setCurrentPage(pageNum)}
-                        >
-                          {pageNum}
-                        </Button>
-                      );
-                    })}
+                            {doc.subject}
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
+                          <Badge variant="outline" className="bg-white text-xs border-slate-200">
+                            {doc.documentType.name}
+                          </Badge>
+                        </TableCell>
 
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-8.5 w-8.5 rounded-lg border-slate-200 bg-white"
-                      onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-                      disabled={currentPage === totalPages}
+                        <TableCell
+                          className="text-center px-6 py-4"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="flex items-center justify-center">
+                            <Select
+                              value={doc.status}
+                              onValueChange={(val: 'PENDING' | 'LOGGED') =>
+                                handleStatusChange(doc.id, val)
+                              }
+                              disabled={updatingId === doc.id}
+                            >
+                              <SelectTrigger
+                                className={`h-7 w-[108px] text-xs font-semibold rounded-full border shadow-none transition-all px-2.5 ${
+                                  doc.status === 'LOGGED'
+                                    ? 'bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100'
+                                    : 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100'
+                                }`}
+                              >
+                                <SelectValue>
+                                  {updatingId === doc.id ? (
+                                    <span className="text-2xs text-slate-500">កំពុងប្តូរ...</span>
+                                  ) : (
+                                    <span className="flex items-center gap-1">
+                                      <span
+                                        className={`h-1.5 w-1.5 rounded-full ${
+                                          doc.status === 'LOGGED' ? 'bg-indigo-600' : 'bg-amber-600'
+                                        }`}
+                                      />
+                                      {doc.status === 'LOGGED' ? 'Logged' : 'Pending'}
+                                    </span>
+                                  )}
+                                </SelectValue>
+                              </SelectTrigger>
+                              <SelectContent align="center">
+                                <SelectItem
+                                  value="PENDING"
+                                  className="text-xs font-medium text-amber-700"
+                                >
+                                  🟡 Pending
+                                </SelectItem>
+                                <SelectItem
+                                  value="LOGGED"
+                                  className="text-xs font-medium text-indigo-700"
+                                >
+                                  🔵 Logged
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right px-6 py-4">
+                          <span className="inline-block text-slate-800 text-xs font-bold font-mono bg-slate-50 border border-slate-200/60 px-2.5 py-1 rounded-lg shadow-2xs">
+                            {doc.documentDate}
+                          </span>
+                        </TableCell>
+                        <TableCell
+                          className="text-center px-6 py-4"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="flex items-center justify-center gap-0.5">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className={`h-8 w-8 ${
+                                doc.status === 'LOGGED'
+                                  ? 'text-amber-600 hover:bg-amber-50'
+                                  : 'text-emerald-600 hover:bg-emerald-50'
+                              }`}
+                              onClick={() => handleToggleStatus(doc.id, doc.status)}
+                              title={
+                                doc.status === 'LOGGED' ? 'ប្តូរទៅជា Pending' : 'ប្តូរទៅជា Logged'
+                              }
+                              disabled={updatingId === doc.id}
+                            >
+                              {doc.status === 'LOGGED' ? (
+                                <Clock className="h-4 w-4" />
+                              ) : (
+                                <CheckCircle2 className="h-4 w-4" />
+                              )}
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 text-indigo-600 hover:bg-indigo-50"
+                              onClick={() => {
+                                router.push(`/dashboard/document-management/${doc.id}`);
+                              }}
+                              title="មើលលម្អិត"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 text-indigo-600 hover:bg-indigo-50"
+                              onClick={() => {
+                                router.push(`/dashboard/document-management/${doc.id}/edit`);
+                              }}
+                              title="កែប្រែ"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 text-rose-600 hover:bg-rose-50"
+                              onClick={() => handleDeleteDoc(doc.id)}
+                              title="លុប"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50/40 px-6 py-4 rounded-b-2xl">
+                <div className="flex flex-1 justify-between sm:hidden">
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="bg-white border-slate-200"
+                  >
+                    ថយក្រោយ
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="bg-white border-slate-200"
+                  >
+                    បន្ទាប់
+                  </Button>
+                </div>
+                <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-xs text-slate-500">
+                      បង្ហាញលទ្ធផលពី{' '}
+                      <span className="font-semibold text-slate-900">
+                        {(currentPage - 1) * itemsPerPage + 1}
+                      </span>{' '}
+                      ដល់{' '}
+                      <span className="font-semibold text-slate-900">
+                        {Math.min(currentPage * itemsPerPage, filteredDocs.length)}
+                      </span>{' '}
+                      នៃ <span className="font-semibold text-slate-900">{filteredDocs.length}</span>{' '}
+                      ឯកសារ
+                    </p>
+                  </div>
+                  <div>
+                    <nav
+                      className="isolate inline-flex -space-x-px rounded-xl gap-1"
+                      aria-label="Pagination"
                     >
-                      <ChevronRight className="h-4 w-4 text-slate-600" />
-                    </Button>
-                  </nav>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8.5 w-8.5 rounded-lg border-slate-200 bg-white"
+                        onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                        disabled={currentPage === 1}
+                      >
+                        <ChevronLeft className="h-4 w-4 text-slate-600" />
+                      </Button>
+
+                      {getPageNumbers(currentPage, totalPages).map((page, index) => {
+                        if (page === '...') {
+                          return (
+                            <span
+                              key={`ellipsis-${index}`}
+                              className="h-8.5 w-8.5 flex items-center justify-center text-slate-400 text-xs font-semibold"
+                            >
+                              ...
+                            </span>
+                          );
+                        }
+                        const pageNum = page as number;
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={currentPage === pageNum ? 'default' : 'outline'}
+                            className={`h-8.5 w-8.5 rounded-lg font-semibold text-xs transition-all duration-150 ${
+                              currentPage === pageNum
+                                ? 'bg-indigo-600 hover:bg-indigo-700 text-white border-transparent'
+                                : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                            }`}
+                            onClick={() => setCurrentPage(pageNum)}
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      })}
+
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8.5 w-8.5 rounded-lg border-slate-200 bg-white"
+                        onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                      >
+                        <ChevronRight className="h-4 w-4 text-slate-600" />
+                      </Button>
+                    </nav>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-        </Card>
+            )}
+          </Card>
+        </div>
       </div>
-    </div>
+    </RequireAccess>
   );
 }

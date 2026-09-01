@@ -236,11 +236,6 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        <DashboardAnalyticsCards
-          stats={data}
-          records={data.recent_attendance ?? []}
-          officers={officers}
-        />
         <RecentInvitationsCard
           invitations={invitationsData ?? []}
           labels={{

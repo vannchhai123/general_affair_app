@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useMissions } from '@/hooks/missions/use-missions';
 import { useUpdateMission } from '@/hooks/missions/use-mission-mutations';
 import type { Mission } from '@/lib/schemas';
+import { RequireAccess } from '@/components/auth/require-access';
+import { useAuth } from '@/components/auth/auth-provider';
 
 function statusBadge(status: string) {
   switch (status) {
@@ -25,6 +27,8 @@ function statusBadge(status: string) {
 }
 
 export default function MissionsPage() {
+  const { hasPermission } = useAuth();
+  const canApprove = hasPermission('MISSION_APPROVE');
   const { data: missions = [] } = useMissions();
   const updateMission = useUpdateMission();
 
@@ -36,73 +40,77 @@ export default function MissionsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="page-title text-2xl tracking-tight">Missions</h1>
-        <p className="text-muted-foreground">Track and approve officer missions</p>
-      </div>
+    <RequireAccess permission="MISSION_VIEW">
+      <div className="flex flex-col gap-6">
+        <div>
+          <h1 className="page-title text-2xl tracking-tight">Missions</h1>
+          <p className="text-muted-foreground">Track and approve officer missions</p>
+        </div>
 
-      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-        {missions.map((mission: Mission) => (
-          <Card key={mission.id}>
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div>
-                  <CardTitle className="text-base">
-                    {mission.purpose || 'Untitled Mission'}
-                  </CardTitle>
-                  <CardDescription>
-                    {mission.first_name} {mission.last_name} - {mission.department}
-                  </CardDescription>
-                </div>
-                {statusBadge(mission.status)}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="h-3.5 w-3.5" />
-                  {mission.start_date ? format(new Date(mission.start_date), 'MMM d') : '?'} -{' '}
-                  {mission.end_date ? format(new Date(mission.end_date), 'MMM d, yyyy') : '?'}
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <MapPin className="h-3.5 w-3.5" />
-                  {mission.location || 'No location'}
-                </div>
-                {mission.approver_name && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Approved by: {mission.approver_name}
-                  </p>
-                )}
-                {mission.status === 'Pending' && (
-                  <div className="flex items-center gap-2 mt-2">
-                    <Button
-                      size="sm"
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                      onClick={() => updateStatus(mission.id, 'Approved')}
-                    >
-                      <Check className="mr-1 h-3.5 w-3.5" /> Approve
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-destructive border-destructive/30 hover:bg-destructive/10"
-                      onClick={() => updateStatus(mission.id, 'Rejected')}
-                    >
-                      <X className="mr-1 h-3.5 w-3.5" /> Reject
-                    </Button>
+        <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+          {missions.map((mission: Mission) => (
+            <Card key={mission.id}>
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <CardTitle className="text-base">
+                      {mission.purpose || 'Untitled Mission'}
+                    </CardTitle>
+                    <CardDescription>
+                      {mission.first_name} {mission.last_name} - {mission.department}
+                    </CardDescription>
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-        {missions.length === 0 && (
-          <div className="col-span-full text-center text-muted-foreground py-12">
-            No missions found
-          </div>
-        )}
+                  {statusBadge(mission.status)}
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Calendar className="h-3.5 w-3.5" />
+                    {mission.start_date
+                      ? format(new Date(mission.start_date), 'MMM d')
+                      : '?'} -{' '}
+                    {mission.end_date ? format(new Date(mission.end_date), 'MMM d, yyyy') : '?'}
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <MapPin className="h-3.5 w-3.5" />
+                    {mission.location || 'No location'}
+                  </div>
+                  {mission.approver_name && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Approved by: {mission.approver_name}
+                    </p>
+                  )}
+                  {mission.status === 'Pending' && canApprove && (
+                    <div className="flex items-center gap-2 mt-2">
+                      <Button
+                        size="sm"
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                        onClick={() => updateStatus(mission.id, 'Approved')}
+                      >
+                        <Check className="mr-1 h-3.5 w-3.5" /> Approve
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-destructive border-destructive/30 hover:bg-destructive/10"
+                        onClick={() => updateStatus(mission.id, 'Rejected')}
+                      >
+                        <X className="mr-1 h-3.5 w-3.5" /> Reject
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+          {missions.length === 0 && (
+            <div className="col-span-full text-center text-muted-foreground py-12">
+              No missions found
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </RequireAccess>
   );
 }

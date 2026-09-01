@@ -27,6 +27,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useReports } from '@/hooks/reports/use-reports';
+import { RequireAccess } from '@/components/auth/require-access';
 
 const CHART_COLORS = [
   'oklch(0.45 0.18 250)',
@@ -102,235 +103,240 @@ export default function ReportsPage() {
     ) || [];
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="page-title text-2xl tracking-tight">Reports</h1>
-        <p className="text-muted-foreground">Analytics and system reports</p>
-      </div>
+    <RequireAccess permission="REPORT_VIEW">
+      <div className="flex flex-col gap-6">
+        <div>
+          <h1 className="page-title text-2xl tracking-tight">Reports</h1>
+          <p className="text-muted-foreground">Analytics and system reports</p>
+        </div>
 
-      <Tabs defaultValue="overview">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="invitations">Invitations</TabsTrigger>
-          <TabsTrigger value="audit">Audit Log</TabsTrigger>
-        </TabsList>
+        <Tabs defaultValue="overview">
+          <TabsList>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="invitations">Invitations</TabsTrigger>
+            <TabsTrigger value="audit">Audit Log</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="overview" className="mt-4">
-          <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+          <TabsContent value="overview" className="mt-4">
+            <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Attendance by Department</CardTitle>
+                  <CardDescription>Breakdown of attendance status per department</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={280}>
+                    <BarChart data={attendanceChartData}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                      <XAxis
+                        dataKey="department"
+                        className="text-xs"
+                        tick={{ fill: 'oklch(0.50 0.02 250)' }}
+                      />
+                      <YAxis className="text-xs" tick={{ fill: 'oklch(0.50 0.02 250)' }} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'oklch(1 0 0)',
+                          border: '1px solid oklch(0.91 0.01 250)',
+                          borderRadius: '8px',
+                          fontSize: '12px',
+                        }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: '12px' }} />
+                      <Bar dataKey="Total" fill="oklch(0.60 0.15 170)" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="Avg Work" fill="oklch(0.45 0.18 250)" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Mission Status</CardTitle>
+                  <CardDescription>Distribution of mission statuses</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={280}>
+                    <PieChart>
+                      <Pie
+                        data={missionPieData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={100}
+                        paddingAngle={4}
+                        dataKey="value"
+                        label={({ name, value }: { name: string; value: number }) =>
+                          `${name}: ${value}`
+                        }
+                      >
+                        {missionPieData.map((_: { name: string; value: number }, index: number) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={CHART_COLORS[index % CHART_COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'oklch(1 0 0)',
+                          border: '1px solid oklch(0.91 0.01 250)',
+                          borderRadius: '8px',
+                          fontSize: '12px',
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              <Card className="lg:col-span-2">
+                <CardHeader>
+                  <CardTitle className="text-base">Leave Requests by Type</CardTitle>
+                  <CardDescription>Summary of leave requests by category</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={280}>
+                    <BarChart data={leaveChartData} layout="vertical">
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                      <XAxis type="number" tick={{ fill: 'oklch(0.50 0.02 250)', fontSize: 12 }} />
+                      <YAxis
+                        dataKey="type"
+                        type="category"
+                        width={100}
+                        tick={{ fill: 'oklch(0.50 0.02 250)', fontSize: 12 }}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'oklch(1 0 0)',
+                          border: '1px solid oklch(0.91 0.01 250)',
+                          borderRadius: '8px',
+                          fontSize: '12px',
+                        }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: '12px' }} />
+                      <Bar dataKey="Total" fill="oklch(0.45 0.18 250)" radius={[0, 4, 4, 0]} />
+                      <Bar dataKey="Approved" fill="oklch(0.60 0.15 170)" radius={[0, 4, 4, 0]} />
+                      <Bar dataKey="Pending" fill="oklch(0.65 0.20 45)" radius={[0, 4, 4, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="invitations" className="mt-4">
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Attendance by Department</CardTitle>
-                <CardDescription>Breakdown of attendance status per department</CardDescription>
+                <CardTitle className="text-base">Invitation Response Rates</CardTitle>
+                <CardDescription>Assignment and response breakdown per invitation</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={280}>
-                  <BarChart data={attendanceChartData}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                    <XAxis
-                      dataKey="department"
-                      className="text-xs"
-                      tick={{ fill: 'oklch(0.50 0.02 250)' }}
-                    />
-                    <YAxis className="text-xs" tick={{ fill: 'oklch(0.50 0.02 250)' }} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'oklch(1 0 0)',
-                        border: '1px solid oklch(0.91 0.01 250)',
-                        borderRadius: '8px',
-                        fontSize: '12px',
-                      }}
-                    />
-                    <Legend wrapperStyle={{ fontSize: '12px' }} />
-                    <Bar dataKey="Total" fill="oklch(0.60 0.15 170)" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="Avg Work" fill="oklch(0.45 0.18 250)" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Mission Status</CardTitle>
-                <CardDescription>Distribution of mission statuses</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={280}>
-                  <PieChart>
-                    <Pie
-                      data={missionPieData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={100}
-                      paddingAngle={4}
-                      dataKey="value"
-                      label={({ name, value }: { name: string; value: number }) =>
-                        `${name}: ${value}`
-                      }
-                    >
-                      {missionPieData.map((_: { name: string; value: number }, index: number) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={CHART_COLORS[index % CHART_COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'oklch(1 0 0)',
-                        border: '1px solid oklch(0.91 0.01 250)',
-                        borderRadius: '8px',
-                        fontSize: '12px',
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle className="text-base">Leave Requests by Type</CardTitle>
-                <CardDescription>Summary of leave requests by category</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={280}>
-                  <BarChart data={leaveChartData} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                    <XAxis type="number" tick={{ fill: 'oklch(0.50 0.02 250)', fontSize: 12 }} />
-                    <YAxis
-                      dataKey="type"
-                      type="category"
-                      width={100}
-                      tick={{ fill: 'oklch(0.50 0.02 250)', fontSize: 12 }}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'oklch(1 0 0)',
-                        border: '1px solid oklch(0.91 0.01 250)',
-                        borderRadius: '8px',
-                        fontSize: '12px',
-                      }}
-                    />
-                    <Legend wrapperStyle={{ fontSize: '12px' }} />
-                    <Bar dataKey="Total" fill="oklch(0.45 0.18 250)" radius={[0, 4, 4, 0]} />
-                    <Bar dataKey="Approved" fill="oklch(0.60 0.15 170)" radius={[0, 4, 4, 0]} />
-                    <Bar dataKey="Pending" fill="oklch(0.65 0.20 45)" radius={[0, 4, 4, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="invitations" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Invitation Response Rates</CardTitle>
-              <CardDescription>Assignment and response breakdown per invitation</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-lg border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Invitation</TableHead>
-                      <TableHead>Total Assigned</TableHead>
-                      <TableHead>Accepted</TableHead>
-                      <TableHead>Pending</TableHead>
-                      <TableHead>Declined</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {data?.invitation_response_rates?.map(
-                      (
-                        inv: {
-                          title: string;
-                          accepted: number;
-                          pending: number;
-                          declined: number;
-                        },
-                        i: number,
-                      ) => (
-                        <TableRow key={i}>
-                          <TableCell className="font-medium">{inv.title}</TableCell>
-                          <TableCell>{inv.accepted + inv.pending + inv.declined}</TableCell>
-                          <TableCell>
-                            <span className="text-emerald-600 font-medium">{inv.accepted}</span>
-                          </TableCell>
-                          <TableCell>
-                            <span className="text-amber-600 font-medium">{inv.pending}</span>
-                          </TableCell>
-                          <TableCell>
-                            <span className="text-red-600 font-medium">{inv.declined}</span>
-                          </TableCell>
-                        </TableRow>
-                      ),
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="audit" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Audit Log</CardTitle>
-              <CardDescription>Recent system actions and changes</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-lg border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Timestamp</TableHead>
-                      <TableHead>User</TableHead>
-                      <TableHead>Action</TableHead>
-                      <TableHead>Table</TableHead>
-                      <TableHead>Record ID</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {data?.audit_log?.map(
-                      (log: {
-                        id: number;
-                        timestamp: string;
-                        full_name: string;
-                        action: string;
-                        table_name: string;
-                        record_id: number;
-                      }) => (
-                        <TableRow key={log.id}>
-                          <TableCell className="text-sm">
-                            {log.timestamp
-                              ? format(new Date(log.timestamp), 'MMM d, yyyy HH:mm')
-                              : '-'}
-                          </TableCell>
-                          <TableCell className="font-medium text-sm">
-                            {log.full_name || 'System'}
-                          </TableCell>
-                          <TableCell>{actionBadge(log.action)}</TableCell>
-                          <TableCell className="text-sm font-mono">{log.table_name}</TableCell>
-                          <TableCell className="text-sm">#{log.record_id}</TableCell>
-                        </TableRow>
-                      ),
-                    )}
-                    {(!data?.audit_log || data.audit_log.length === 0) && (
+                <div className="rounded-lg border">
+                  <Table>
+                    <TableHeader>
                       <TableRow>
-                        <TableCell colSpan={5} className="text-center text-muted-foreground py-12">
-                          No audit logs found
-                        </TableCell>
+                        <TableHead>Invitation</TableHead>
+                        <TableHead>Total Assigned</TableHead>
+                        <TableHead>Accepted</TableHead>
+                        <TableHead>Pending</TableHead>
+                        <TableHead>Declined</TableHead>
                       </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+                    </TableHeader>
+                    <TableBody>
+                      {data?.invitation_response_rates?.map(
+                        (
+                          inv: {
+                            title: string;
+                            accepted: number;
+                            pending: number;
+                            declined: number;
+                          },
+                          i: number,
+                        ) => (
+                          <TableRow key={i}>
+                            <TableCell className="font-medium">{inv.title}</TableCell>
+                            <TableCell>{inv.accepted + inv.pending + inv.declined}</TableCell>
+                            <TableCell>
+                              <span className="text-emerald-600 font-medium">{inv.accepted}</span>
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-amber-600 font-medium">{inv.pending}</span>
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-red-600 font-medium">{inv.declined}</span>
+                            </TableCell>
+                          </TableRow>
+                        ),
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="audit" className="mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Audit Log</CardTitle>
+                <CardDescription>Recent system actions and changes</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-lg border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Timestamp</TableHead>
+                        <TableHead>User</TableHead>
+                        <TableHead>Action</TableHead>
+                        <TableHead>Table</TableHead>
+                        <TableHead>Record ID</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {data?.audit_log?.map(
+                        (log: {
+                          id: number;
+                          timestamp: string;
+                          full_name: string;
+                          action: string;
+                          table_name: string;
+                          record_id: number;
+                        }) => (
+                          <TableRow key={log.id}>
+                            <TableCell className="text-sm">
+                              {log.timestamp
+                                ? format(new Date(log.timestamp), 'MMM d, yyyy HH:mm')
+                                : '-'}
+                            </TableCell>
+                            <TableCell className="font-medium text-sm">
+                              {log.full_name || 'System'}
+                            </TableCell>
+                            <TableCell>{actionBadge(log.action)}</TableCell>
+                            <TableCell className="text-sm font-mono">{log.table_name}</TableCell>
+                            <TableCell className="text-sm">#{log.record_id}</TableCell>
+                          </TableRow>
+                        ),
+                      )}
+                      {(!data?.audit_log || data.audit_log.length === 0) && (
+                        <TableRow>
+                          <TableCell
+                            colSpan={5}
+                            className="text-center text-muted-foreground py-12"
+                          >
+                            No audit logs found
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </RequireAccess>
   );
 }

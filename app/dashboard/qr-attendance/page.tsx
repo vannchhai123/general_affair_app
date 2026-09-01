@@ -183,7 +183,6 @@ export default function QRAttendancePage() {
   return (
     <RequireAccess
       permission="QR_SESSION_VIEW"
-      roles={['ROLE_ADMIN']}
       title={t('restrictedTitle')}
       description={t('restrictedDescription')}
     >

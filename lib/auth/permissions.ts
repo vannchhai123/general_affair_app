@@ -1,48 +1,85 @@
-export const ADMIN_DEFAULT_PERMISSIONS = [
+export const ALL_APP_PERMISSIONS = [
+  // Dashboard
   'DASHBOARD_VIEW',
+
+  // Officers
   'OFFICER_VIEW',
   'OFFICER_CREATE',
   'OFFICER_UPDATE',
   'OFFICER_DELETE',
-  'OFFICER_VIEW_PERMISSION',
+  'OFFICER_EXPORT',
+
+  // Attendance & QR
   'ATTENDANCE_VIEW',
   'ATTENDANCE_CREATE',
   'ATTENDANCE_UPDATE',
+  'ATTENDANCE_DELETE',
   'ATTENDANCE_EXPORT',
   'ATTENDANCE_IMPORT',
   'ATTENDANCE_SCAN',
-  'ORGANIZATION_VIEW',
-  'ORGANIZATION_CREATE',
-  'ORGANIZATION_UPDATE',
-  'ORGANIZATION_DELETE',
-] as const;
-
-export const SUPER_ADMIN_ONLY_PERMISSIONS = [
   'QR_SESSION_VIEW',
   'QR_SESSION_CREATE',
   'QR_SESSION_UPDATE',
   'QR_SESSION_END',
   'QR_SESSION_CHECKIN',
+
+  // Shifts
   'SHIFT_VIEW',
   'SHIFT_CREATE',
   'SHIFT_UPDATE',
   'SHIFT_DELETE',
   'SHIFT_ASSIGN',
+
+  // Leave Requests
+  'LEAVE_VIEW',
+  'LEAVE_CREATE',
+  'LEAVE_APPROVE',
+  'LEAVE_DELETE',
+
+  // Missions
+  'MISSION_VIEW',
+  'MISSION_CREATE',
+  'MISSION_APPROVE',
+  'MISSION_DELETE',
+
+  // Invitations
+  'INVITATION_VIEW',
+  'INVITATION_CREATE',
+  'INVITATION_UPDATE',
+  'INVITATION_DELETE',
+
+  // Documents
+  'DOCUMENT_VIEW',
+  'DOCUMENT_CREATE',
+  'DOCUMENT_UPDATE',
+  'DOCUMENT_DELETE',
+
+  // Organization
+  'ORGANIZATION_VIEW',
+  'ORGANIZATION_CREATE',
+  'ORGANIZATION_UPDATE',
+  'ORGANIZATION_DELETE',
+
+  // Reports
+  'REPORT_VIEW',
+  'REPORT_EXPORT',
+
+  // Access Control & RBAC
   'PERMISSION_VIEW',
   'PERMISSION_CREATE',
   'PERMISSION_UPDATE',
   'PERMISSION_DELETE',
   'ROLE_ASSIGN_PERMISSION',
+  'OFFICER_VIEW_PERMISSION',
   'OFFICER_ASSIGN_PERMISSION',
 ] as const;
 
-export const KNOWN_PERMISSIONS = [
-  ...ADMIN_DEFAULT_PERMISSIONS,
-  ...SUPER_ADMIN_ONLY_PERMISSIONS,
-] as const;
+export const ADMIN_DEFAULT_PERMISSIONS = ALL_APP_PERMISSIONS;
+export const SUPER_ADMIN_ONLY_PERMISSIONS = ALL_APP_PERMISSIONS;
+export const KNOWN_PERMISSIONS = ALL_APP_PERMISSIONS;
 
-export type AppPermission = (typeof KNOWN_PERMISSIONS)[number];
-export type AppRole = 'ROLE_ADMIN' | 'ROLE_HEAD_OFFICE' | string;
+export type AppPermission = (typeof ALL_APP_PERMISSIONS)[number] | string;
+export type AppRole = 'ROLE_ADMIN' | 'ROLE_SUPER_ADMIN' | string;
 
 // ==========================================
 // 🇰🇭 CAMBODIAN ADMINISTRATION PRESET ROLES
@@ -336,27 +373,17 @@ export function sanitizePermissionsForRole(
   role?: string | string[] | null,
   permissions?: string[] | null,
 ) {
+  if (permissions && Array.isArray(permissions) && permissions.length > 0) {
+    return Array.from(
+      new Set(permissions.filter(Boolean).map((item) => String(item).trim().toUpperCase())),
+    );
+  }
+
   if (isSuperAdminRole(role)) {
-    return Array.from(
-      new Set((permissions ?? []).filter(Boolean).map((item) => item.toUpperCase())),
-    );
+    return [...ALL_APP_PERMISSIONS];
   }
 
-  if (!isAdminRole(role)) {
-    return Array.from(
-      new Set((permissions ?? []).filter(Boolean).map((item) => item.toUpperCase())),
-    );
-  }
-
-  const source = permissions?.length ? permissions : [...ADMIN_DEFAULT_PERMISSIONS];
-  return Array.from(
-    new Set(
-      source
-        .filter(Boolean)
-        .map((item) => item.toUpperCase())
-        .filter((item) => ADMIN_PERMISSION_SET.has(item)),
-    ),
-  );
+  return [];
 }
 
 export function hasPermission(
@@ -366,7 +393,8 @@ export function hasPermission(
 ) {
   if (!required) return true;
   if (isSuperAdminRole(role)) return true;
-  return (permissions ?? []).includes(required);
+  const upperRequired = required.toUpperCase();
+  return (permissions ?? []).some((p) => p.toUpperCase() === upperRequired || p === '*');
 }
 
 export function hasAnyPermission(
@@ -375,5 +403,6 @@ export function hasAnyPermission(
   required: string[],
 ) {
   if (isSuperAdminRole(role)) return true;
-  return required.some((permission) => (permissions ?? []).includes(permission));
+  const upperReqs = required.map((r) => r.toUpperCase());
+  return (permissions ?? []).some((p) => upperReqs.includes(p.toUpperCase()) || p === '*');
 }

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { ShieldCheck, UserCheck } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ShieldCheck, UserCheck, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import type { Officer } from '@/lib/schemas';
+import { useRoles } from '@/hooks/roles/use-roles';
 
 interface RoleAssignmentDialogProps {
   open: boolean;
@@ -23,41 +24,25 @@ interface RoleAssignmentDialogProps {
   onAssignRole: (officerId: number, roleName: string) => Promise<void>;
 }
 
-const AVAILABLE_ROLES = [
-  {
-    key: 'ROLE_ADMIN',
-    nameEn: 'Administrator',
-    nameKh: 'អភិបាលប្រព័ន្ធ (Admin)',
-    description: 'មានសិទ្ធិពេញលេញលើប្រព័ន្ធទាំងមូល',
-  },
-  {
-    key: 'ROLE_HEAD_OFFICE',
-    nameEn: 'Head Office',
-    nameKh: 'ការិយាល័យកណ្តាល (Head Office)',
-    description: 'គ្រប់គ្រងប្រតិបត្តិការទូទៅប្រចាំថ្ងៃ',
-  },
-  {
-    key: 'ROLE_MANAGER',
-    nameEn: 'Manager',
-    nameKh: 'ប្រធាន (Manager)',
-    description: 'អាចមើលរបាយការណ៍ និងវត្តមានមន្ត្រីគ្រប់ការិយាល័យ',
-  },
-  {
-    key: 'ROLE_OFFICER',
-    nameEn: 'Officer',
-    nameKh: 'មន្ត្រី (Officer)',
-    description: 'សិទ្ធិជាមន្ត្រីទូទៅស្វ័យសេវា (Self-Service)',
-  },
-];
-
 export function RoleAssignmentDialog({
   open,
   onOpenChange,
   officer,
   onAssignRole,
 }: RoleAssignmentDialogProps) {
+  const { data: roles = [], isLoading: isRolesLoading } = useRoles();
   const [selectedRole, setSelectedRole] = useState<string>('ROLE_OFFICER');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (officer?.roles && officer.roles.length > 0) {
+      const first = officer.roles[0];
+      const code = typeof first === 'string' ? first : first.code;
+      if (code) setSelectedRole(code);
+    } else if (roles.length > 0 && !roles.some((r) => r.code === selectedRole)) {
+      setSelectedRole(roles[0].code);
+    }
+  }, [officer, roles, selectedRole]);
 
   const handleSubmit = async () => {
     if (!officer || isSubmitting) return;
@@ -74,7 +59,9 @@ export function RoleAssignmentDialog({
   };
 
   const officerDisplayName = officer
-    ? `${officer.first_name} ${officer.last_name}`
+    ? `${officer.first_name || ''} ${officer.last_name || ''}`.trim() ||
+      officer.fullName ||
+      'មន្ត្រី'
     : 'កំពុងផ្ទុក...';
 
   return (
@@ -91,32 +78,44 @@ export function RoleAssignmentDialog({
         </DialogHeader>
 
         <div className="py-3">
-          <RadioGroup value={selectedRole} onValueChange={setSelectedRole} className="space-y-3">
-            {AVAILABLE_ROLES.map((role) => (
-              <div
-                key={role.key}
-                className={`flex items-start space-x-3 rounded-lg border p-3 cursor-pointer transition-colors ${
-                  selectedRole === role.key
-                    ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20'
-                    : 'border-slate-200 hover:bg-slate-50 dark:hover:bg-slate-900'
-                }`}
-                onClick={() => setSelectedRole(role.key)}
-              >
-                <RadioGroupItem value={role.key} id={role.key} className="mt-1" />
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor={role.key} className="cursor-pointer font-medium text-sm">
-                      {role.nameKh}
-                    </Label>
-                    <Badge variant="outline" className="text-xs">
-                      {role.key}
-                    </Badge>
+          {isRolesLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : roles.length === 0 ? (
+            <div className="p-4 text-center text-sm text-muted-foreground">
+              ពុំមានតួនាទីក្នុងប្រព័ន្ធនៅឡើយទេ (No roles available)
+            </div>
+          ) : (
+            <RadioGroup value={selectedRole} onValueChange={setSelectedRole} className="space-y-3">
+              {roles.map((role) => (
+                <div
+                  key={role.id || role.code}
+                  className={`flex items-start space-x-3 rounded-lg border p-3 cursor-pointer transition-colors ${
+                    selectedRole === role.code
+                      ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20'
+                      : 'border-slate-200 hover:bg-slate-50 dark:hover:bg-slate-900'
+                  }`}
+                  onClick={() => setSelectedRole(role.code)}
+                >
+                  <RadioGroupItem value={role.code} id={role.code} className="mt-1" />
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor={role.code} className="cursor-pointer font-medium text-sm">
+                        {role.nameKm || role.name}
+                      </Label>
+                      <Badge variant="outline" className="text-xs">
+                        {role.code}
+                      </Badge>
+                    </div>
+                    {role.description && (
+                      <p className="text-xs text-muted-foreground">{role.description}</p>
+                    )}
                   </div>
-                  <p className="text-xs text-muted-foreground">{role.description}</p>
                 </div>
-              </div>
-            ))}
-          </RadioGroup>
+              ))}
+            </RadioGroup>
+          )}
         </div>
 
         <DialogFooter className="gap-2 sm:gap-0">
@@ -125,7 +124,7 @@ export function RoleAssignmentDialog({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={isSubmitting}
+            disabled={isSubmitting || isRolesLoading}
             className="bg-emerald-600 hover:bg-emerald-700 text-white"
           >
             <UserCheck className="mr-2 h-4 w-4" />

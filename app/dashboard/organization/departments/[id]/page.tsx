@@ -165,7 +165,7 @@ export default function DepartmentDetailPage({ params }: { params: Promise<{ id:
   }, [departmentOfficers]);
 
   return (
-    <RequireAccess roles={['ROLE_ADMIN']} permission="ORGANIZATION_VIEW">
+    <RequireAccess permission="ORGANIZATION_VIEW">
       <div className="space-y-6">
         {/* Header Breadcrumb & Actions */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-5">

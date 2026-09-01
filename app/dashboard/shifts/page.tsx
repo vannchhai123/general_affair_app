@@ -173,15 +173,16 @@ export default function ShiftsPage() {
   const summary = useMemo(() => {
     const active = shifts.filter((shift) => shift.status === 'active').length;
     const inactive = shifts.filter((shift) => shift.status === 'inactive').length;
+    const totalCount = Math.max(listQuery.data?.totalElements ?? 0, shifts.length);
     const grace = shifts.length
       ? Math.round(shifts.reduce((total, shift) => total + shift.graceMinutes, 0) / shifts.length)
       : 0;
 
     return {
-      total: listQuery.data?.totalElements ?? shifts.length,
+      total: totalCount,
       active,
       inactive,
-      averageGrace: `${grace} min`,
+      averageGrace: `${grace} នាទី`,
     };
   }, [listQuery.data?.totalElements, shifts]);
 
@@ -295,28 +296,28 @@ export default function ShiftsPage() {
           value={summary.total}
           helper="វេនដែលបានកំណត់ក្នុងប្រព័ន្ធ"
           icon={Workflow}
-          tone="from-slate-600 to-slate-900"
+          tone="bg-indigo-50 dark:bg-indigo-950/50 border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400"
         />
         <SummaryCard
           title="វេនសកម្ម"
           value={summary.active}
           helper="អាចប្រើសម្រាប់វត្តមាន"
           icon={Sparkles}
-          tone="from-emerald-500 to-teal-600"
+          tone="bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400"
         />
         <SummaryCard
           title="វេនមិនសកម្ម"
           value={summary.inactive}
           helper="ផ្អាកប្រើដោយមិនលុបប្រវត្តិ"
           icon={Power}
-          tone="from-amber-400 to-orange-500"
+          tone="bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400"
         />
         <SummaryCard
           title="ពេលអនុគ្រោះមធ្យម"
           value={summary.averageGrace}
           helper="រយៈពេលអត់ទោសយឺត"
           icon={TimerReset}
-          tone="from-cyan-500 to-blue-600"
+          tone="bg-blue-50 dark:bg-blue-950/50 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400"
         />
       </div>
 
@@ -693,20 +694,24 @@ export default function ShiftsPage() {
             <CardContent className="space-y-4 p-5">
               {selectedShiftDetails ? (
                 <>
-                  <div className="rounded-[28px] bg-[linear-gradient(135deg,#0f172a_0%,#111827_50%,#0b3b2e_100%)] p-5 text-white">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="rounded-3xl border border-border bg-white dark:bg-card p-5 text-foreground shadow-2xs">
+                    <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-sm text-white/70">{selectedShiftDetails.code}</p>
-                        <p className="mt-1 text-xl font-semibold">{selectedShiftDetails.name}</p>
-                        <p className="mt-3 text-sm text-white/75">
+                        <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase font-mono">
+                          {selectedShiftDetails.code}
+                        </p>
+                        <p className="mt-1 text-xl font-bold text-foreground">
+                          {selectedShiftDetails.name}
+                        </p>
+                        <p className="mt-3 text-sm text-muted-foreground font-medium">
                           {selectedShiftDetails.startTime} - {selectedShiftDetails.endTime}
                         </p>
                       </div>
                       <Badge
                         className={
                           selectedShiftDetails.status === 'active'
-                            ? 'border-0 bg-emerald-100 text-emerald-700'
-                            : 'border-0 bg-slate-100 text-slate-700'
+                            ? 'border-0 bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                            : 'border-0 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
                         }
                       >
                         {getStatusLabel(selectedShiftDetails.status)}
@@ -714,24 +719,24 @@ export default function ShiftsPage() {
                     </div>
 
                     <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                      <div className="rounded-2xl bg-white/10 p-3">
-                        <p className="text-xs text-white/60">មានប្រសិទ្ធភាព</p>
-                        <p className="mt-1 text-sm font-medium">
+                      <div className="rounded-2xl bg-muted/60 border border-border/60 p-3">
+                        <p className="text-xs text-muted-foreground">មានប្រសិទ្ធភាព</p>
+                        <p className="mt-1 text-sm font-semibold text-foreground">
                           {selectedShiftDetails.effectiveFrom}
                           {selectedShiftDetails.effectiveTo
                             ? ` ដល់ ${selectedShiftDetails.effectiveTo}`
                             : ' តទៅ'}
                         </p>
                       </div>
-                      <div className="rounded-2xl bg-white/10 p-3">
-                        <p className="text-xs text-white/60">ការិយាល័យ</p>
-                        <p className="mt-1 text-sm font-medium">
+                      <div className="rounded-2xl bg-muted/60 border border-border/60 p-3">
+                        <p className="text-xs text-muted-foreground">ការិយាល័យ</p>
+                        <p className="mt-1 text-sm font-semibold text-foreground">
                           {selectedShiftDetails.assignedDepartmentsCount} កន្លែង
                         </p>
                       </div>
-                      <div className="rounded-2xl bg-white/10 p-3">
-                        <p className="text-xs text-white/60">បុគ្គលិក</p>
-                        <p className="mt-1 text-sm font-medium">
+                      <div className="rounded-2xl bg-muted/60 border border-border/60 p-3">
+                        <p className="text-xs text-muted-foreground">បុគ្គលិក</p>
+                        <p className="mt-1 text-sm font-semibold text-foreground">
                           {selectedShiftDetails.assignedEmployeesCount} នាក់
                         </p>
                       </div>
@@ -824,21 +829,19 @@ function SummaryCard({
   tone: string;
 }) {
   return (
-    <Card className="overflow-hidden border-slate-200 shadow-sm">
-      <CardContent className="p-0">
-        <div className="flex items-start justify-between gap-3 p-5 font-khmer-moul-light">
-          <div>
-            <p className="text-sm text-muted-foreground">{title}</p>
-            <CardNumber
-              value={value}
-              className="mt-2 block text-3xl font-semibold tracking-tight"
-            />
-          </div>
-          <div className={`rounded-2xl bg-gradient-to-br p-3 text-white shadow-sm ${tone}`}>
-            <Icon className="h-5 w-5" />
-          </div>
+    <Card className="overflow-hidden rounded-2xl border border-border/80 bg-white dark:bg-card p-5 shadow-2xs transition-all hover:shadow-md hover:border-border flex flex-col justify-between group">
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <p className="text-xs font-semibold text-muted-foreground">{title}</p>
+          <CardNumber value={value} className="text-3xl font-bold tracking-tight text-foreground" />
         </div>
-      </CardContent>
+        <div
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border shadow-2xs transition-transform group-hover:scale-105 ${tone}`}
+        >
+          <Icon className="h-5 w-5" />
+        </div>
+      </div>
+      <p className="mt-3 text-xs text-muted-foreground/80 font-medium">{helper}</p>
     </Card>
   );
 }

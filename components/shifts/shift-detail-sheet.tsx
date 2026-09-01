@@ -43,20 +43,22 @@ export function ShiftDetailSheet({ open, onOpenChange, shift, audit }: ShiftDeta
   const content = (
     <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6">
       <div className="space-y-5">
-        <div className="rounded-3xl border bg-slate-950 p-5 text-white">
+        <div className="rounded-3xl border border-border bg-white dark:bg-card p-5 text-foreground shadow-2xs">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-sm text-white/70">{shift.code}</p>
-              <h3 className="mt-1 text-2xl font-semibold">{shift.name}</h3>
-              <p className="mt-2 text-sm text-white/75">
+              <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase font-mono">
+                {shift.code}
+              </p>
+              <h3 className="mt-1 text-2xl font-bold text-foreground">{shift.name}</h3>
+              <p className="mt-2 text-sm text-muted-foreground font-medium">
                 {shift.startTime} - {shift.endTime}
               </p>
             </div>
             <Badge
               className={
                 shift.status === 'active'
-                  ? 'bg-emerald-100 text-emerald-700'
-                  : 'bg-slate-100 text-slate-700'
+                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                  : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
               }
             >
               {getStatusLabel(shift.status)}

@@ -343,42 +343,42 @@ export function ShiftFormSheet({
           </form>
         </Form>
 
-        <div className="rounded-3xl border bg-slate-950 p-5 text-white">
-          <div className="flex items-center gap-2 text-sm font-medium">
-            <CalendarClock className="h-4 w-4" />
+        <div className="rounded-3xl border border-border bg-white dark:bg-card p-5 text-foreground shadow-2xs">
+          <div className="flex items-center gap-2 text-sm font-bold text-foreground">
+            <CalendarClock className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
             មើលច្បាប់វត្តមានជាមុន
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl bg-white/8 p-3">
-              <p className="text-xs text-white/60">ពេលវេលាឆែកចូល</p>
-              <p className="mt-1 font-medium">
+            <div className="rounded-2xl bg-muted/60 border border-border/60 p-3">
+              <p className="text-xs text-muted-foreground">ពេលវេលាឆែកចូល</p>
+              <p className="mt-1 text-sm font-semibold text-foreground">
                 {getCheckInWindowLabel({
                   startTime: preview.startTime,
                   checkInOpenBeforeMinutes: preview.checkInOpenBeforeMinutes,
                 })}
               </p>
             </div>
-            <div className="rounded-2xl bg-white/8 p-3">
-              <p className="text-xs text-white/60">ចាត់ទុកថាយឺតក្រោយ</p>
-              <p className="mt-1 font-medium">
+            <div className="rounded-2xl bg-muted/60 border border-border/60 p-3">
+              <p className="text-xs text-muted-foreground">ចាត់ទុកថាយឺតក្រោយ</p>
+              <p className="mt-1 text-sm font-semibold text-foreground">
                 {getLateAfterTime({
                   startTime: preview.startTime,
                   graceMinutes: preview.graceMinutes,
                 })}
               </p>
             </div>
-            <div className="rounded-2xl bg-white/8 p-3">
-              <p className="text-xs text-white/60">ពេលវេលាឆែកចេញ</p>
-              <p className="mt-1 font-medium">
+            <div className="rounded-2xl bg-muted/60 border border-border/60 p-3">
+              <p className="text-xs text-muted-foreground">ពេលវេលាឆែកចេញ</p>
+              <p className="mt-1 text-sm font-semibold text-foreground">
                 {getCheckOutWindowLabel({
                   endTime: preview.endTime,
                   checkOutCloseAfterMinutes: preview.checkOutCloseAfterMinutes,
                 })}
               </p>
             </div>
-            <div className="rounded-2xl bg-white/8 p-3">
-              <p className="text-xs text-white/60">លក្ខណៈវេនឆ្លងថ្ងៃ</p>
-              <p className="mt-1 font-medium">
+            <div className="rounded-2xl bg-muted/60 border border-border/60 p-3">
+              <p className="text-xs text-muted-foreground">លក្ខណៈវេនឆ្លងថ្ងៃ</p>
+              <p className="mt-1 text-sm font-semibold text-foreground">
                 {form.watch('cross_midnight') ? 'បន្តទៅថ្ងៃបន្ទាប់' : 'បញ្ចប់នៅថ្ងៃដដែល'}
               </p>
             </div>

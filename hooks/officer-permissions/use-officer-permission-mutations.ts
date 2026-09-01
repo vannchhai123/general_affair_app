@@ -71,7 +71,7 @@ export function useAssignRoleToOfficer() {
       return await fetchApi(`/super-admin/users/${targetUserId}/roles`, z.any(), {
         method: 'PUT',
         body: JSON.stringify({
-          roleIds: resolvedRoleIds ?? [7],
+          roleIds: resolvedRoleIds && resolvedRoleIds.length > 0 ? resolvedRoleIds : [],
         }),
       });
     },

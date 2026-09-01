@@ -26,6 +26,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useOfficers } from '@/hooks/officers/use-officers';
+import { useRoles } from '@/hooks/roles/use-roles';
 import {
   PRESET_ROLES,
   type RolePreset,
@@ -34,19 +35,17 @@ import {
 } from '@/lib/auth/permissions';
 import type { Officer } from '@/lib/schemas';
 
-// Helper to extract officer role codes (supports multi-role API response and legacy position matching)
+// Helper to extract officer role codes
 function getOfficerRoleCodes(officer: Officer | null): string[] {
   if (!officer) return ['ROLE_OFFICER'];
   if (officer.roleCodes && officer.roleCodes.length > 0) {
     return officer.roleCodes;
   }
-  const pos = (officer.position || '').toLowerCase();
-  if (pos.includes('អភិបាលរង') || pos.includes('governor')) return ['ROLE_GOVERNOR_DEP_1'];
-  if (pos.includes('នាយករដ្ឋបាល') && !pos.includes('រង')) return ['ROLE_ADMIN_DIRECTOR'];
-  if (pos.includes('នាយករងរដ្ឋបាល')) return ['ROLE_DEPUTY_ADMIN_DIRECTOR'];
-  if (pos.includes('ប្រធានផ្នែក')) return ['ROLE_DEPT_HEAD'];
-  if (pos.includes('ប្រធានការិយាល័យ') && !pos.includes('អនុ')) return ['ROLE_OFFICE_CHIEF'];
-  if (pos.includes('អនុប្រធាន')) return ['ROLE_DEPUTY_OFFICE_CHIEF'];
+  if (Array.isArray(officer.roles) && officer.roles.length > 0) {
+    return officer.roles
+      .map((r: any) => (typeof r === 'string' ? r : r.code || r.role_name || r.name))
+      .filter(Boolean);
+  }
   return ['ROLE_OFFICER'];
 }
 
@@ -62,6 +61,7 @@ function getHierarchyBadgeColor(level: number) {
 
 export function RolePermissionsManagement() {
   const router = useRouter();
+  const { data: dynamicRoles = [] } = useRoles();
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
   const [departmentFilter, setDepartmentFilter] = useState('ALL');
@@ -86,6 +86,17 @@ export function RolePermissionsManagement() {
     router.push(`/dashboard/access-control/officer-permissions/${officer.id}`);
   };
 
+  // Roles for dropdown filter
+  const filterRolesList = useMemo(() => {
+    if (dynamicRoles.length > 0) {
+      return dynamicRoles.map((r) => ({
+        code: r.code,
+        nameKm: r.nameKm || r.name,
+      }));
+    }
+    return PRESET_ROLES.map((r) => ({ code: r.code, nameKm: r.nameKm }));
+  }, [dynamicRoles]);
+
   // Departments list for dropdown filter
   const departments = useMemo(() => {
     const set = new Set<string>();
@@ -109,45 +120,45 @@ export function RolePermissionsManagement() {
   return (
     <div className="space-y-5 max-w-full">
       {/* ========================================================================= */}
-      {/* 1. TOP HEADER & FILTER BAR (VIBRANT LIGHT GREEN THEME)                   */}
+      {/* 1. TOP HEADER & FILTER BAR (CLEAN WHITE THEME)                           */}
       {/* ========================================================================= */}
-      <div className="bg-gradient-to-r from-emerald-600 via-emerald-700 to-teal-600 text-white rounded-2xl p-6 shadow-md border border-emerald-500/40">
+      <div className="bg-white dark:bg-card text-foreground rounded-2xl p-6 shadow-xs border border-border">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center text-white shrink-0 shadow-xs">
+            <div className="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 shadow-2xs">
               <KeyRound className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2.5">
+              <h1 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2.5">
                 កំណត់សិទ្ធិ និងតួនាទី
                 <Badge
                   variant="outline"
-                  className="text-xs py-0.5 px-2 bg-white/20 border-white/30 text-white font-normal"
+                  className="text-xs py-0.5 px-2 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300 font-normal"
                 >
                   Access & Permissions
                 </Badge>
               </h1>
-              <p className="text-sm text-emerald-50 mt-0.5">
+              <p className="text-sm text-muted-foreground mt-0.5">
                 គ្រប់គ្រងតួនាទីពហុមុខងារ (Multi-Role)
                 និងកញ្ចប់សិទ្ធិអនុញ្ញាតសម្រាប់មន្ត្រីក្នុងអង្គភាព
               </p>
             </div>
           </div>
 
-          <div className="px-4 py-2 rounded-xl bg-emerald-800/60 border border-white/20 text-sm text-white flex items-center gap-2 self-start sm:self-center shadow-xs">
-            <Users className="w-4 h-4 text-emerald-200" />
-            <span>
+          <div className="px-4 py-2 rounded-xl bg-muted/60 border border-border text-sm text-foreground flex items-center gap-2 self-start sm:self-center">
+            <Users className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <span className="text-muted-foreground">
               មន្ត្រីក្នុងប្រព័ន្ធ:{' '}
-              <strong className="text-white font-bold">{total || officers.length}</strong> នាក់
+              <strong className="text-foreground font-bold">{total || officers.length}</strong> នាក់
             </span>
           </div>
         </div>
 
         {/* Global Filter Toolbar */}
-        <div className="mt-5 pt-5 border-t border-white/20 grid grid-cols-1 sm:grid-cols-12 gap-3">
+        <div className="mt-5 pt-5 border-t border-border grid grid-cols-1 sm:grid-cols-12 gap-3">
           {/* Search Input */}
           <div className="sm:col-span-6 relative">
-            <Search className="w-4 h-4 text-emerald-100 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2" />
             <Input
               value={search}
               onChange={(e) => {
@@ -155,7 +166,7 @@ export function RolePermissionsManagement() {
                 setPage(1);
               }}
               placeholder="ស្វែងរកតាមឈ្មោះ, អត្តលេខ, មុខតំណែង..."
-              className="bg-emerald-950/40 border-white/20 text-white placeholder:text-emerald-100/70 pl-10 text-sm h-10 rounded-xl focus-visible:ring-1 focus-visible:ring-white/50 focus-visible:border-white/70 focus-visible:outline-none focus:outline-none"
+              className="bg-background border-border text-foreground placeholder:text-muted-foreground pl-10 text-sm h-10 rounded-xl"
             />
             {search && (
               <button
@@ -163,7 +174,7 @@ export function RolePermissionsManagement() {
                   setSearch('');
                   setPage(1);
                 }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-emerald-100 hover:text-white"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground hover:text-foreground"
               >
                 ✕
               </button>
@@ -178,14 +189,12 @@ export function RolePermissionsManagement() {
                 setRoleFilter(e.target.value);
                 setPage(1);
               }}
-              className="w-full bg-emerald-950/40 border border-white/20 text-white rounded-xl px-3 py-2 text-sm h-10 focus:outline-none focus:ring-1 focus:ring-white/50 focus:border-white/70"
+              className="w-full bg-background border border-border text-foreground rounded-xl px-3 py-2 text-sm h-10 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500"
             >
-              <option value="ALL" className="bg-slate-900 text-slate-100">
-                -- គ្រប់តួនាទីទាំងអស់ --
-              </option>
-              {PRESET_ROLES.map((r) => (
-                <option key={r.code} value={r.code} className="bg-slate-900 text-slate-100">
-                  {r.nameKm} (Lv {r.hierarchyLevel})
+              <option value="ALL">-- គ្រប់តួនាទីទាំងអស់ --</option>
+              {filterRolesList.map((r) => (
+                <option key={r.code} value={r.code}>
+                  {r.nameKm}
                 </option>
               ))}
             </select>
@@ -199,13 +208,11 @@ export function RolePermissionsManagement() {
                 setDepartmentFilter(e.target.value);
                 setPage(1);
               }}
-              className="w-full bg-emerald-950/40 border border-white/20 text-white rounded-xl px-3 py-2 text-sm h-10 focus:outline-none focus:ring-1 focus:ring-white/50 focus:border-white/70"
+              className="w-full bg-background border border-border text-foreground rounded-xl px-3 py-2 text-sm h-10 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500"
             >
-              <option value="ALL" className="bg-slate-900 text-slate-100">
-                -- គ្រប់ការិយាល័យ --
-              </option>
+              <option value="ALL">-- គ្រប់ការិយាល័យ --</option>
               {departments.map((d) => (
-                <option key={d} value={d} className="bg-slate-900 text-slate-100">
+                <option key={d} value={d}>
                   {d}
                 </option>
               ))}

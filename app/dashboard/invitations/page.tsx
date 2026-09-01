@@ -45,12 +45,16 @@ import {
 } from '@/hooks/invitations/use-invitation-mutations';
 import { useInvitations } from '@/hooks/invitations/use-invitations';
 import { useOfficers } from '@/hooks/officers/use-officers';
+import { RequireAccess } from '@/components/auth/require-access';
+import { useAuth } from '@/components/auth/auth-provider';
 import type { Invitation, Officer } from '@/lib/schemas';
 import type { InvitationFormValues } from '@/lib/schemas/invitation/invitation';
 
 type SortKey = 'id' | 'subject' | 'organization' | 'date' | 'status';
 
 export default function InvitationsPage() {
+  const { hasPermission } = useAuth();
+  const canCreate = hasPermission('INVITATION_CREATE');
   const { data: invitationsData, isLoading, isError, error, refetch } = useInvitations();
   const invitations: Invitation[] = invitationsData ?? [];
   const { officers = [] } = useOfficers({
@@ -277,164 +281,170 @@ export default function InvitationsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <h1 className="page-title text-md tracking-tight">ការគ្រប់គ្រងការអញ្ជើញ</h1>
-        </div>
-
-        <Button className="rounded-lg shadow-sm" onClick={openCreateDialog}>
-          <Plus className="mr-2 h-4 w-4" />
-          បង្កើតលិខិតអញ្ជើញ
-        </Button>
-      </div>
-
-      {isError && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>បរាជ័យក្នុងការទាញយកលិខិតអញ្ជើញ</AlertTitle>
-          <AlertDescription className="flex items-center justify-between gap-3 mt-1">
-            <span>
-              {error?.message ||
-                'មិនអាចភ្ជាប់ទៅកាន់ប្រព័ន្ធ API បានទេ។ សូមពិនិត្យមើល Backend Server ឬ ព្យាយាមម្ដងទៀត។'}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => void refetch()}
-              className="ml-auto bg-transparent hover:bg-destructive/10 shrink-0"
-            >
-              <RefreshCw className="mr-2 h-3.5 w-3.5" />
-              ព្យាយាមម្តងទៀត
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      <InvitationStats
-        invitations={invitations}
-        isLoading={isLoading}
-        selectedStatus={statusFilter}
-        onSelectStatus={setStatusFilter}
-      />
-
-      <InvitationFilters
-        search={search}
-        onSearchChange={setSearch}
-        status={statusFilter}
-        onStatusChange={setStatusFilter}
-        type={typeFilter}
-        onTypeChange={setTypeFilter}
-        dateRange={dateRange}
-        onDateRangeChange={setDateRange}
-        onReset={resetFilters}
-        hasActiveFilters={hasActiveFilters}
-      />
-
-      <InvitationTable
-        invitations={paginatedInvitations}
-        isLoading={isLoading}
-        page={currentPage}
-        pageCount={pageCount}
-        onPageChange={setPage}
-        sortKey={sortKey}
-        sortDirection={sortDirection}
-        onSort={handleSort}
-        onView={openDetail}
-        onEdit={openEditDialog}
-        onAssign={openAssignDialog}
-        onChangeStatus={openStatusDialog}
-        onDelete={setDeleteTarget}
-      />
-
-      <InvitationDetail
-        invitation={selectedInvitation}
-        open={detailOpen}
-        onOpenChange={handleDetailOpenChange}
-        onEdit={(invitation) => {
-          handleDetailOpenChange(false);
-          openEditDialog(invitation);
-        }}
-        onChangeStatus={(invitation) => {
-          handleDetailOpenChange(false);
-          openStatusDialog(invitation);
-        }}
-      />
-
-      <InvitationForm
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        invitation={selectedInvitation}
-        officers={officers}
-        mode={formMode}
-        isPending={createInvitation.isPending || updateInvitation.isPending}
-        onSubmit={handleFormSubmit}
-      />
-
-      <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="font-khmer-moul-light text-base">កែសម្រួលស្ថានភាព</DialogTitle>
-            <DialogDescription>
-              ធ្វើបច្ចុប្បន្នភាពស្ថានភាពការងារសម្រាប់លិខិត៖{' '}
-              <span className="font-medium text-foreground">{selectedInvitation?.subject}</span>.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="grid gap-2">
-            <Label htmlFor="status">ស្ថានភាព</Label>
-            <Select
-              value={statusValue}
-              onValueChange={(value) => setStatusValue(value as Invitation['status'])}
-            >
-              <SelectTrigger id="status">
-                <SelectValue placeholder="ជ្រើសរើសស្ថានភាព" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pending">កំពុងរង់ចាំ</SelectItem>
-                <SelectItem value="accepted">បានទទួលយក</SelectItem>
-                <SelectItem value="rejected">បានបដិសេធ</SelectItem>
-                <SelectItem value="completed">បានបញ្ចប់</SelectItem>
-              </SelectContent>
-            </Select>
+    <RequireAccess permission="INVITATION_VIEW">
+      <div className="space-y-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <h1 className="page-title text-md tracking-tight">ការគ្រប់គ្រងការអញ្ជើញ</h1>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setStatusDialogOpen(false)}>
-              បោះបង់
+          {canCreate && (
+            <Button className="rounded-lg shadow-sm" onClick={openCreateDialog}>
+              <Plus className="mr-2 h-4 w-4" />
+              បង្កើតលិខិតអញ្ជើញ
             </Button>
-            <Button onClick={handleStatusSubmit} disabled={updateInvitation.isPending}>
-              {updateInvitation.isPending ? 'កំពុងរក្សាទុក...' : 'រក្សាទុក'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          )}
+        </div>
 
-      <AlertDialog
-        open={Boolean(deleteTarget)}
-        onOpenChange={(open) => !open && setDeleteTarget(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="font-khmer-moul-light text-base text-destructive">
-              លុបលិខិតអញ្ជើញ
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              តើអ្នកពិតជាចង់លុបលិខិតអញ្ជើញនេះមែនទេ?
-              សកម្មភាពនេះនឹងលុបគណនីចាត់តាំងមន្ត្រីដែលពាក់ព័ន្ធទាំងអស់ដោយមិនអាចសង្គ្រោះវិញបានឡើយ។
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>បោះបង់</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-white hover:bg-destructive/90"
-              onClick={handleDelete}
-            >
-              លុប
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+        {isError && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>បរាជ័យក្នុងការទាញយកលិខិតអញ្ជើញ</AlertTitle>
+            <AlertDescription className="flex items-center justify-between gap-3 mt-1">
+              <span>
+                {error?.message ||
+                  'មិនអាចភ្ជាប់ទៅកាន់ប្រព័ន្ធ API បានទេ។ សូមពិនិត្យមើល Backend Server ឬ ព្យាយាមម្ដងទៀត។'}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void refetch()}
+                className="ml-auto bg-transparent hover:bg-destructive/10 shrink-0"
+              >
+                <RefreshCw className="mr-2 h-3.5 w-3.5" />
+                ព្យាយាមម្តងទៀត
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <InvitationStats
+          invitations={invitations}
+          isLoading={isLoading}
+          selectedStatus={statusFilter}
+          onSelectStatus={setStatusFilter}
+        />
+
+        <InvitationFilters
+          search={search}
+          onSearchChange={setSearch}
+          status={statusFilter}
+          onStatusChange={setStatusFilter}
+          type={typeFilter}
+          onTypeChange={setTypeFilter}
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+          onReset={resetFilters}
+          hasActiveFilters={hasActiveFilters}
+        />
+
+        <InvitationTable
+          invitations={paginatedInvitations}
+          isLoading={isLoading}
+          page={currentPage}
+          pageCount={pageCount}
+          onPageChange={setPage}
+          sortKey={sortKey}
+          sortDirection={sortDirection}
+          onSort={handleSort}
+          onView={openDetail}
+          onEdit={openEditDialog}
+          onAssign={openAssignDialog}
+          onChangeStatus={openStatusDialog}
+          onDelete={setDeleteTarget}
+        />
+
+        <InvitationDetail
+          invitation={selectedInvitation}
+          open={detailOpen}
+          onOpenChange={handleDetailOpenChange}
+          onEdit={(invitation) => {
+            handleDetailOpenChange(false);
+            openEditDialog(invitation);
+          }}
+          onChangeStatus={(invitation) => {
+            handleDetailOpenChange(false);
+            openStatusDialog(invitation);
+          }}
+        />
+
+        <InvitationForm
+          open={formOpen}
+          onOpenChange={setFormOpen}
+          invitation={selectedInvitation}
+          officers={officers}
+          mode={formMode}
+          isPending={createInvitation.isPending || updateInvitation.isPending}
+          onSubmit={handleFormSubmit}
+        />
+
+        <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="font-khmer-moul-light text-base">
+                កែសម្រួលស្ថានភាព
+              </DialogTitle>
+              <DialogDescription>
+                ធ្វើបច្ចុប្បន្នភាពស្ថានភាពការងារសម្រាប់លិខិត៖{' '}
+                <span className="font-medium text-foreground">{selectedInvitation?.subject}</span>.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="grid gap-2">
+              <Label htmlFor="status">ស្ថានភាព</Label>
+              <Select
+                value={statusValue}
+                onValueChange={(value) => setStatusValue(value as Invitation['status'])}
+              >
+                <SelectTrigger id="status">
+                  <SelectValue placeholder="ជ្រើសរើសស្ថានភាព" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">កំពុងរង់ចាំ</SelectItem>
+                  <SelectItem value="accepted">បានទទួលយក</SelectItem>
+                  <SelectItem value="rejected">បានបដិសេធ</SelectItem>
+                  <SelectItem value="completed">បានបញ្ចប់</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setStatusDialogOpen(false)}>
+                បោះបង់
+              </Button>
+              <Button onClick={handleStatusSubmit} disabled={updateInvitation.isPending}>
+                {updateInvitation.isPending ? 'កំពុងរក្សាទុក...' : 'រក្សាទុក'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <AlertDialog
+          open={Boolean(deleteTarget)}
+          onOpenChange={(open) => !open && setDeleteTarget(null)}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="font-khmer-moul-light text-base text-destructive">
+                លុបលិខិតអញ្ជើញ
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                តើអ្នកពិតជាចង់លុបលិខិតអញ្ជើញនេះមែនទេ?
+                សកម្មភាពនេះនឹងលុបគណនីចាត់តាំងមន្ត្រីដែលពាក់ព័ន្ធទាំងអស់ដោយមិនអាចសង្គ្រោះវិញបានឡើយ។
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>បោះបង់</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-white hover:bg-destructive/90"
+                onClick={handleDelete}
+              >
+                លុប
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    </RequireAccess>
   );
 }

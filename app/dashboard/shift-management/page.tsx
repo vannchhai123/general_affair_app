@@ -7,9 +7,8 @@ export default function ShiftManagementPage() {
   return (
     <RequireAccess
       permission="SHIFT_VIEW"
-      roles={['ROLE_ADMIN']}
       title="Shift management is restricted"
-      description="Only super administrators can manage shifts."
+      description="You do not have permission to view or manage shifts."
     >
       <ShiftsPage />
     </RequireAccess>

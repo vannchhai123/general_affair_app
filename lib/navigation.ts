@@ -41,16 +41,16 @@ export const appNavigation: NavItem[] = [
     permission: 'OFFICER_VIEW',
   },
   {
-    title: 'វត្តមាន',
+    title: 'វត្តមាន (QR)',
     href: '/dashboard/qr-sessions',
     icon: QrCode,
-    roles: ['ROLE_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_ADMIN_DIRECTOR', 'ROLE_OFFICE_CHIEF'],
     permission: 'QR_SESSION_VIEW',
   },
   {
     title: 'សំណើច្បាប់ឈប់សម្រាក',
     href: '/dashboard/leave-requests',
     icon: FileText,
+    permission: 'LEAVE_VIEW',
   },
   {
     title: 'Download ទិន្នន័យវត្តមាន',
@@ -68,19 +68,18 @@ export const appNavigation: NavItem[] = [
     title: 'គ្រប់គ្រងឯកសារ',
     href: '/dashboard/document-management',
     icon: FolderOpen,
+    permission: 'DOCUMENT_VIEW',
   },
   {
     title: 'កំណត់ការចុះវត្តមាន',
     href: '/dashboard/shift-management',
     icon: Workflow,
-    roles: ['ROLE_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_ADMIN_DIRECTOR'],
     permission: 'SHIFT_VIEW',
   },
   {
-    title: 'ការិយាល័យ',
+    title: 'ការិយាល័យ និងអង្គភាព',
     href: '/dashboard/organization/departments',
     icon: Building2,
-    roles: ['ROLE_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_ADMIN_DIRECTOR'],
     permission: 'ORGANIZATION_VIEW',
   },
   {
@@ -105,15 +104,14 @@ export function canAccessNavItem(user: SessionUser | null, item: NavItem) {
   // If super admin, allow all nav items
   if (isSuper) return true;
 
-  // Check roles filter if item has role restrictions
-  if (item.roles?.length) {
-    const hasRole = item.roles.some((r) => userRoles.includes(r));
-    if (!hasRole) return false;
-  }
-
-  // Check permission filter if item requires specific permission
+  // Pure Permission check
   if (item.permission) {
     return hasPermission(userRoles, user.permissions, item.permission);
+  }
+
+  // Fallback for legacy role restriction if present
+  if (item.roles?.length) {
+    return item.roles.some((r) => userRoles.includes(r));
   }
 
   return true;

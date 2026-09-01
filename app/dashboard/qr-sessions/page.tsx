@@ -7,9 +7,8 @@ export default function QRSessionsPage() {
   return (
     <RequireAccess
       permission="QR_SESSION_VIEW"
-      roles={['ROLE_ADMIN']}
       title="QR sessions are restricted"
-      description="Only super-admins can manage QR sessions."
+      description="You do not have permission to view or manage QR sessions."
     >
       <QRAttendancePage />
     </RequireAccess>
