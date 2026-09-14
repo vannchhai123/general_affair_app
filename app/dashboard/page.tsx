@@ -1,19 +1,26 @@
 'use client';
 
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { RequireAccess } from '@/components/auth/require-access';
 import { DashboardError, DashboardLoading } from '@/components/dashboard/dashboard-states';
-import { RecentAttendanceCard } from '@/components/dashboard/recent-attendance-card';
 import { RecentInvitationsCard } from '@/components/dashboard/recent-invitations-card';
-import { DashboardAnalyticsCards } from '@/components/dashboard/dashboard-analytics-cards';
 import { DashboardStatCard, type DashboardStatCardProps } from '@/components/dashboard/stat-card';
+import {
+  StatCardDetailDialog,
+  type StatModalType,
+} from '@/components/dashboard/stat-card-detail-dialog';
 import { useDashboard } from '@/hooks/dashboard/use-dashboard';
 import { useInvitations } from '@/hooks/invitations/use-invitations';
 import { useOfficers } from '@/hooks/officers/use-officers';
-import { useAttendance } from '@/hooks/attendance/use-attendance';
+import {
+  useAttendance,
+  useTodayPresentAttendance,
+  useTodayAbsentAttendance,
+} from '@/hooks/attendance/use-attendance';
 import { useLeaveRequests } from '@/hooks/leave-requests/use-leave-requests';
 import type { DashboardStats, LeaveRequest } from '@/lib/schemas';
-import { ClipboardCheck, QrCode, UserCheck, UserMinus, Users } from 'lucide-react';
+import { ClipboardCheck, UserMinus, Users, UserX } from 'lucide-react';
 
 function getTodayDateString() {
   const d = new Date();
@@ -126,6 +133,8 @@ function buildStatCards(
   t: (key: string) => string,
   leaveCount: number,
   todayAttendanceCount: number,
+  absentTodayCount: number,
+  onCardClick: (type: StatModalType) => void,
 ): DashboardStatCardProps[] {
   return [
     {
@@ -138,6 +147,7 @@ function buildStatCards(
         icon: 'text-blue-600',
         value: 'text-slate-950',
       },
+      onClick: () => onCardClick('officers'),
     },
     {
       title: t('stats.officersOnLeave'),
@@ -149,9 +159,10 @@ function buildStatCards(
         icon: 'text-violet-600',
         value: 'text-slate-950',
       },
+      onClick: () => onCardClick('leaves'),
     },
     {
-      title: t('stats.attendanceToday'),
+      title: 'វត្តមានថ្ងៃនេះ',
       value: todayAttendanceCount,
       icon: ClipboardCheck,
       subtext: 'បានឆែកវត្តមាន',
@@ -160,39 +171,107 @@ function buildStatCards(
         icon: 'text-emerald-600',
         value: 'text-slate-950',
       },
+      onClick: () => onCardClick('present'),
     },
     {
-      title: t('stats.qrSessions'),
-      value: data.qr_sessions?.total ?? 0,
-      icon: QrCode,
-      subtext: 'សម័យស្កេន',
+      title: 'អវត្តមានថ្ងៃនេះ',
+      value: absentTodayCount,
+      icon: UserX,
+      subtext: 'មិនទាន់ឆែកវត្តមាន',
       tone: {
-        chip: 'border-amber-100 bg-amber-50',
-        icon: 'text-amber-600',
+        chip: 'border-rose-100 bg-rose-50',
+        icon: 'text-rose-600',
         value: 'text-slate-950',
       },
+      onClick: () => onCardClick('absent'),
     },
   ];
 }
 
 export default function DashboardPage() {
+  const [activeModal, setActiveModal] = useState<StatModalType>(null);
   const todayStr = getTodayDateString();
   const { data, isLoading, isError, error, refetch, isFetching } = useDashboard();
   const { data: invitationsData, isLoading: isInvitationsLoading } = useInvitations();
   const { data: leaveRequestsData = [] } = useLeaveRequests();
   const { data: todayAttendanceData } = useAttendance({ date: todayStr, size: 1000 });
-  const { officers, isLoading: isOfficersLoading } = useOfficers({ pageSize: 150 });
+  const { data: todayPresentData } = useTodayPresentAttendance({ date: todayStr, size: 1000 });
+  const { data: todayAbsentData } = useTodayAbsentAttendance({ date: todayStr, size: 1000 });
+  const { officers = [], isLoading: isOfficersLoading } = useOfficers({ page: 1, pageSize: 1000 });
   const t = useTranslations('dashboard');
+
+  const activeOfficersCount =
+    data?.officers?.active ||
+    officers.filter((o) => (o.status || '').toLowerCase() === 'active').length ||
+    officers.length;
 
   const onLeaveCount = calculateOnLeaveCount(
     data ?? ({} as DashboardStats),
     leaveRequestsData,
     officers,
   );
-  const todayAttendanceCount = getTodayAttendanceCount(
-    data ?? ({} as DashboardStats),
-    todayAttendanceData,
-  );
+
+  // Present count: Prefer dedicated endpoint totalElements, fallback to attendance query
+  const todayAttendanceCount =
+    typeof todayPresentData?.totalElements === 'number'
+      ? todayPresentData.totalElements
+      : getTodayAttendanceCount(data ?? ({} as DashboardStats), todayAttendanceData);
+
+  // Calculate on-leave officer IDs to reliably exclude them from absent list/count
+  const onLeaveOfficerIds = new Set<number>();
+  const todayObj = new Date();
+  todayObj.setHours(0, 0, 0, 0);
+
+  leaveRequestsData.forEach((leave) => {
+    const status = (leave.status || '').trim().toLowerCase();
+    if (status !== 'rejected') {
+      if (leave.start_date && leave.end_date) {
+        const start = new Date(leave.start_date);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(leave.end_date);
+        end.setHours(23, 59, 59, 999);
+        if (
+          !isNaN(start.getTime()) &&
+          !isNaN(end.getTime()) &&
+          todayObj >= start &&
+          todayObj <= end
+        ) {
+          onLeaveOfficerIds.add(leave.officer_id);
+        }
+      } else if (status === 'approved') {
+        onLeaveOfficerIds.add(leave.officer_id);
+      }
+    }
+  });
+
+  officers.forEach((o) => {
+    const s = (o.status || '').toLowerCase().trim();
+    if (['on_leave', 'onleave', 'leave', 'សុំច្បាប់'].includes(s)) {
+      onLeaveOfficerIds.add(o.id);
+    }
+  });
+
+  // Filter backend absent data to strictly exclude officers on leave
+  const filteredTodayAbsentRecords = todayAbsentData?.content
+    ? todayAbsentData.content.filter((officer: any) => {
+        const s = (officer.status || '').toLowerCase().trim();
+        if (
+          ['on_leave', 'onleave', 'leave', 'សុំច្បាប់', 'inactive', 'deleted', 'អសកម្ម'].includes(s)
+        ) {
+          return false;
+        }
+        if (onLeaveOfficerIds.has(officer.id)) {
+          return false;
+        }
+        return true;
+      })
+    : undefined;
+
+  // Absent count: Must exclude present and on-leave officers
+  const absentTodayCount =
+    filteredTodayAbsentRecords !== undefined
+      ? filteredTodayAbsentRecords.length
+      : Math.max(0, activeOfficersCount - todayAttendanceCount - onLeaveCount);
 
   if (isLoading || isInvitationsLoading || isOfficersLoading) return <DashboardLoading />;
 
@@ -231,7 +310,14 @@ export default function DashboardPage() {
         </section>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 w-full">
-          {buildStatCards(data, t, onLeaveCount, todayAttendanceCount).map((stat) => (
+          {buildStatCards(
+            data,
+            t,
+            onLeaveCount,
+            todayAttendanceCount,
+            absentTodayCount,
+            setActiveModal,
+          ).map((stat) => (
             <DashboardStatCard key={stat.title} {...stat} />
           ))}
         </div>
@@ -247,6 +333,21 @@ export default function DashboardPage() {
             emptyTitle: t('recentInvitations.emptyTitle'),
             emptyDescription: t('recentInvitations.emptyDescription'),
           }}
+        />
+
+        {/* Modal Dialog for Card Details */}
+        <StatCardDetailDialog
+          type={activeModal}
+          open={Boolean(activeModal)}
+          onOpenChange={(open) => {
+            if (!open) setActiveModal(null);
+          }}
+          dashboardData={data}
+          officers={officers}
+          leaveRequests={leaveRequestsData}
+          attendanceRecords={todayAttendanceData?.content ?? []}
+          todayPresentRecords={todayPresentData?.content}
+          todayAbsentOfficers={filteredTodayAbsentRecords}
         />
       </div>
     </RequireAccess>

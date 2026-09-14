@@ -35,6 +35,10 @@ export const queryKeys = {
     lists: () => [...queryKeys.attendance.all, 'list'] as const,
     list: (filters?: Record<string, string>) =>
       [...queryKeys.attendance.lists(), { filters }] as const,
+    todayPresent: (filters?: Record<string, string>) =>
+      [...queryKeys.attendance.all, 'today', 'present', { filters }] as const,
+    todayAbsent: (filters?: Record<string, string>) =>
+      [...queryKeys.attendance.all, 'today', 'absent', { filters }] as const,
   },
   qrSessions: {
     all: ['qrSessions'] as const,

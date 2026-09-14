@@ -200,7 +200,119 @@ export const attendanceResponseSchema = z
 
 export const attendanceListResponseSchema = z.array(attendanceSchema);
 
+export const absentOfficerSchema = z
+  .object({
+    id: z.union([z.number(), z.string()]).transform((v) => Number(v)),
+    officerCode: nullableDisplayString,
+    officer_code: nullableDisplayString,
+    firstName: nullableDisplayString,
+    first_name: nullableDisplayString,
+    lastName: nullableDisplayString,
+    last_name: nullableDisplayString,
+    firstNameKh: nullableDisplayString,
+    first_name_kh: nullableDisplayString,
+    lastNameKh: nullableDisplayString,
+    last_name_kh: nullableDisplayString,
+    firstNameEn: nullableDisplayString,
+    first_name_en: nullableDisplayString,
+    lastNameEn: nullableDisplayString,
+    last_name_en: nullableDisplayString,
+    department: nullableDisplayString,
+    office: nullableDisplayString,
+    position: nullableDisplayString,
+    phone: nullableDisplayString,
+    imageUrl: nullableDisplayString,
+    image_url: nullableDisplayString,
+    status: nullableDisplayString,
+  })
+  .passthrough()
+  .transform((item) => ({
+    id: item.id,
+    officerCode: item.officerCode || item.officer_code || '',
+    firstName: item.firstName || item.first_name || item.firstNameEn || item.first_name_en || '',
+    lastName: item.lastName || item.last_name || item.lastNameEn || item.last_name_en || '',
+    firstNameKh: item.firstNameKh || item.first_name_kh || '',
+    lastNameKh: item.lastNameKh || item.last_name_kh || '',
+    department: item.department || item.office || '',
+    position: item.position || '',
+    phone: item.phone || '',
+    imageUrl: item.imageUrl || item.image_url || null,
+    status: item.status || 'ACTIVE',
+  }));
+
+export const absentOfficersResponseSchema = z
+  .union([
+    z
+      .object({
+        content: z.array(z.any()),
+        page: z.number().optional().default(0),
+        size: z.number().optional().default(100),
+        totalElements: z.number().optional().default(0),
+        totalPages: z.number().optional().default(1),
+      })
+      .passthrough(),
+    z
+      .object({
+        data: z.union([
+          z.array(z.any()),
+          z
+            .object({
+              content: z.array(z.any()).optional(),
+              totalElements: z.number().optional(),
+              totalPages: z.number().optional(),
+            })
+            .passthrough(),
+        ]),
+      })
+      .passthrough(),
+    z.array(z.any()),
+  ])
+  .transform((raw: any) => {
+    let rawList: any[] = [];
+    let totalElements = 0;
+    let totalPages = 1;
+    let page = 0;
+    let size = 100;
+
+    if (Array.isArray(raw)) {
+      rawList = raw;
+      totalElements = raw.length;
+    } else if (raw.content && Array.isArray(raw.content)) {
+      rawList = raw.content;
+      totalElements = raw.totalElements ?? raw.content.length;
+      totalPages = raw.totalPages ?? 1;
+      page = raw.page ?? 0;
+      size = raw.size ?? 100;
+    } else if (raw.data) {
+      if (Array.isArray(raw.data)) {
+        rawList = raw.data;
+        totalElements = raw.data.length;
+      } else if (raw.data.content && Array.isArray(raw.data.content)) {
+        rawList = raw.data.content;
+        totalElements = raw.data.totalElements ?? raw.data.content.length;
+        totalPages = raw.data.totalPages ?? 1;
+      }
+    }
+
+    const content = rawList
+      .map((item) => {
+        const parsed = absentOfficerSchema.safeParse(item);
+        return parsed.success ? parsed.data : null;
+      })
+      .filter(Boolean) as z.infer<typeof absentOfficerSchema>[];
+
+    return {
+      content,
+      totalElements,
+      totalPages,
+      page,
+      size,
+    };
+  });
+
 export type AttendanceSession = z.infer<typeof attendanceSessionSchema>;
 export type Attendance = z.infer<typeof attendanceSchema>;
 export type AttendanceResponse = z.infer<typeof attendanceResponseSchema>;
 export type AttendanceListResponse = z.infer<typeof attendanceListResponseSchema>;
+export type AbsentOfficer = z.infer<typeof absentOfficerSchema>;
+export type AbsentOfficersResponse = z.infer<typeof absentOfficersResponseSchema>;
