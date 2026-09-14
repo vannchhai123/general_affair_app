@@ -61,6 +61,7 @@ interface StatCardDetailDialogProps {
   qrCheckIns?: QrSessionCheckIn[];
   todayPresentRecords?: Attendance[];
   todayAbsentOfficers?: (AbsentOfficer | Officer)[];
+  todayApprovedLeaves?: LeaveRequest[];
 }
 
 export function StatCardDetailDialog({
@@ -74,6 +75,7 @@ export function StatCardDetailDialog({
   qrCheckIns = [],
   todayPresentRecords,
   todayAbsentOfficers,
+  todayApprovedLeaves,
 }: StatCardDetailDialogProps) {
   const router = useRouter();
   const [search, setSearch] = useState('');
@@ -126,6 +128,10 @@ export function StatCardDetailDialog({
 
   // 2. Filter Leaves (On Leave Today - strictly matching the count in the card)
   const activeTodayLeaves = useMemo(() => {
+    if (todayApprovedLeaves && todayApprovedLeaves.length > 0) {
+      return todayApprovedLeaves;
+    }
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -144,7 +150,7 @@ export function StatCardDetailDialog({
       }
       return status === 'approved';
     });
-  }, [leaveRequests]);
+  }, [todayApprovedLeaves, leaveRequests]);
 
   const filteredLeaves = useMemo(() => {
     if (type !== 'leaves') return [];
@@ -167,6 +173,19 @@ export function StatCardDetailDialog({
       return searchableText.includes(query);
     });
   }, [type, activeTodayLeaves, search]);
+
+  function formatLateDuration(totalMinutes: number | null | undefined): string {
+    if (typeof totalMinutes !== 'number' || Number.isNaN(totalMinutes) || totalMinutes <= 0) {
+      return '0 នាទី';
+    }
+
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = Math.round(totalMinutes % 60);
+
+    if (hours === 0) return `${minutes} នាទី`;
+    if (minutes === 0) return `${hours} ម៉ោង`;
+    return `${hours} ម៉ោង ${minutes} នាទី`;
+  }
 
   function isRecordFromToday(dateStr?: string | null): boolean {
     if (!dateStr) return false;
@@ -801,7 +820,7 @@ export function StatCardDetailDialog({
                       <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 pl-13 sm:pl-0">
                         {rec.totalLateMin ? (
                           <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-medium text-amber-700">
-                            យឺត {rec.totalLateMin} នាទី
+                            យឺត {formatLateDuration(rec.totalLateMin)}
                           </span>
                         ) : null}
 

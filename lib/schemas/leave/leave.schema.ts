@@ -54,5 +54,14 @@ export const leaveRequestsResponseSchema = z.preprocess((data: any) => {
   return [];
 }, z.array(leaveRequestSchema));
 
+export const leaveRequestsCountResponseSchema = z
+  .object({
+    date: nullableString,
+    status: nullableString,
+    count: z.union([z.number(), z.string()]).transform((v) => Number(v) || 0),
+  })
+  .passthrough();
+
 export type LeaveRequest = z.infer<typeof leaveRequestSchema>;
 export type LeaveRequestsResponse = z.infer<typeof leaveRequestsResponseSchema>;
+export type LeaveRequestsCountResponse = z.infer<typeof leaveRequestsCountResponseSchema>;

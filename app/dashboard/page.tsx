@@ -18,7 +18,11 @@ import {
   useTodayPresentAttendance,
   useTodayAbsentAttendance,
 } from '@/hooks/attendance/use-attendance';
-import { useLeaveRequests } from '@/hooks/leave-requests/use-leave-requests';
+import {
+  useLeaveRequests,
+  useTodayApprovedLeaveRequests,
+  useLeaveRequestsApprovedCount,
+} from '@/hooks/leave-requests/use-leave-requests';
 import type { DashboardStats, LeaveRequest } from '@/lib/schemas';
 import { ClipboardCheck, UserMinus, Users, UserX } from 'lucide-react';
 
@@ -194,6 +198,8 @@ export default function DashboardPage() {
   const { data, isLoading, isError, error, refetch, isFetching } = useDashboard();
   const { data: invitationsData, isLoading: isInvitationsLoading } = useInvitations();
   const { data: leaveRequestsData = [] } = useLeaveRequests();
+  const { data: todayApprovedLeaves = [] } = useTodayApprovedLeaveRequests({ date: todayStr });
+  const { data: approvedLeaveCountData } = useLeaveRequestsApprovedCount({ date: todayStr });
   const { data: todayAttendanceData } = useAttendance({ date: todayStr, size: 1000 });
   const { data: todayPresentData } = useTodayPresentAttendance({ date: todayStr, size: 1000 });
   const { data: todayAbsentData } = useTodayAbsentAttendance({ date: todayStr, size: 1000 });
@@ -205,11 +211,12 @@ export default function DashboardPage() {
     officers.filter((o) => (o.status || '').toLowerCase() === 'active').length ||
     officers.length;
 
-  const onLeaveCount = calculateOnLeaveCount(
-    data ?? ({} as DashboardStats),
-    leaveRequestsData,
-    officers,
-  );
+  const onLeaveCount =
+    typeof approvedLeaveCountData?.count === 'number'
+      ? approvedLeaveCountData.count
+      : Array.isArray(todayApprovedLeaves) && todayApprovedLeaves.length > 0
+        ? todayApprovedLeaves.length
+        : calculateOnLeaveCount(data ?? ({} as DashboardStats), leaveRequestsData, officers);
 
   // Present count: Prefer dedicated endpoint totalElements, fallback to attendance query
   const todayAttendanceCount =
@@ -221,6 +228,10 @@ export default function DashboardPage() {
   const onLeaveOfficerIds = new Set<number>();
   const todayObj = new Date();
   todayObj.setHours(0, 0, 0, 0);
+
+  todayApprovedLeaves.forEach((leave) => {
+    if (leave.officer_id) onLeaveOfficerIds.add(leave.officer_id);
+  });
 
   leaveRequestsData.forEach((leave) => {
     const status = (leave.status || '').trim().toLowerCase();
@@ -348,6 +359,7 @@ export default function DashboardPage() {
           attendanceRecords={todayAttendanceData?.content ?? []}
           todayPresentRecords={todayPresentData?.content}
           todayAbsentOfficers={filteredTodayAbsentRecords}
+          todayApprovedLeaves={todayApprovedLeaves}
         />
       </div>
     </RequireAccess>

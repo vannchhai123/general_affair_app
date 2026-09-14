@@ -46,12 +46,12 @@ function formatMinutes(totalMinutes: number | null | undefined): string {
   }
 
   const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
+  const minutes = Math.round(totalMinutes % 60);
 
   if (hours === 0 && minutes === 0) return '0 នាទី';
   if (hours === 0) return `${minutes} នាទី`;
   if (minutes === 0) return `${hours} ម៉ោង`;
-  return `${hours}h ${minutes}m`;
+  return `${hours} ម៉ោង ${minutes} នាទី`;
 }
 
 function formatHoursFromMinutes(totalMinutes: number): string {

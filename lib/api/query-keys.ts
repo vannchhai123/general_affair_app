@@ -60,6 +60,10 @@ export const queryKeys = {
   leaveRequests: {
     all: ['leaveRequests'] as const,
     lists: () => [...queryKeys.leaveRequests.all, 'list'] as const,
+    todayApproved: (filters?: Record<string, string>) =>
+      [...queryKeys.leaveRequests.all, 'today', 'approved', { filters }] as const,
+    approvedCount: (filters?: Record<string, string>) =>
+      [...queryKeys.leaveRequests.all, 'count', 'approved', { filters }] as const,
   },
   shifts: {
     all: ['shifts'] as const,
