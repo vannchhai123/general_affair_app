@@ -14,7 +14,8 @@ type OfficersDirectoryCardProps = {
   search: string;
   department: string;
   position: string;
-  status: string;
+  officerType?: string;
+  status?: string;
   departments: Department[];
   positions: Position[];
   currentPage: number;
@@ -24,7 +25,8 @@ type OfficersDirectoryCardProps = {
   onSearchChange: (value: string) => void;
   onDepartmentChange: (value: string) => void;
   onPositionChange: (value: string) => void;
-  onStatusChange: (value: string) => void;
+  onOfficerTypeChange?: (value: string) => void;
+  onStatusChange?: (value: string) => void;
   onPageChange: (page: SetStateAction<number>) => void;
   onView: (officer: Officer) => void;
   onEdit?: (officer: Officer) => void;
@@ -38,6 +40,7 @@ export function OfficersDirectoryCard({
   search,
   department,
   position,
+  officerType,
   status,
   departments,
   positions,
@@ -48,6 +51,7 @@ export function OfficersDirectoryCard({
   onSearchChange,
   onDepartmentChange,
   onPositionChange,
+  onOfficerTypeChange,
   onStatusChange,
   onPageChange,
   onView,
@@ -64,6 +68,8 @@ export function OfficersDirectoryCard({
           setDepartment={onDepartmentChange}
           position={position}
           setPosition={onPositionChange}
+          officerType={officerType}
+          setOfficerType={onOfficerTypeChange}
           status={status}
           setStatus={onStatusChange}
           departments={departments}

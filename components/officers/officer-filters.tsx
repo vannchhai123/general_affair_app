@@ -12,8 +12,10 @@ interface OfficerFiltersProps {
   setDepartment: (value: string) => void;
   position: string;
   setPosition: (value: string) => void;
-  status: string;
-  setStatus: (value: string) => void;
+  officerType?: string;
+  setOfficerType?: (value: string) => void;
+  status?: string;
+  setStatus?: (value: string) => void;
   departments?: Department[];
   positions?: Position[];
 }
@@ -25,11 +27,16 @@ export function OfficerFilters({
   setDepartment,
   position,
   setPosition,
+  officerType,
+  setOfficerType,
   status,
   setStatus,
   departments = [],
   positions = [],
 }: OfficerFiltersProps) {
+  const currentOfficerType = officerType ?? status ?? 'all';
+  const handleOfficerTypeChange = setOfficerType ?? setStatus ?? (() => {});
+
   const uniquePositions = Array.from(new Set(positions.map((p) => p.title)))
     .filter((title): title is string => Boolean(title))
     .sort((a, b) => a.localeCompare(b));
@@ -78,22 +85,19 @@ export function OfficerFilters({
         </SelectContent>
       </Select>
 
-      <Select value={status} onValueChange={setStatus}>
-        <SelectTrigger className="w-full sm:w-[160px] text-sm leading-relaxed">
-          <SelectValue placeholder="ស្ថានភាព" />
+      <Select value={currentOfficerType} onValueChange={handleOfficerTypeChange}>
+        <SelectTrigger className="w-full sm:w-[180px] text-sm leading-relaxed">
+          <SelectValue placeholder="ប្រភេទមន្ត្រី" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all" className="py-1.5 leading-relaxed">
-            ស្ថានភាព
+            ប្រភេទមន្ត្រី
           </SelectItem>
-          <SelectItem value="active" className="py-1.5 leading-relaxed">
-            សកម្ម
+          <SelectItem value="FULL_TIME" className="py-1.5 leading-relaxed">
+            មន្រ្តីក្របខណ្ធ
           </SelectItem>
-          <SelectItem value="on_leave" className="py-1.5 leading-relaxed">
-            ច្បាប់ឈប់សម្រាក
-          </SelectItem>
-          <SelectItem value="inactive" className="py-1.5 leading-relaxed">
-            មិនសកម្ម
+          <SelectItem value="CONTRACT" className="py-1.5 leading-relaxed">
+            មន្រ្តីកិច្ចសន្យា
           </SelectItem>
         </SelectContent>
       </Select>

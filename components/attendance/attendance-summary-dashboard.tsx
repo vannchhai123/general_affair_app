@@ -1,9 +1,10 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import {
   Activity,
+  ArrowUpRight,
   Briefcase,
   Building2,
   CheckCircle2,
@@ -33,6 +34,11 @@ import type { Attendance } from '@/lib/schemas';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CardNumber } from '@/components/ui/card-number';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  StatCardDetailDialog,
+  type AttendanceFilterType,
+  type StatModalType,
+} from '@/components/dashboard/stat-card-detail-dialog';
 
 function formatCompactDate(date: string): string {
   const parsed = new Date(date);
@@ -333,6 +339,10 @@ export function AttendanceSummaryDashboard({
     };
   }, [records]);
 
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<StatModalType>('present');
+  const [attendanceFilter, setAttendanceFilter] = useState<AttendanceFilterType>('all');
+
   if (isLoading || error) {
     return (
       <div className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -355,28 +365,52 @@ export function AttendanceSummaryDashboard({
           title="អត្រាវត្តមាន"
           value={`${insights.attendanceRate}%`}
           subtext={`${insights.present + insights.approved} នាក់បានចូល`}
-          tone="bg-emerald-50 text-emerald-600 border-emerald-100"
+          color="text-emerald-700"
+          tone="bg-emerald-50 text-emerald-700"
+          onClick={() => {
+            setModalType('present');
+            setAttendanceFilter('all');
+            setModalOpen(true);
+          }}
         />
         <CompactKpiCard
           icon={Clock}
           title="អត្រាទាន់ពេល"
           value={`${insights.punctualityRate}%`}
           subtext="វត្តមានមិនយឺត"
-          tone="bg-sky-50 text-sky-600 border-sky-100"
+          color="text-sky-700"
+          tone="bg-sky-50 text-sky-700"
+          onClick={() => {
+            setModalType('present');
+            setAttendanceFilter('on_time');
+            setModalOpen(true);
+          }}
         />
         <CompactKpiCard
           icon={TimerReset}
           title="មធ្យមពេលយឺត"
           value={formatMinutes(insights.averageLateMinutes)}
           subtext={`${insights.late} នាក់មកយឺត`}
-          tone="bg-amber-50 text-amber-600 border-amber-100"
+          color="text-amber-700"
+          tone="bg-amber-50 text-amber-700"
+          onClick={() => {
+            setModalType('present');
+            setAttendanceFilter('late');
+            setModalOpen(true);
+          }}
         />
         <CompactKpiCard
           icon={Activity}
           title="មធ្យមម៉ោងធ្វើការ"
           value={formatHoursFromMinutes(insights.averageWorkMinutes)}
           subtext={`${insights.total} កំណត់ត្រាសរុប`}
-          tone="bg-indigo-50 text-indigo-600 border-indigo-100"
+          color="text-indigo-700"
+          tone="bg-indigo-50 text-indigo-700"
+          onClick={() => {
+            setModalType('attendance');
+            setAttendanceFilter('all');
+            setModalOpen(true);
+          }}
         />
       </div>
 
@@ -836,6 +870,15 @@ export function AttendanceSummaryDashboard({
           </CardContent>
         </Card>
       </div>
+
+      {/* Pop-up dialog for Attendance KPI details */}
+      <StatCardDetailDialog
+        type={modalType}
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        attendanceRecords={records}
+        initialAttendanceFilter={attendanceFilter}
+      />
     </div>
   );
 }
@@ -846,29 +889,60 @@ function CompactKpiCard({
   value,
   subtext,
   tone,
+  color = 'text-slate-900',
+  onClick,
 }: {
   icon: typeof Users;
   title: string;
   value: string;
   subtext: string;
   tone: string;
+  color?: string;
+  onClick?: () => void;
 }) {
+  const isClickable = Boolean(onClick);
+
   return (
-    <Card className="min-w-0 border-slate-200 shadow-sm p-3.5 flex flex-col justify-between">
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-medium text-muted-foreground truncate leading-relaxed">
-          {title}
-        </span>
-        <div
-          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border ${tone}`}
-        >
-          <Icon className="h-3.5 w-3.5" />
+    <Card
+      role={isClickable ? 'button' : undefined}
+      tabIndex={isClickable ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (isClickable && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          onClick?.();
+        }
+      }}
+      className={`group relative gap-0 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-all duration-200 ${
+        isClickable
+          ? 'cursor-pointer hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md active:scale-[0.99] select-none'
+          : 'hover:shadow-md hover:border-slate-300'
+      }`}
+    >
+      <CardContent className="p-4 flex flex-col justify-between h-full">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="font-khmer-moul-light text-[11px] text-muted-foreground">{title}</p>
+            <CardNumber
+              value={value}
+              className={`mt-2 block text-2xl font-semibold tracking-tight ${color}`}
+            />
+          </div>
+          <div className="flex items-center gap-1.5">
+            {isClickable && (
+              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-slate-400">
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </div>
+            )}
+            <div className={`rounded-xl p-2.5 ${tone}`}>
+              <Icon className="h-4.5 w-4.5" />
+            </div>
+          </div>
         </div>
-      </div>
-      <div className="mt-2 flex items-baseline justify-between gap-2">
-        <CardNumber value={value} className="text-xl font-bold tracking-tight text-slate-900" />
-        <span className="text-[11px] text-muted-foreground truncate">{subtext}</span>
-      </div>
+        {subtext && (
+          <p className="mt-2 text-[11px] text-muted-foreground truncate font-medium">{subtext}</p>
+        )}
+      </CardContent>
     </Card>
   );
 }

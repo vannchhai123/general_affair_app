@@ -22,8 +22,10 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
+  ArrowUpRight,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardNumber } from '@/components/ui/card-number';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -58,6 +60,7 @@ import {
 } from './document-store';
 import { apiFetch } from '@/lib/client';
 import { parseApiError } from '@/lib/api-error';
+import { DocumentStatDialog } from '@/components/documents/document-stat-dialog';
 import { RequireAccess } from '@/components/auth/require-access';
 import { useAuth } from '@/components/auth/auth-provider';
 import { showAlert } from '@/lib/toast';
@@ -298,64 +301,99 @@ export default function DocumentManagementPage() {
     handleStatusChange(id, nextStatus);
   };
 
+  const [statDialogOpen, setStatDialogOpen] = useState(false);
+  const [statDialogFilter, setStatDialogFilter] = useState('all');
+
   return (
     <RequireAccess permission="DOCUMENT_VIEW">
       <div className="space-y-6">
         {/* 1. Statistics Cards Row */}
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <Card className="relative overflow-hidden border-slate-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider font-khmer-moul-light">
-                    ឯកសារសរុប
-                  </p>
-                  <h3 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
-                    {stats.total}
-                  </h3>
-                </div>
-                <div className="rounded-2xl bg-indigo-50 border border-indigo-100 p-3 text-indigo-600 shadow-sm">
-                  <FolderOpen className="h-6 w-6" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {[
+            {
+              key: 'all',
+              label: 'ឯកសារសរុប',
+              count: stats.total,
+              helper: 'ឯកសារដែលបានបញ្ចូលទាំងអស់',
+              color: 'text-slate-900',
+              iconBg: 'bg-slate-100 text-slate-700',
+              activeBorder: 'border-indigo-500 ring-2 ring-indigo-500/20',
+              icon: FolderOpen,
+            },
+            {
+              key: 'PENDING',
+              label: 'កំពុងពិនិត្យ',
+              count: stats.pending,
+              helper: 'រង់ចាំការត្រួតពិនិត្យចុះបញ្ជី',
+              color: 'text-amber-700',
+              iconBg: 'bg-amber-50 text-amber-700',
+              activeBorder: 'border-amber-500 ring-2 ring-amber-500/20',
+              icon: Clock,
+            },
+            {
+              key: 'LOGGED',
+              label: 'បានចុះបញ្ជី',
+              count: stats.logged,
+              helper: 'បានពិនិត្យ និងចុះបញ្ជីរួចរាល់',
+              color: 'text-emerald-700',
+              iconBg: 'bg-emerald-50 text-emerald-700',
+              activeBorder: 'border-emerald-500 ring-2 ring-emerald-500/20',
+              icon: CheckCircle2,
+            },
+          ].map((item) => {
+            const isSelected = statusFilter === item.key;
+            const Icon = item.icon;
+            const handleClick = () => {
+              setStatusFilter(item.key);
+              setStatDialogFilter(item.key);
+              setStatDialogOpen(true);
+            };
 
-          <Card className="relative overflow-hidden border-slate-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider font-khmer-moul-light">
-                    កំពុងពិនិត្យ
-                  </p>
-                  <h3 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
-                    {stats.pending}
-                  </h3>
-                </div>
-                <div className="rounded-2xl bg-amber-50 border border-amber-100 p-3 text-amber-600 shadow-sm">
-                  <Clock className="h-6 w-6" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="relative overflow-hidden border-slate-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider font-khmer-moul-light">
-                    បានចុះបញ្ជី
-                  </p>
-                  <h3 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
-                    {stats.logged}
-                  </h3>
-                </div>
-                <div className="rounded-2xl bg-emerald-50 border border-emerald-100 p-3 text-emerald-600 shadow-sm">
-                  <CheckCircle2 className="h-6 w-6" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            return (
+              <Card
+                key={item.key}
+                role="button"
+                tabIndex={0}
+                onClick={handleClick}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleClick();
+                  }
+                }}
+                className={`group relative gap-0 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-all duration-200 cursor-pointer hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md active:scale-[0.99] select-none ${
+                  isSelected ? item.activeBorder : ''
+                }`}
+              >
+                <CardContent className="p-4 flex flex-col justify-between h-full">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-khmer-moul-light text-[11px] text-muted-foreground">
+                        {item.label}
+                      </p>
+                      <CardNumber
+                        value={item.count}
+                        className={`mt-2 block text-2xl font-semibold tracking-tight ${item.color}`}
+                      />
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-slate-400">
+                        <ArrowUpRight className="h-3.5 w-3.5" />
+                      </div>
+                      <div className={`rounded-xl p-2.5 ${item.iconBg}`}>
+                        <Icon className="h-4.5 w-4.5" />
+                      </div>
+                    </div>
+                  </div>
+                  {item.helper && (
+                    <p className="mt-2 text-[11px] text-muted-foreground truncate font-medium">
+                      {item.helper}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {/* 2. Main Workspace Layout */}
@@ -727,6 +765,13 @@ export default function DocumentManagementPage() {
             )}
           </Card>
         </div>
+
+        <DocumentStatDialog
+          open={statDialogOpen}
+          onOpenChange={setStatDialogOpen}
+          documents={documents}
+          initialStatusFilter={statDialogFilter}
+        />
       </div>
     </RequireAccess>
   );

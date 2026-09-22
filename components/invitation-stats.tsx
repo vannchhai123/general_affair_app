@@ -1,6 +1,6 @@
 'use client';
 
-import { CalendarRange, CircleCheckBig, CircleDashed, CircleX } from 'lucide-react';
+import { ArrowUpRight, CalendarRange, CircleCheckBig, CircleDashed, CircleX } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { CardNumber } from '@/components/ui/card-number';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -12,6 +12,7 @@ interface InvitationStatsProps {
   isLoading: boolean;
   selectedStatus?: string;
   onSelectStatus?: (status: string) => void;
+  onCardClick?: (status: string) => void;
 }
 
 export function InvitationStats({
@@ -19,106 +20,137 @@ export function InvitationStats({
   isLoading,
   selectedStatus = 'all',
   onSelectStatus,
+  onCardClick,
 }: InvitationStatsProps) {
   const total = invitations.length;
   const pending = invitations.filter((inv) => inv.status === 'pending').length;
   const accepted = invitations.filter((inv) => inv.status === 'accepted').length;
   const rejected = invitations.filter((inv) => inv.status === 'rejected').length;
 
-  const pendingPct = total > 0 ? Math.round((pending / total) * 100) : 0;
-  const acceptedPct = total > 0 ? Math.round((accepted / total) * 100) : 0;
-  const rejectedPct = total > 0 ? Math.round((rejected / total) * 100) : 0;
-
   const stats = [
     {
       key: 'all',
-      label: 'លិខិតអញ្ជើញសរុប',
+      label: 'លិខិតសរុប',
       count: total,
-      pct: `${total} លិខិត`,
+      helper: 'លិខិតអញ្ជើញទាំងអស់',
       icon: CalendarRange,
-      iconBg: 'bg-indigo-50 text-indigo-600',
-      activeClass: 'ring-2 ring-indigo-500 border-indigo-200 bg-indigo-50/20',
-      pillBg: 'bg-slate-100 text-slate-600',
+      color: 'text-slate-900',
+      iconBg: 'bg-slate-100 text-slate-700',
+      activeBorder: 'ring-2 ring-indigo-500 border-indigo-200',
     },
     {
       key: 'pending',
       label: 'កំពុងរង់ចាំ',
       count: pending,
-      pct: `${pendingPct}%`,
+      helper: 'រង់ចាំការឆ្លើយតប',
       icon: CircleDashed,
-      iconBg: 'bg-amber-50 text-amber-600',
-      activeClass: 'ring-2 ring-amber-500 border-amber-200 bg-amber-50/20',
-      pillBg: 'bg-amber-50 text-amber-700',
+      color: 'text-amber-700',
+      iconBg: 'bg-amber-50 text-amber-700',
+      activeBorder: 'ring-2 ring-amber-500 border-amber-200',
     },
     {
       key: 'accepted',
       label: 'បានទទួលយក',
       count: accepted,
-      pct: `${acceptedPct}%`,
+      helper: 'បានយល់ព្រមចូលរួម',
       icon: CircleCheckBig,
-      iconBg: 'bg-emerald-50 text-emerald-600',
-      activeClass: 'ring-2 ring-emerald-500 border-emerald-200 bg-emerald-50/20',
-      pillBg: 'bg-emerald-50 text-emerald-700',
+      color: 'text-emerald-700',
+      iconBg: 'bg-emerald-50 text-emerald-700',
+      activeBorder: 'ring-2 ring-emerald-500 border-emerald-200',
     },
     {
       key: 'rejected',
       label: 'បានបដិសេធ',
       count: rejected,
-      pct: `${rejectedPct}%`,
+      helper: 'មិនអាចចូលរួមបាន',
       icon: CircleX,
-      iconBg: 'bg-rose-50 text-rose-600',
-      activeClass: 'ring-2 ring-rose-500 border-rose-200 bg-rose-50/20',
-      pillBg: 'bg-rose-50 text-rose-700',
+      color: 'text-red-700',
+      iconBg: 'bg-red-50 text-red-700',
+      activeBorder: 'ring-2 ring-rose-500 border-rose-200',
     },
   ];
 
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        {stats.map((item) => (
+          <Card
+            key={item.key}
+            className="gap-4 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm"
+          >
+            <CardContent className="p-4">
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-12" />
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  const isClickable = Boolean(onCardClick || onSelectStatus);
+
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
       {stats.map((item) => {
         const isSelected = selectedStatus === item.key;
         const Icon = item.icon;
 
+        const handleClick = () => {
+          onSelectStatus?.(item.key);
+          onCardClick?.(item.key);
+        };
+
         return (
           <Card
             key={item.key}
-            onClick={() => onSelectStatus?.(item.key)}
+            role={isClickable ? 'button' : undefined}
+            tabIndex={isClickable ? 0 : undefined}
+            onClick={handleClick}
+            onKeyDown={(e) => {
+              if (isClickable && (e.key === 'Enter' || e.key === ' ')) {
+                e.preventDefault();
+                handleClick();
+              }
+            }}
             className={cn(
-              'group relative overflow-hidden rounded-xl border border-slate-200 bg-white transition-all duration-150 cursor-pointer shadow-xs hover:border-slate-300 hover:shadow-sm',
-              isSelected ? item.activeClass : 'hover:bg-slate-50/50',
+              'group relative gap-0 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-all duration-200',
+              isClickable
+                ? 'cursor-pointer hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md active:scale-[0.99] select-none'
+                : 'hover:shadow-md hover:border-slate-300',
+              isSelected && item.activeBorder,
             )}
           >
-            <CardContent className="p-3.5 sm:p-4">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-md font-bold text-slate-500 line-clamp-1">{item.label}</span>
-                <div
-                  className={cn(
-                    'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-transform group-hover:scale-105',
-                    item.iconBg,
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                </div>
-              </div>
-
-              <div className="mt-2 flex items-baseline justify-between gap-2">
-                {isLoading ? (
-                  <Skeleton className="h-7 w-12" />
-                ) : (
+            <CardContent className="p-4 flex flex-col justify-between h-full">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="font-khmer-moul-light text-[11px] text-muted-foreground">
+                    {item.label}
+                  </p>
                   <CardNumber
                     value={item.count}
-                    className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900"
+                    className={`mt-2 block text-2xl font-semibold tracking-tight ${item.color}`}
                   />
-                )}
-
-                <span
-                  className={cn(
-                    'rounded-md px-1.5 py-0.5 text-[11px] font-medium tracking-tight',
-                    item.pillBg,
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {isClickable && (
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-slate-400">
+                      <ArrowUpRight className="h-3.5 w-3.5" />
+                    </div>
                   )}
-                >
-                  {item.pct}
-                </span>
+                  <div className={`rounded-xl p-2.5 ${item.iconBg}`}>
+                    <Icon className="h-4.5 w-4.5" />
+                  </div>
+                </div>
               </div>
+              {item.helper && (
+                <p className="mt-2 text-[11px] text-muted-foreground truncate font-medium">
+                  {item.helper}
+                </p>
+              )}
             </CardContent>
           </Card>
         );

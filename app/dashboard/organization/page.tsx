@@ -3,6 +3,7 @@
 import { useMemo, useState, type ElementType } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import {
+  ArrowUpRight,
   BriefcaseBusiness,
   Building2,
   CheckCircle2,
@@ -69,6 +70,11 @@ import {
   useUpdatePosition,
   usePositions,
 } from '@/hooks/organization';
+import { useOfficers } from '@/hooks/officers/use-officers';
+import {
+  OrganizationStatDialog,
+  type OrganizationTabType,
+} from '@/components/organization/organization-stat-dialog';
 import type {
   Department,
   DepartmentField,
@@ -132,22 +138,64 @@ function MetricCard({
   value,
   description,
   icon: Icon,
+  color = 'text-slate-900',
+  iconBg = 'bg-slate-100 text-slate-700',
+  onClick,
+  isSelected,
 }: {
   title: string;
   value: number;
   description: string;
   icon: ElementType;
+  color?: string;
+  iconBg?: string;
+  onClick?: () => void;
+  isSelected?: boolean;
 }) {
+  const isClickable = Boolean(onClick);
+
   return (
-    <Card className="gap-0 rounded-lg shadow-none">
-      <CardContent className="flex items-start justify-between gap-4 p-4">
-        <div>
-          <p className="text-xs font-medium text-muted-foreground font-khmer-moul-light">{title}</p>
-          <CardNumber value={value} className="mt-2 block text-2xl font-semibold" />
+    <Card
+      role={isClickable ? 'button' : undefined}
+      tabIndex={isClickable ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (isClickable && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          onClick?.();
+        }
+      }}
+      className={`group relative gap-0 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-all duration-200 ${
+        isClickable
+          ? 'cursor-pointer hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md active:scale-[0.99] select-none'
+          : 'hover:shadow-md hover:border-slate-300'
+      } ${isSelected ? 'ring-2 ring-primary/20 border-primary' : ''}`}
+    >
+      <CardContent className="p-4 flex flex-col justify-between h-full">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="font-khmer-moul-light text-[11px] text-muted-foreground">{title}</p>
+            <CardNumber
+              value={value}
+              className={`mt-2 block text-2xl font-semibold tracking-tight ${color}`}
+            />
+          </div>
+          <div className="flex items-center gap-1.5">
+            {isClickable && (
+              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-slate-400">
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </div>
+            )}
+            <div className={`rounded-xl p-2.5 ${iconBg}`}>
+              <Icon className="h-4.5 w-4.5" />
+            </div>
+          </div>
         </div>
-        <div className="rounded-md bg-slate-100 p-2.5 text-slate-700">
-          <Icon className="h-5 w-5" />
-        </div>
+        {description && (
+          <p className="mt-2 text-[11px] text-muted-foreground truncate font-medium">
+            {description}
+          </p>
+        )}
       </CardContent>
     </Card>
   );
@@ -272,6 +320,24 @@ export default function OrganizationPage() {
     page: 0,
     size: 100,
   });
+
+  const allDepartmentsQuery = useDepartments({
+    page: 0,
+    size: 500,
+  });
+
+  const allPositionsQuery = usePositions({
+    page: 0,
+    size: 500,
+  });
+
+  const { officers = [] } = useOfficers({
+    page: 1,
+    pageSize: 1000,
+  });
+
+  const [statDialogOpen, setStatDialogOpen] = useState(false);
+  const [statDialogTab, setStatDialogTab] = useState<OrganizationTabType>('departments');
 
   const createDepartment = useCreateDepartment();
   const updateDepartment = useUpdateDepartment();
@@ -479,18 +545,36 @@ export default function OrganizationPage() {
           value={activeDepartmentCount}
           description={`សរុប ${departmentQuery.total} ការិយាល័យពី API`}
           icon={Building2}
+          color="text-slate-900"
+          iconBg="bg-slate-100 text-slate-700"
+          onClick={() => {
+            setStatDialogTab('departments');
+            setStatDialogOpen(true);
+          }}
         />
         <MetricCard
           title="តួនាទីសកម្ម"
           value={activePositionCount}
           description={`សរុប ${positionQuery.total} តួនាទីពី API`}
           icon={BriefcaseBusiness}
+          color="text-blue-700"
+          iconBg="bg-blue-50 text-blue-700"
+          onClick={() => {
+            setStatDialogTab('positions');
+            setStatDialogOpen(true);
+          }}
         />
         <MetricCard
           title="មន្ត្រីដែលបានចាត់តាំង"
           value={visibleOfficerCount}
           description="គណនាពីលទ្ធផលការិយាល័យបច្ចុប្បន្ន"
           icon={Users}
+          color="text-emerald-700"
+          iconBg="bg-emerald-50 text-emerald-700"
+          onClick={() => {
+            setStatDialogTab('officers');
+            setStatDialogOpen(true);
+          }}
         />
       </div>
 
@@ -1004,6 +1088,17 @@ export default function OrganizationPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <OrganizationStatDialog
+        open={statDialogOpen}
+        onOpenChange={setStatDialogOpen}
+        departments={
+          allDepartmentsQuery.departments.length > 0 ? allDepartmentsQuery.departments : departments
+        }
+        positions={allPositionsQuery.positions.length > 0 ? allPositionsQuery.positions : positions}
+        officers={officers}
+        initialTab={statDialogTab}
+      />
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>

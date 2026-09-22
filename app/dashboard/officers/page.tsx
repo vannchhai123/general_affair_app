@@ -11,7 +11,9 @@ import {
   OfficersDirectoryCard,
   OfficersPageHeader,
   OfficersSummaryCards,
+  type OfficerStatFilterKey,
 } from '@/components/officers';
+import { StatCardDetailDialog } from '@/components/dashboard/stat-card-detail-dialog';
 import {
   useCreateOfficer,
   useUpdateOfficer,
@@ -39,8 +41,10 @@ export default function OfficersPage() {
   const [search, setSearch] = useState('');
   const [department, setDepartment] = useState('all');
   const [positionFilter, setPositionFilter] = useState('all');
-  const [status, setStatus] = useState('all');
+  const [officerType, setOfficerType] = useState('all');
   const [page, setPage] = useState(1);
+  const [isStatModalOpen, setIsStatModalOpen] = useState(false);
+  const [selectedStatFilter, setSelectedStatFilter] = useState<OfficerStatFilterKey>('all');
 
   const { data: stats, isLoading: statsLoading } = useOfficerStats();
   const { departments = [] } = useDepartments({ page: 0, size: 100 });
@@ -87,12 +91,41 @@ export default function OfficersPage() {
           officer.department === department ||
           officer.office === department;
         const matchesPosition = positionFilter === 'all' || officer.position === positionFilter;
-        const matchesStatus = status === 'all' || normalizedStatus === status;
 
-        return matchesSearch && matchesDepartment && matchesPosition && matchesStatus;
+        const matchesOfficerType =
+          officerType === 'all' ||
+          (() => {
+            const rawType = (officer.contract_type || '').toUpperCase().trim();
+            if (officerType === 'FULL_TIME') {
+              return (
+                !rawType ||
+                rawType === 'FULL_TIME' ||
+                rawType === 'មន្រ្តីក្របខណ្ធ' ||
+                rawType === 'មន្ត្រីក្របខ័ណ្ឌ'
+              );
+            }
+            if (officerType === 'CONTRACT') {
+              return (
+                rawType === 'CONTRACT' ||
+                rawType === 'មន្រ្តីកិច្ចសន្យា' ||
+                rawType === 'កិច្ចសន្យា'
+              );
+            }
+            if (officerType === 'PART_TIME') {
+              return rawType === 'PART_TIME' || rawType === 'ក្រៅម៉ោង';
+            }
+            if (officerType === 'INTERNSHIP') {
+              return (
+                rawType === 'INTERNSHIP' || rawType === 'កម្មសិក្សា' || rawType === 'កម្មសិក្សាការី'
+              );
+            }
+            return rawType === officerType.toUpperCase();
+          })();
+
+        return matchesSearch && matchesDepartment && matchesPosition && matchesOfficerType;
       })
       .sort(compareOfficerPositions);
-  }, [department, officers, positionFilter, search, status]);
+  }, [department, officerType, officers, positionFilter, search]);
   const pagination = getOfficerPagination({
     page,
     pageSize: OFFICERS_PAGE_SIZE,
@@ -231,7 +264,14 @@ export default function OfficersPage() {
           onAdd={canCreate ? handleAdd : undefined}
         />
 
-        <OfficersSummaryCards stats={stats} isLoading={statsLoading || !stats} />
+        <OfficersSummaryCards
+          stats={stats}
+          isLoading={statsLoading || !stats}
+          onCardClick={(filter) => {
+            setSelectedStatFilter(filter);
+            setIsStatModalOpen(true);
+          }}
+        />
 
         <div className="flex flex-col gap-5">
           <OfficersAnalyticsCard
@@ -249,7 +289,7 @@ export default function OfficersPage() {
             search={search}
             department={department}
             position={positionFilter}
-            status={status}
+            officerType={officerType}
             departments={departments}
             positions={positions}
             currentPage={pagination.currentPage}
@@ -268,8 +308,8 @@ export default function OfficersPage() {
               setPositionFilter(value);
               resetPage();
             }}
-            onStatusChange={(value) => {
-              setStatus(value);
+            onOfficerTypeChange={(value) => {
+              setOfficerType(value);
               resetPage();
             }}
             onPageChange={setPage}
@@ -278,6 +318,15 @@ export default function OfficersPage() {
             onUploadImage={canUploadImage ? handleUploadImage : undefined}
           />
         </div>
+
+        {/* Modal Dialog for Officer Stat Card Details */}
+        <StatCardDetailDialog
+          type="officers"
+          open={isStatModalOpen}
+          onOpenChange={setIsStatModalOpen}
+          officers={officers}
+          initialOfficerFilter={selectedStatFilter}
+        />
       </div>
     </RequireAccess>
   );

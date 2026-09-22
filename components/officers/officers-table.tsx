@@ -10,7 +10,7 @@ import {
 } from '../ui/dropdown-menu';
 import { Skeleton } from '../ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
-import { StatusBadge } from './status-badge';
+import { OfficerTypeBadge } from './status-badge';
 
 // Helper function to truncate long text
 const truncateText = (text: string, maxLength: number = 25) => {
@@ -133,7 +133,7 @@ export function OfficersTable({
             <TableHead className="hidden px-4 py-2 lg:table-cell text-blue-900 max-w-[180px] sm:max-w-[220px]">
               ការិយាល័យ
             </TableHead>
-            <TableHead className="px-4 py-2 text-blue-900">ស្ថានភាព</TableHead>
+            <TableHead className="px-4 py-2 text-blue-900">ប្រភេទមន្ត្រី</TableHead>
             <TableHead className="w-12 px-4 py-2 text-center text-blue-900">សកម្មភាព</TableHead>
           </TableRow>
         </TableHeader>
@@ -177,7 +177,7 @@ export function OfficersTable({
                   </div>
                 </TableCell>
                 <TableCell className="px-4 py-2">
-                  <StatusBadge status={officer.status} />
+                  <OfficerTypeBadge contractType={officer.contract_type} />
                 </TableCell>
                 <TableCell className="px-4 py-2 text-center">
                   <DropdownMenu>

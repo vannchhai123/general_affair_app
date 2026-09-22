@@ -34,38 +34,39 @@ export function DashboardStatCard({
       tabIndex={isClickable && !href ? 0 : undefined}
       onClick={onClick}
       onKeyDown={(e) => {
-        if (onClick && (e.key === 'Enter' || e.key === ' ')) {
+        if (isClickable && (e.key === 'Enter' || e.key === ' ')) {
           e.preventDefault();
-          onClick();
+          onClick?.();
         }
       }}
-      className={`group relative h-full overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition-all duration-200 flex flex-col justify-between ${
+      className={`group relative gap-0 h-full overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-all duration-200 ${
         isClickable
           ? 'cursor-pointer hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md active:scale-[0.99] select-none'
           : 'hover:shadow-md hover:border-slate-300'
       }`}
     >
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-xs font-medium text-slate-600 truncate leading-relaxed font-khmer-moul-light">
-          {title}
-        </span>
-        <div className="flex items-center gap-1.5">
-          {isClickable && (
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-slate-400">
-              <ArrowUpRight className="h-3.5 w-3.5" />
+      <div className="p-4 flex flex-col justify-between h-full">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="font-khmer-moul-light text-[11px] text-muted-foreground">{title}</p>
+            <CardNumber
+              value={value}
+              className={`mt-2 block text-2xl font-semibold tracking-tight ${tone.value || 'text-slate-900'}`}
+            />
+          </div>
+          <div className="flex items-center gap-1.5">
+            {isClickable && (
+              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-slate-400">
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </div>
+            )}
+            <div className={`rounded-xl p-2.5 ${tone.chip}`}>
+              <Icon className={`h-4.5 w-4.5 ${tone.icon}`} />
             </div>
-          )}
-          <div
-            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border ${tone.chip}`}
-          >
-            <Icon className={`h-4 w-4 ${tone.icon}`} />
           </div>
         </div>
-      </div>
-      <div className="mt-2.5 flex items-baseline justify-between gap-2">
-        <CardNumber value={value} className="text-2xl font-bold tracking-tight text-slate-900" />
         {subtext && (
-          <span className="text-[11px] text-muted-foreground truncate font-medium">{subtext}</span>
+          <p className="mt-2 text-[11px] text-muted-foreground truncate font-medium">{subtext}</p>
         )}
       </div>
     </Card>

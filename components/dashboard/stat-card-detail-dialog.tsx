@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import {
@@ -50,6 +50,17 @@ export type StatModalType =
   | 'qr_sessions'
   | null;
 
+export type OfficerFilterType = 'all' | 'active' | 'on_leave' | 'inactive';
+export type LeaveFilterType =
+  | 'all'
+  | 'pending'
+  | 'approved'
+  | 'rejected'
+  | 'Pending'
+  | 'Approved'
+  | 'Rejected';
+export type AttendanceFilterType = 'all' | 'on_time' | 'late';
+
 interface StatCardDetailDialogProps {
   type: StatModalType;
   open: boolean;
@@ -62,6 +73,9 @@ interface StatCardDetailDialogProps {
   todayPresentRecords?: Attendance[];
   todayAbsentOfficers?: (AbsentOfficer | Officer)[];
   todayApprovedLeaves?: LeaveRequest[];
+  initialOfficerFilter?: OfficerFilterType;
+  initialLeaveFilter?: LeaveFilterType;
+  initialAttendanceFilter?: AttendanceFilterType;
 }
 
 export function StatCardDetailDialog({
@@ -76,15 +90,34 @@ export function StatCardDetailDialog({
   todayPresentRecords,
   todayAbsentOfficers,
   todayApprovedLeaves,
+  initialOfficerFilter = 'all',
+  initialLeaveFilter = 'all',
+  initialAttendanceFilter = 'all',
 }: StatCardDetailDialogProps) {
   const router = useRouter();
   const [search, setSearch] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all');
+
+  const getInitialFilter = () => {
+    if (type === 'officers') return initialOfficerFilter || 'all';
+    if (type === 'leaves') return initialLeaveFilter || 'all';
+    if (type === 'present' || type === 'attendance') return initialAttendanceFilter || 'all';
+    return 'all';
+  };
+
+  const [activeFilter, setActiveFilter] = useState<string>(getInitialFilter);
+
+  // Sync initial filter when modal opens
+  useEffect(() => {
+    if (open) {
+      setActiveFilter(getInitialFilter());
+      setSearch('');
+    }
+  }, [open, type, initialOfficerFilter, initialLeaveFilter, initialAttendanceFilter]);
 
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
       setSearch('');
-      setActiveFilter('all');
+      setActiveFilter(getInitialFilter());
     }
     onOpenChange(isOpen);
   };
@@ -101,7 +134,8 @@ export function StatCardDetailDialog({
         (activeFilter === 'active' && (status === 'active' || status === 'សកម្ម')) ||
         (activeFilter === 'on_leave' &&
           ['on_leave', 'onleave', 'leave', 'សុំច្បាប់'].includes(status)) ||
-        (activeFilter === 'inactive' && (status === 'inactive' || status === 'អសកម្ម'));
+        (activeFilter === 'inactive' &&
+          (status === 'inactive' || status === 'deleted' || status === 'អសកម្ម'));
 
       if (!matchesFilter) return false;
       if (!query) return true;
@@ -126,37 +160,44 @@ export function StatCardDetailDialog({
     });
   }, [type, officers, search, activeFilter]);
 
-  // 2. Filter Leaves (On Leave Today - strictly matching the count in the card)
-  const activeTodayLeaves = useMemo(() => {
+  // 2. Filter Leaves
+  const leavesToUse = useMemo(() => {
+    if (leaveRequests && leaveRequests.length > 0) {
+      return leaveRequests;
+    }
     if (todayApprovedLeaves && todayApprovedLeaves.length > 0) {
       return todayApprovedLeaves;
     }
+    return [];
+  }, [leaveRequests, todayApprovedLeaves]);
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  const pendingLeavesCount = useMemo(() => {
+    return leavesToUse.filter((l) => (l.status || '').toLowerCase().trim() === 'pending').length;
+  }, [leavesToUse]);
 
-    return leaveRequests.filter((leave) => {
-      const status = (leave.status || '').toLowerCase().trim();
-      if (status === 'rejected') return false;
+  const approvedLeavesCount = useMemo(() => {
+    return leavesToUse.filter((l) => (l.status || '').toLowerCase().trim() === 'approved').length;
+  }, [leavesToUse]);
 
-      if (leave.start_date && leave.end_date) {
-        const start = new Date(leave.start_date);
-        start.setHours(0, 0, 0, 0);
-        const end = new Date(leave.end_date);
-        end.setHours(23, 59, 59, 999);
-        if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
-          return today >= start && today <= end;
-        }
-      }
-      return status === 'approved';
-    });
-  }, [todayApprovedLeaves, leaveRequests]);
+  const rejectedLeavesCount = useMemo(() => {
+    return leavesToUse.filter((l) => (l.status || '').toLowerCase().trim() === 'rejected').length;
+  }, [leavesToUse]);
 
   const filteredLeaves = useMemo(() => {
     if (type !== 'leaves') return [];
     const query = search.trim().toLowerCase();
 
-    return activeTodayLeaves.filter((leave) => {
+    return leavesToUse.filter((leave) => {
+      const status = (leave.status || '').toLowerCase().trim();
+      const normFilter = activeFilter.toLowerCase().trim();
+
+      const matchesFilter =
+        normFilter === 'all' ||
+        (normFilter === 'pending' && status === 'pending') ||
+        (normFilter === 'approved' && status === 'approved') ||
+        (normFilter === 'rejected' && status === 'rejected');
+
+      if (!matchesFilter) return false;
       if (!query) return true;
 
       const searchableText = [
@@ -172,7 +213,7 @@ export function StatCardDetailDialog({
 
       return searchableText.includes(query);
     });
-  }, [type, activeTodayLeaves, search]);
+  }, [type, leavesToUse, search, activeFilter]);
 
   function formatLateDuration(totalMinutes: number | null | undefined): string {
     if (typeof totalMinutes !== 'number' || Number.isNaN(totalMinutes) || totalMinutes <= 0) {
@@ -374,12 +415,17 @@ export function StatCardDetailDialog({
 
   if (!type) return null;
 
-  const activeOfficersCount = officers.filter(
-    (o) => (o.status || '').toLowerCase() === 'active',
-  ).length;
+  const activeOfficersCount = officers.filter((o) => {
+    const s = (o.status || '').toLowerCase().trim();
+    return s === 'active' || s === 'សកម្ម';
+  }).length;
   const leaveOfficersCount = officers.filter((o) =>
-    ['on_leave', 'onleave', 'leave'].includes((o.status || '').toLowerCase()),
+    ['on_leave', 'onleave', 'leave', 'សុំច្បាប់'].includes((o.status || '').toLowerCase().trim()),
   ).length;
+  const inactiveOfficersCount = officers.filter((o) => {
+    const s = (o.status || '').toLowerCase().trim();
+    return s === 'inactive' || s === 'deleted' || s === 'អសកម្ម';
+  }).length;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -413,22 +459,20 @@ export function StatCardDetailDialog({
                 <div className="flex items-center gap-2">
                   <DialogTitle className="text-base font-bold text-slate-900 font-khmer-moul-light">
                     {type === 'officers' && 'បញ្ជីឈ្មោះមន្ត្រី'}
-                    {type === 'leaves' && 'មន្ត្រីសុំច្បាប់សម្រាកថ្ងៃនេះ'}
+                    {type === 'leaves' && 'បញ្ជីសំណើច្បាប់ឈប់សម្រាក'}
                     {(type === 'present' || type === 'attendance') && 'វត្តមាន'}
                     {type === 'absent' && 'អវត្តមាន'}
                   </DialogTitle>
                   <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
-                    {type === 'officers' && `${officers.length || 0} នាក់`}
-                    {type === 'leaves' && `${filteredLeaves.length} នាក់`}
-                    {/* {(type === 'present' || type === 'attendance') &&
-                      `${filteredPresent.length} នាក់`}
-                    {type === 'absent' && `${filteredAbsent.length} នាក់`} */}
+                    {type === 'officers' && `${filteredOfficers.length} នាក់`}
+                    {type === 'leaves' && `${filteredLeaves.length} សំណើ`}
                   </span>
                 </div>
                 <DialogDescription className="text-xs text-slate-500 mt-0.5">
                   {type === 'officers' &&
-                    `${activeOfficersCount} មន្ត្រីសកម្ម · ${leaveOfficersCount} សុំច្បាប់`}
-                  {type === 'leaves'}
+                    `${activeOfficersCount} មន្ត្រីសកម្ម · ${leaveOfficersCount} សុំច្បាប់ · ${inactiveOfficersCount} ផ្អាកបណ្តោះអាសន្ន`}
+                  {type === 'leaves' &&
+                    `${pendingLeavesCount} រង់ចាំ · ${approvedLeavesCount} បានអនុម័ត · ${rejectedLeavesCount} បដិសេធ`}
                   {(type === 'present' || type === 'attendance') &&
                     `កំណត់ត្រាមន្ត្រីដែលបានចូលរួមបំពេញការងារប្រចាំថ្ងៃទី ${format(new Date(), 'dd/MM/yyyy')}`}
                   {type === 'absent'}
@@ -493,16 +537,67 @@ export function StatCardDetailDialog({
                   >
                     សុំច្បាប់ ({leaveOfficersCount})
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveFilter('inactive')}
+                    className={`rounded-xl px-3 py-1.5 text-xs font-medium transition-colors ${
+                      activeFilter === 'inactive'
+                        ? 'bg-rose-600 text-white shadow-sm'
+                        : 'bg-rose-50 text-rose-700 hover:bg-rose-100'
+                    }`}
+                  >
+                    ផ្អាកបណ្តោះអាសន្ន ({inactiveOfficersCount})
+                  </button>
                 </>
               )}
 
               {type === 'leaves' && (
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 rounded-xl bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-700">
-                    <span className="h-2 w-2 rounded-full bg-violet-500 animate-pulse" />
-                    កំពុងឈប់សម្រាកថ្ងៃនេះ
-                  </span>
-                </div>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setActiveFilter('all')}
+                    className={`rounded-xl px-3 py-1.5 text-xs font-medium transition-colors ${
+                      activeFilter.toLowerCase() === 'all'
+                        ? 'bg-slate-900 text-white shadow-sm'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    ទាំងអស់ ({leavesToUse.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveFilter('pending')}
+                    className={`rounded-xl px-3 py-1.5 text-xs font-medium transition-colors ${
+                      activeFilter.toLowerCase() === 'pending'
+                        ? 'bg-amber-600 text-white shadow-sm'
+                        : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+                    }`}
+                  >
+                    រង់ចាំ ({pendingLeavesCount})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveFilter('approved')}
+                    className={`rounded-xl px-3 py-1.5 text-xs font-medium transition-colors ${
+                      activeFilter.toLowerCase() === 'approved'
+                        ? 'bg-emerald-600 text-white shadow-sm'
+                        : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                    }`}
+                  >
+                    បានអនុម័ត ({approvedLeavesCount})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveFilter('rejected')}
+                    className={`rounded-xl px-3 py-1.5 text-xs font-medium transition-colors ${
+                      activeFilter.toLowerCase() === 'rejected'
+                        ? 'bg-rose-600 text-white shadow-sm'
+                        : 'bg-rose-50 text-rose-700 hover:bg-rose-100'
+                    }`}
+                  >
+                    បដិសេធ ({rejectedLeavesCount})
+                  </button>
+                </>
               )}
 
               {(type === 'present' || type === 'attendance') && (

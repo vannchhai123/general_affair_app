@@ -36,6 +36,7 @@ import {
 import { InvitationDetail } from '@/components/invitation-detail';
 import { InvitationFilters } from '@/components/invitation-filters';
 import { InvitationForm } from '@/components/invitation-form';
+import { InvitationStatDialog } from '@/components/invitation-stat-dialog';
 import { InvitationStats } from '@/components/invitation-stats';
 import { InvitationTable } from '@/components/invitation-table';
 import {
@@ -88,6 +89,8 @@ export default function InvitationsPage() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [statDialogOpen, setStatDialogOpen] = useState(false);
+  const [statDialogStatus, setStatDialogStatus] = useState('all');
   const [selectedInvitation, setSelectedInvitation] = useState<Invitation | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Invitation | null>(null);
   const [statusValue, setStatusValue] = useState<Invitation['status']>('pending');
@@ -323,6 +326,10 @@ export default function InvitationsPage() {
           isLoading={isLoading}
           selectedStatus={statusFilter}
           onSelectStatus={setStatusFilter}
+          onCardClick={(status) => {
+            setStatDialogStatus(status);
+            setStatDialogOpen(true);
+          }}
         />
 
         <InvitationFilters
@@ -352,6 +359,14 @@ export default function InvitationsPage() {
           onAssign={openAssignDialog}
           onChangeStatus={openStatusDialog}
           onDelete={setDeleteTarget}
+        />
+
+        <InvitationStatDialog
+          open={statDialogOpen}
+          onOpenChange={setStatDialogOpen}
+          invitations={invitations}
+          initialStatusFilter={statDialogStatus}
+          onViewInvitation={openDetail}
         />
 
         <InvitationDetail

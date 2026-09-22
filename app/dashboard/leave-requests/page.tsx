@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import {
   AlertCircle,
+  ArrowUpRight,
   Calendar,
   Check,
   Clock,
@@ -23,6 +24,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardNumber } from '@/components/ui/card-number';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -42,6 +44,10 @@ import {
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CreateLeaveRequestDialog } from '@/components/leave-requests/create-leave-request-dialog';
 import { LeaveRequestDetailsDialog } from '@/components/leave-requests/leave-request-details-dialog';
+import {
+  StatCardDetailDialog,
+  type LeaveFilterType,
+} from '@/components/dashboard/stat-card-detail-dialog';
 import { useLeaveRequests } from '@/hooks/leave-requests/use-leave-requests';
 import { useOfficers } from '@/hooks/officers/use-officers';
 import { getOfficerImageUrl, getOfficerInitials } from '@/lib/image-utils';
@@ -125,6 +131,8 @@ export default function LeaveRequestsPage() {
   const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [statModalOpen, setStatModalOpen] = useState(false);
+  const [selectedLeaveFilter, setSelectedLeaveFilter] = useState<LeaveFilterType>('all');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -230,54 +238,102 @@ export default function LeaveRequestsPage() {
         )}
 
         {/* Summary Cards */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Card className="rounded-2xl border-slate-200 shadow-sm bg-white">
-            <CardContent className="p-5 flex items-center justify-between">
-              <div>
-                <p className="text-md font-bold text-slate-500">សំណើសរុប</p>
-                <h3 className="text-2xl font-bold text-slate-900 mt-1">{stats.total}</h3>
-              </div>
-              <div className="h-12 w-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
-                <FileClock className="h-6 w-6" />
-              </div>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+          {[
+            {
+              key: 'all',
+              label: 'សំណើសរុប',
+              count: stats.total,
+              helper: 'សំណើសុំច្បាប់ទាំងអស់',
+              color: 'text-slate-900',
+              iconBg: 'bg-slate-100 text-slate-700',
+              activeBorder: 'ring-2 ring-blue-500 border-blue-200',
+              icon: FileClock,
+            },
+            {
+              key: 'Pending',
+              label: 'រង់ចាំការអនុម័ត',
+              count: stats.pending,
+              helper: 'រង់ចាំប្រធានពិនិត្យ',
+              color: 'text-amber-700',
+              iconBg: 'bg-amber-50 text-amber-700',
+              activeBorder: 'ring-2 ring-amber-500 border-amber-200',
+              icon: Clock,
+            },
+            {
+              key: 'Approved',
+              label: 'បានអនុម័ត',
+              count: stats.approved,
+              helper: 'បានយល់ព្រមច្បាប់',
+              color: 'text-emerald-700',
+              iconBg: 'bg-emerald-50 text-emerald-700',
+              activeBorder: 'ring-2 ring-emerald-500 border-emerald-200',
+              icon: FileCheck2,
+            },
+            {
+              key: 'Rejected',
+              label: 'បានបដិសេធ',
+              count: stats.rejected,
+              helper: 'មិនអនុញ្ញាតច្បាប់',
+              color: 'text-red-700',
+              iconBg: 'bg-red-50 text-red-700',
+              activeBorder: 'ring-2 ring-red-500 border-red-200',
+              icon: FileX2,
+            },
+          ].map((item) => {
+            const isSelected = statusFilter === item.key;
+            const Icon = item.icon;
+            const handleClick = () => {
+              setStatusFilter(item.key);
+              setSelectedLeaveFilter(item.key as LeaveFilterType);
+              setStatModalOpen(true);
+            };
 
-          <Card className="rounded-2xl border-slate-200 shadow-sm bg-white">
-            <CardContent className="p-5 flex items-center justify-between">
-              <div>
-                <p className="text-md font-bold text-slate-500">រង់ចាំការអនុម័ត</p>
-                <h3 className="text-2xl font-bold text-amber-600 mt-1">{stats.pending}</h3>
-              </div>
-              <div className="h-12 w-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
-                <Clock className="h-6 w-6" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-2xl border-slate-200 shadow-sm bg-white">
-            <CardContent className="p-5 flex items-center justify-between">
-              <div>
-                <p className="text-md font-bold text-slate-500">បានអនុម័ត</p>
-                <h3 className="text-2xl font-bold text-emerald-600 mt-1">{stats.approved}</h3>
-              </div>
-              <div className="h-12 w-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
-                <FileCheck2 className="h-6 w-6" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-2xl border-slate-200 shadow-sm bg-white">
-            <CardContent className="p-5 flex items-center justify-between">
-              <div>
-                <p className="text-md font-bold text-slate-500">បានបដិសេធ</p>
-                <h3 className="text-2xl font-bold text-red-600 mt-1">{stats.rejected}</h3>
-              </div>
-              <div className="h-12 w-12 rounded-2xl bg-red-50 flex items-center justify-center text-red-600">
-                <FileX2 className="h-6 w-6" />
-              </div>
-            </CardContent>
-          </Card>
+            return (
+              <Card
+                key={item.key}
+                role="button"
+                tabIndex={0}
+                onClick={handleClick}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleClick();
+                  }
+                }}
+                className={`group relative gap-0 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-all duration-200 cursor-pointer hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md active:scale-[0.99] select-none ${
+                  isSelected ? item.activeBorder : ''
+                }`}
+              >
+                <CardContent className="p-4 flex flex-col justify-between h-full">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-khmer-moul-light text-[11px] text-muted-foreground">
+                        {item.label}
+                      </p>
+                      <CardNumber
+                        value={item.count}
+                        className={`mt-2 block text-2xl font-semibold tracking-tight ${item.color}`}
+                      />
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-slate-400">
+                        <ArrowUpRight className="h-3.5 w-3.5" />
+                      </div>
+                      <div className={`rounded-xl p-2.5 ${item.iconBg}`}>
+                        <Icon className="h-4.5 w-4.5" />
+                      </div>
+                    </div>
+                  </div>
+                  {item.helper && (
+                    <p className="mt-2 text-[11px] text-muted-foreground truncate font-medium">
+                      {item.helper}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {/* Main Table Card */}
@@ -535,6 +591,15 @@ export default function LeaveRequestsPage() {
           onApprove={canApprove ? (id) => handleUpdateStatus(id, 'Approved') : undefined}
           onReject={canApprove ? (id) => handleUpdateStatus(id, 'Rejected') : undefined}
           isUpdating={updateLeaveRequest.isPending}
+        />
+
+        {/* Modal Dialog for Leave Stat Card Details */}
+        <StatCardDetailDialog
+          type="leaves"
+          open={statModalOpen}
+          onOpenChange={setStatModalOpen}
+          leaveRequests={leaves}
+          initialLeaveFilter={selectedLeaveFilter}
         />
       </div>
     </RequireAccess>

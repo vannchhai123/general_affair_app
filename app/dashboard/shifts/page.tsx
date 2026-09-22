@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import {
+  ArrowUpRight,
   Clock3,
   Eye,
   Filter,
@@ -17,6 +18,7 @@ import {
   Trash2,
   Workflow,
 } from 'lucide-react';
+import { ShiftStatDialog } from '@/components/shifts/shift-stat-dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   AlertDialog,
@@ -288,36 +290,59 @@ export default function ShiftsPage() {
     setPendingAction(null);
   }
 
+  const [statDialogOpen, setStatDialogOpen] = useState(false);
+  const [statDialogFilter, setStatDialogFilter] = useState<'all' | 'active' | 'inactive'>('all');
+
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         <SummaryCard
           title="វេនសរុប"
           value={summary.total}
           helper="វេនដែលបានកំណត់ក្នុងប្រព័ន្ធ"
           icon={Workflow}
-          tone="bg-indigo-50 dark:bg-indigo-950/50 border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400"
+          color="text-slate-900"
+          tone="bg-slate-100 text-slate-700"
+          onClick={() => {
+            setStatDialogFilter('all');
+            setStatDialogOpen(true);
+          }}
         />
         <SummaryCard
           title="វេនសកម្ម"
           value={summary.active}
           helper="អាចប្រើសម្រាប់វត្តមាន"
           icon={Sparkles}
-          tone="bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400"
+          color="text-emerald-700"
+          tone="bg-emerald-50 text-emerald-700"
+          onClick={() => {
+            setStatDialogFilter('active');
+            setStatDialogOpen(true);
+          }}
         />
         <SummaryCard
           title="វេនមិនសកម្ម"
           value={summary.inactive}
           helper="ផ្អាកប្រើដោយមិនលុបប្រវត្តិ"
           icon={Power}
-          tone="bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400"
+          color="text-amber-700"
+          tone="bg-amber-50 text-amber-700"
+          onClick={() => {
+            setStatDialogFilter('inactive');
+            setStatDialogOpen(true);
+          }}
         />
         <SummaryCard
           title="ពេលអនុគ្រោះមធ្យម"
           value={summary.averageGrace}
           helper="រយៈពេលអត់ទោសយឺត"
           icon={TimerReset}
-          tone="bg-blue-50 dark:bg-blue-950/50 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400"
+          color="text-blue-700"
+          tone="bg-blue-50 text-blue-700"
+          onClick={() => {
+            setStatDialogFilter('all');
+            setStatDialogOpen(true);
+          }}
         />
       </div>
 
@@ -793,6 +818,17 @@ export default function ShiftsPage() {
         audit={auditQuery.data ?? []}
       />
 
+      <ShiftStatDialog
+        open={statDialogOpen}
+        onOpenChange={setStatDialogOpen}
+        shifts={shifts}
+        initialStatusFilter={statDialogFilter}
+        onViewShift={(shift) => {
+          setSelectedShiftId(shift.id);
+          setDetailsOpen(true);
+        }}
+      />
+
       <AlertDialog open={!!pendingAction} onOpenChange={(open) => !open && setPendingAction(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -820,28 +856,61 @@ function SummaryCard({
   value,
   helper,
   icon: Icon,
+  color = 'text-slate-900',
   tone,
+  onClick,
 }: {
   title: string;
   value: string | number;
   helper: string;
   icon: typeof Workflow;
+  color?: string;
   tone: string;
+  onClick?: () => void;
 }) {
+  const isClickable = Boolean(onClick);
+
   return (
-    <Card className="overflow-hidden rounded-2xl border border-border/80 bg-white dark:bg-card p-5 shadow-2xs transition-all hover:shadow-md hover:border-border flex flex-col justify-between group">
-      <div className="flex items-start justify-between gap-3">
-        <div className="space-y-1">
-          <p className="text-xs font-semibold text-muted-foreground">{title}</p>
-          <CardNumber value={value} className="text-3xl font-bold tracking-tight text-foreground" />
+    <Card
+      role={isClickable ? 'button' : undefined}
+      tabIndex={isClickable ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (isClickable && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          onClick?.();
+        }
+      }}
+      className={`group relative gap-0 overflow-hidden rounded-2xl border border-slate-200/80 bg-white dark:bg-card shadow-sm transition-all duration-200 ${
+        isClickable
+          ? 'cursor-pointer hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md active:scale-[0.99] select-none'
+          : 'hover:shadow-md hover:border-slate-300'
+      }`}
+    >
+      <CardContent className="p-4 flex flex-col justify-between h-full">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="font-khmer-moul-light text-[11px] text-muted-foreground">{title}</p>
+            <CardNumber
+              value={value}
+              className={`mt-2 block text-2xl font-semibold tracking-tight ${color}`}
+            />
+          </div>
+          <div className="flex items-center gap-1.5">
+            {isClickable && (
+              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-slate-400">
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </div>
+            )}
+            <div className={`rounded-xl p-2.5 ${tone}`}>
+              <Icon className="h-4.5 w-4.5" />
+            </div>
+          </div>
         </div>
-        <div
-          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border shadow-2xs transition-transform group-hover:scale-105 ${tone}`}
-        >
-          <Icon className="h-5 w-5" />
-        </div>
-      </div>
-      <p className="mt-3 text-xs text-muted-foreground/80 font-medium">{helper}</p>
+        {helper && (
+          <p className="mt-2 text-[11px] text-muted-foreground truncate font-medium">{helper}</p>
+        )}
+      </CardContent>
     </Card>
   );
 }
